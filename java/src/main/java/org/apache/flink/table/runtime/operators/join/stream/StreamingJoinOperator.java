@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 
+import org.apache.flink.runtime.state.StateSnapshotContext;
 import org.apache.flink.runtime.state.VoidNamespace;
 import org.apache.flink.runtime.state.VoidNamespaceSerializer;
 import org.apache.flink.streaming.api.operators.InternalTimer;
@@ -275,6 +276,18 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator impleme
             LOG.info("[FALCON] finish miniBatch process for StreamingJoinOperator.");
             triggerMiniBatchJoin();
         }
+    }
+
+    /**
+     * When StreamingJoinOperator begins to do snapshot, trigger miniBatch join
+     * @param context state snapshot context
+     */
+    @Override
+    public void snapshotState(StateSnapshotContext context) throws Exception {
+        if (enableMiniBatchJoin && !leftIsOuter && !rightIsOuter) {
+            triggerMiniBatchJoin();
+        }
+        super.snapshotState(context);
     }
 
     // ---------------------------------------------------------------------------------------
