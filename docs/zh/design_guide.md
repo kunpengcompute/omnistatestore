@@ -5,7 +5,7 @@
 ## OmniStateStore系统架构
 <font size=3>
 
-OmniStateStore北向对接Flink RocksDB State Backend接口层，南向对接RocksDB，通过在Flink侧进行轻量级修改，降低Flink对RocksDB的访问频次，提升有状态用例的端到端性能。<br>
+OmniStateStore北向对接Flink RocksDB State Backend接口层，南向对接RocksDB，通过在Flink侧进行轻量级修改，降低Flink对RocksDB的访问频次，同时降低状态压缩/解压缩开销，提升有状态用例的端到端性能。<br>
 OmniStateStore适用于Flink + RocksDB架构，作为Flink和RocksDB之间的中间层插件，适用于SQL或DataStream场景。系统架构图如下图所示：
 
 **图1** OmniStateStore系统架构图
@@ -101,6 +101,22 @@ Flink的状态计数操作需多次读写RocksDB，例如在nexmark0.2-Q9用例�
 Merge优化的原理图如下图所示。其主要原理是，使用rocksdb的merge接口替换状态更新的读写操作，将写入状态值修改为写入状态累加操作。通过这种方式，可以将一次状态读一次状态写缩减为一次状态写。当状态被第二次读时，或是触发compaction操作时，在后台触发状态的实际合并操作。<br>
 
 **图5** Merge读写优化算法原理示意图
+
+<a href="./figures/OmniStateStore的merge优化原理.png"><img src="./figures/OmniStateStore的merge优化原理.png" alt="filter原理图" width="450" /></a>
+</font>
+
+### LZ4软算压缩优化
+<font size=3>
+
+**问题<br>**
+Flink的状态写入RocksDB时，首先写入内存中的memTable，memTable写满后会写入磁盘的SST文件中进行持久化存储。磁盘中的SST文件以LSM Tree形式组织，上层的SST写满后，将触发compaction写入更高的层次中。在上述流程中，状态从memTable写入L0, 以及各层SST的compaction操作，均需要进行状态压缩操作。同理，从SST文件中读取状态原始数据时，需要进行状态解压缩操作。<br>
+原生Flink通常使用Snappy算法完成压缩和解压缩操作，在nexmark大状态用例中，压缩和解压缩操作通常是主要性能瓶颈，例如nexmark q9用例中，压缩和解压缩操作CPU占比高达20%+。
+
+**OmniStateStore的LZ4软算压缩优化原理<br>**
+LZ4软算压缩优化的原理图如下图所示。其主要原理是，将rocksdb L0/L1层使用的压缩算法替换为更高效的LZ4算法，在压缩率几乎无损的情况下提升状态压缩和解压缩效率。<br>
+需要注意的是，通常不建议将所有SST层级的压缩格式修改为LZ4，在超大数据量场景下，L6层的数据量可能达到TB级别，可能导致磁盘空间占用升高。
+
+**图6** LZ4软算压缩优化原理示意图
 
 <a href="./figures/OmniStateStore的merge优化原理.png"><img src="./figures/OmniStateStore的merge优化原理.png" alt="filter原理图" width="450" /></a>
 </font>

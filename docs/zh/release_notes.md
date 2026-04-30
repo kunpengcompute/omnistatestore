@@ -1,8 +1,6 @@
 # 版本说明书
 <font size=3> 提供OmniStateStore的版本信息和特性更新情况。</font>
 
-
-
 ## 版本配套说明
 ### 产品版本信息
 <font size=3>
@@ -154,6 +152,32 @@
 
 
 ## 版本更新情况说明
+## V1.3.0
+### 更新说明
+<font size=3> 当前版本旨在解决大数据场景下，状态压缩/解压缩CPU占比高的问题，降低状态compaction开销，提升Flink应用端到端吞吐。1.3.0版本基于1.2.0版本演进，主要新增特性如下：</font>
+
+### 新增特性
+<font size=3>
+
+- **LZ4软算压缩优化**：将RocksDB L0/L1层的压缩格式修改为LZ4，结合软算LZ4压缩算法优化，提升状态压缩/解压缩性能，提升应用端到端吞吐。<br>
+</font>
+
+### 修改特性
+<font size=3> 无 </font>
+
+### 删除特性
+<font size=3> 无 </font>
+
+### 已解决的问题
+<font size=3>
+
+- **hashMemTable在savepoint场景丢失状态的问题**：在为savepoint创建内存memTable的迭代器时，将读配置的total_order_seek配置为true，避免创建迭代器时丢失状态。<br>
+- **双流Join数据缓存算法在checkpoint场景丢失状态的问题**：在join算子触发checkpoint之前，处理数据缓冲区的数据，避免状态恢复后数据丢失。<br>
+</font>
+
+### 遗留问题
+<font size=3> 无 </font>
+
 ## V1.2.0
 ### 更新说明
 <font size=3> 当前版本旨在解决大数据场景下，针对大状态下IO性能较差的问题，优化Flink对RocksDB的使用效率，提升Flink的IO性能。1.2.0版本进行了架构调整，与1.1.0以及1.0.0相互独立，主要新增特性如下： </font>

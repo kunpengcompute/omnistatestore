@@ -118,6 +118,7 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA
 [FALCON] left-records is map, use range filter.
 [FALCON] <accState, VALUE> enable falcon cache.
 [FALCON] merge operation is used for left-records.
+[FALCON] enable lz4 compression for rocksdb level0 and level1.
 ```
 若成功匹配到相关日志信息，说明OmniStateStore已生效，任务性能已得到优化。
 </font>
