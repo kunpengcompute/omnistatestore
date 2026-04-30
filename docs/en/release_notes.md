@@ -1,0 +1,277 @@
+# Release Notes
+<font size=3>View OmniStateStore version information and feature updates.</font>
+
+## Version Mapping
+### Product Version
+<font size=3>
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: left;">Product Name</td>
+      <td style="text-align: left;">Kunpeng BoostKit</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Product Version</td>
+      <td style="text-align: left;">26.0.0</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Software Name and Version</td>
+      <td style="text-align: left;">OmniStateStore 1.2.0</td>
+    </tr>
+  </tbody>
+</table>
+</font>
+
+### Software Versions
+<font size=3>
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left;">Item</th>
+      <th style="text-align: left;">Version</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left;">OS</td>
+      <td style="text-align: left;">openEuler 22.03 LTS SP3</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">GCC</td>
+      <td style="text-align: left;">10.3.1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">JDK</td>
+      <td style="text-align: left;">BiSheng JDK 1.8.0_432</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Flink</td>
+      <td style="text-align: left;">1.16.3</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">FRocksDB</td>
+      <td style="text-align: left;">6.20.3</td>
+    </tr>
+  </tbody>
+</table>
+</font>
+
+### Hardware Version
+<font size=3>
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: left;">Processor</td>
+      <td style="text-align: left;">Kunpeng 920</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Memory Size</td>
+      <td style="text-align: left;">32 GB or above</td>
+    </tr>
+  </tbody>
+</table>
+</font>
+
+### Virus Scan Result
+<font size=3>
+The software packages, release documents, and product documents have been scanned by multiple antivirus software, and no virus is found.  
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: left;">Engine Name</td>
+      <td style="text-align: left;">QiAnXin</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Engine Version</td>
+      <td style="text-align: left;">8.0.5.5260</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Virus Lib Version</td>
+      <td style="text-align: left;">2026-03-10 08:00:00.0</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Scan Time</td>
+      <td style="text-align: left;">2026-03-11 22:44:53</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Scan Result</td>
+      <td style="text-align: left;">OK</td>
+    </tr>
+  </tbody>
+</table>
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: left;">Engine Name</td>
+      <td style="text-align: left;">Bitdefender</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Engine Version</td>
+      <td style="text-align: left;">7.5.1.200224</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Virus Lib Version</td>
+      <td style="text-align: left;">7.99958</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Scan Time</td>
+      <td style="text-align: left;">2026-03-11 22:45:17</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Scan Result</td>
+      <td style="text-align: left;">OK</td>
+    </tr>
+  </tbody>
+</table>
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: left;">Engine Name</td>
+      <td style="text-align: left;">Kaspersky</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Engine Version</td>
+      <td style="text-align: left;">12.0.0.6672</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Virus Lib Version</td>
+      <td style="text-align: left;">2026-03 10:04:00</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Scan Time</td>
+      <td style="text-align: left;">2026-03 22:44:59</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Scan Result</td>
+      <td style="text-align: left;">OK</td>
+    </tr>
+  </tbody>
+</table>
+</font>
+
+## Version Updates
+## V1.2.0
+### Change Description
+<font size=3>The current version aims to address poor I/O performance in big data scenarios by enhancing Flink's efficiency in using RocksDB and overall I/O operations. The architecture of version 1.2.0 has been revised and is independent of versions 1.1.0 and 1.0.0. The new features include:</font>
+
+### New Features
+<font size=3>
+
+- **Flink semantic state caching algorithm**: States with the same key are preferentially aggregated in memory, reducing the frequency of RocksDB accesses.<br>
+- **Flink intelligent multi-stream awareness algorithm**: For states that require only point reads and writes, the MemTable data structure is replaced with a HashLinkList to improve the efficiency of point operations.<br>
+- **Replace RMW with Merge**: Reduces the state update overhead for the Join operator.<br>
+- **Dual-stream Join data cache algorithm**: Minimizes the number of range queries on the state in the StreamJoinOperator.<br>
+- **Dynamic filter**: Eliminates redundant state query operations.<br>
+</font>
+
+### Modified Features
+<font size=3>None</font>
+
+### Removed Features
+<font size=3>Delete some features such as key-value separation and persistent storage of priority queues. </font>
+
+### Resolved Issues
+<font size=3>None</font>
+
+### Known Issues
+<font size=3>None</font>
+
+## V1.1.0
+### Change Description
+<font size=3>In the current version, a new state storage technology is introduced to improve the I/O performance of Flink in big data scenarios.</font>
+
+### New Features
+<font size=3>
+
+- Interconnection with the Flink metric framework to implement some common metrics
+- Persistent storage of priority queues
+- Key-value separated storage
+</font>
+
+### Modified Features
+<font size=3>None</font>
+
+### Removed Features
+<font size=3>None</font>
+
+### Resolved Issues
+<font size=3>None</font>
+
+### Known Issues
+<font size=3>None</font>
+
+## V1.0.0
+
+### Change Description
+
+<font size=3>In the current version, a new state storage technology is introduced to improve the I/O performance of Flink in big data scenarios.</font>
+
+### New Features
+<font size=3>None</font>
+
+### Modified Features
+<font size=3>None</font>
+
+### Removed Features
+<font size=3>None</font>
+
+### Resolved Issues
+<font size=3>None</font>
+
+### Known Issues
+<font size=3>None</font>
+
+## 1.3 Related Documentation
+### Related Documentation
+<font size=3>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left;">Document</th>
+      <th style="text-align: left;">Description</th>
+      <th style="text-align: left;">Delivery Method</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left;">1.2.0 Release Notes</td>
+      <td style="text-align: left;">Provides OmniStateStore version update and release information.</td>
+      <td style="text-align: left;">Open-source repository</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Quick Start</td>
+      <td style="text-align: left;">Provides quick start tutorials to help users quickly understand and use OmniStateStore.</td>
+      <td style="text-align: left;">Open-source repository</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Installation Guide</td>
+      <td style="text-align: left;">Provides guidance on how to install and deploy OmniStateStore.</td>
+      <td style="text-align: left;">Open-source repository</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">User Guide</td>
+      <td style="text-align: left;">Provides guidance on how to use OmniStateStore.</td>
+      <td style="text-align: left;">Open-source repository</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">FAQs</td>
+      <td style="text-align: left;">Records the issues that may occur during the installation, deployment, and use and their solutions.</td>
+      <td style="text-align: left;">Open-source repository</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Best Practices</td>
+      <td style="text-align: left;">Provides practical examples in typical OmniStateStore application scenarios to help users optimize performance and enhance the user experience.</td>
+      <td style="text-align: left;">Open-source repository</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;">Design Guide</td>
+      <td style="text-align: left;">Describes the system architecture and acceleration mechanisms of OmniStateStore, helping developers understand its design principles.</td>
+      <td style="text-align: left;">Open-source repository</td>
+    </tr>
+  </tbody>
+</table>
+
+### Obtaining Documentation<a name="EN-US_TOPIC_0000002547210757"></a>
+
+Visit the [Open-source repository](https://gitcode.com/openeuler/OmniStateStore/tree/falcon) to view or download related documents.
