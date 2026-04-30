@@ -1,7 +1,7 @@
 # 快速入门
 <font size=3> 提供OmniStateStore的快速入门指南，用户可以参考本文档快速使能特性并验证OmniStateStore的加速能力。</font>
 
----
+
 
 ## 使用说明
 <font size=3>
@@ -20,7 +20,7 @@ OmniStateStore特性的使能过程中，存在以下约束：<br>
 
 </font>
 
----
+
 
 ## 环境准备
 <font size=3>
@@ -90,7 +90,7 @@ OmniStateStore特性的使能过程中，存在以下约束：<br>
 </table>
 </font>
 
----
+
 
 ## 操作步骤
 <font size=3>

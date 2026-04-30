@@ -1,7 +1,7 @@
 # OmniStateStore最佳实践
 <font size=3>提供OmniStateStore的最佳实践样例，用户可以参阅本文档提供的实践样例，快速熟悉OmniStateStore的使用场景和加速效果。</font>
 
----
+
 ## 运行环境
 <font size=3>
 
@@ -60,7 +60,7 @@
 </table>
 </font>
 
----
+
 ## Flink部署方式
 <font size=3>
 本实施例使用容器化方式部署Flink集群。具体地，本实施例创建一个JobManager容器和两个TaskManager容器，容器配置均为8C32GB。其中每个TaskManager容器中部署4个TaskManager，每个TaskManager部署2个Slot。JobManager和TaskManager都分配8GB内存。<br>
@@ -81,7 +81,7 @@ state.backend.incremental: true
 ```
 </font>
 
----
+
 ## 测试用例
 <font size=3>
 
@@ -103,7 +103,7 @@ state.backend.incremental: true
 
 </font>
 
----
+
 ## OmniStateStore实践
 <font size=3>
 
@@ -147,7 +147,7 @@ state.backend.incremental: true
 
 </font>
 
----
+
 ## Nexmark使用说明
 <font size=3>
 

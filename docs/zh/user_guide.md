@@ -1,7 +1,7 @@
 # 用户指南
 <font size=3>提供OmniStateStore的详细使用说明与操作指导，用户可以参阅该文档启动OmniStateStore加速功能。请确保已按照[安装指南](installation_guide.md)完成了OmniStateStore安装。</font>
 
----
+
 
 ## 使用OmniStateStore
 <font size=3>
@@ -34,7 +34,7 @@ state.backend.rocksdb.falcon.use-merge: true
 
 </font>
 
----
+
 
 ## 配置项说明
 <font size=3>
@@ -126,7 +126,7 @@ state.backend.rocksdb.falcon.use-merge: true
 </table>
 </font>
 
----
+
 
 ## OmniStateStore特性使能情况观测方式
 <font size=3>
@@ -173,7 +173,7 @@ state.backend.rocksdb.falcon.use-merge: true
 
 </font>
 
----
+
 
 ## 维护特性
 <font size=3>
