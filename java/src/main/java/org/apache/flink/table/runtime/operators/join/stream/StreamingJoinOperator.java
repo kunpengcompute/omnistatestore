@@ -104,11 +104,11 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator impleme
             long currentTime = System.currentTimeMillis();
             // if timer is not set, or it's time to trigger miniBatch, register a register timer.
             if (nextTriggerTimer == -1 || currentTime >= nextTriggerTimer) {
-                nextTriggerTimer = currentTime + 1000;
+                nextTriggerTimer = currentTime + 200;
                 internalTimerService.registerProcessingTimeTimer(VoidNamespace.INSTANCE, nextTriggerTimer);
             }
             insertIntoBuffer(input, inputIsLeft);
-            if (bufferSize >= 3000) {
+            if (bufferSize >= 1000) {
                 triggerMiniBatchJoin();
             }
         }
