@@ -29,3 +29,4 @@ state.backend.rocksdb.falcon.use-state-cache: true
 state.backend.rocksdb.falcon.state-cache-sizeLimit: 20000
 state.backend.rocksdb.falcon.state-cache-bypass-hitRatio: 0.2
 state.backend.rocksdb.falcon.use-merge: true
+state.backend.rocksdb.falcon.l0-l1-use-lz4: true
