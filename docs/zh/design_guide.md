@@ -1,7 +1,7 @@
 # 设计指南
 <font size=3> 本文档提供OmniStateStore的设计指南，帮助用户快速熟悉OmniStateStore的系统架构以及加速特性。</font>
 
----
+
 ## OmniStateStore系统架构
 <font size=3>
 
@@ -14,7 +14,7 @@ OmniStateStore适用于Flink + RocksDB架构，作为Flink和RocksDB之间的中
 
 </font>
 
----
+
 ## OmniStateStore特性关键技术
 ### Flink智能多流感知算法
 <font size=3>

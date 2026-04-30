@@ -1,7 +1,7 @@
 # 安装指南
 <font size=3>提供OmniStateStore的安装说明，指导用户如何安装和部署OmniStateStore。</font>
 
----
+
 
 ## 环境要求
 ### 硬件要求
@@ -111,7 +111,7 @@
 </table>
 </font>
 
----
+
 
 ## 安装依赖
 ### 安装JDK
@@ -281,7 +281,7 @@ rm -rf BoostKit-omniruntime-omnistatestore-1.2.0.zip
 ```
 </font>
 
----
+
 
 ## 卸载OmniStateStore
 <font size=3>
@@ -293,5 +293,5 @@ rm -rf flink-alg-falcon.jar
 ```
 </font>
 
----
+
 

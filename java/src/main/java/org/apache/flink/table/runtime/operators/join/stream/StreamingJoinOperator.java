@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import org.apache.flink.configuration.ConfigOptions;
 import org.apache.flink.configuration.GlobalConfiguration;
 
+import org.apache.flink.runtime.state.StateSnapshotContext;
 import org.apache.flink.runtime.state.VoidNamespace;
 import org.apache.flink.runtime.state.VoidNamespaceSerializer;
 import org.apache.flink.streaming.api.operators.InternalTimer;
@@ -104,11 +105,11 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator impleme
             long currentTime = System.currentTimeMillis();
             // if timer is not set, or it's time to trigger miniBatch, register a register timer.
             if (nextTriggerTimer == -1 || currentTime >= nextTriggerTimer) {
-                nextTriggerTimer = currentTime + 1000;
+                nextTriggerTimer = currentTime + 200;
                 internalTimerService.registerProcessingTimeTimer(VoidNamespace.INSTANCE, nextTriggerTimer);
             }
             insertIntoBuffer(input, inputIsLeft);
-            if (bufferSize >= 3000) {
+            if (bufferSize >= 1000) {
                 triggerMiniBatchJoin();
             }
         }
@@ -275,6 +276,18 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator impleme
             LOG.info("[FALCON] finish miniBatch process for StreamingJoinOperator.");
             triggerMiniBatchJoin();
         }
+    }
+
+    /**
+     * Called when the operator should do a snapshot, trigger miniBatchJoin before the operator emits checkpoint barrier
+     * @param checkpointId checkpoint id
+     */
+    @Override
+    public void prepareSnapshotPreBarrier(long checkpointId) throws Exception {
+        if (enableMiniBatchJoin && !leftIsOuter && !rightIsOuter) {
+            triggerMiniBatchJoin();
+        }
+        super.prepareSnapshotPreBarrier(checkpointId);
     }
 
     // ---------------------------------------------------------------------------------------

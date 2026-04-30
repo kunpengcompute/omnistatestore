@@ -1,7 +1,7 @@
 # 常见问题
 <font size=3> 记录OmniStateStore安装和使能过程中的常见问题及其解决方案。</font>
 
----
+
 
 ## OmniStateStore和Flink版本不适配导致任务无法正常启动的解决方法
 <font size=3>
@@ -22,7 +22,7 @@
 
 </font>
 
----
+
 
 ## OmniStateStore未正确部署导致任务无法正常启动的解决方法
 <font size=3>

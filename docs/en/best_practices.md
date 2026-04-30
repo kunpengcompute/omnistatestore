@@ -1,35 +1,35 @@
-# OmniStateStore最佳实践
-<font size=3>提供OmniStateStore的最佳实践样例，用户可以参阅本文档提供的实践样例，快速熟悉OmniStateStore的使用场景和加速效果。</font>
+# OmniStateStore Best Practices
+<font size=3>Learn best practice examples of OmniStateStore. These examples help you quickly understand its application scenarios and performance benefits.</font>
 
-
-## 运行环境
+## Operating Environment
 <font size=3>
 
-本实施例在鲲鹏920系列服务器上验证OmniStateStore的加速效果，任务运行的硬件和软件信息如下表所示：<br>
+In this example, the performance benefits of OmniStateStore are verified on a Kunpeng 920 server. The following table lists the hardware and software specifications for task running.<br>
 
-**表1** 实施例运行硬件和软件配置
+**Table 1** Hardware and software configurations
+
 <table>
   <thead>
     <tr>
-      <th style="text-align: left;">项目</th>
-      <th style="text-align: left;">版本</th>
+      <th style="text-align: left;">Item</th>
+      <th style="text-align: left;">Version</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td style="text-align: left;">处理器</td>
-      <td style="text-align: left;">Kunpeng 920系列服务器</td>
+      <td style="text-align: left;">Processor</td>
+      <td style="text-align: left;">Kunpeng 920</td>
     </tr>
     <tr>
-      <td style="text-align: left;">磁盘</td>
-      <td style="text-align: left;">NVME SSD</td>
+      <td style="text-align: left;">Drive</td>
+      <td style="text-align: left;">NVMe SSD</td>
     </tr>
     <tr>
       <td style="text-align: left;">OS</td>
       <td style="text-align: left;">openEuler 22.03 LTS SP3</td>
     </tr>
     <tr>
-      <td style="text-align: left;">内核</td>
+      <td style="text-align: left;">Kernel</td>
       <td style="text-align: left;">5.10.0182.0.0.95.oe2203sp3.aarch64</td>
     </tr>
     <tr>
@@ -38,7 +38,7 @@
     </tr>
     <tr>
       <td style="text-align: left;">JDK</td>
-      <td style="text-align: left;">毕昇JDK 1.8.0_432</td>
+      <td style="text-align: left;">BiSheng JDK 1.8.0_432</td>
     </tr>
     <tr>
       <td style="text-align: left;">Maven</td>
@@ -58,13 +58,13 @@
     </tr>
   </tbody>
 </table>
+
 </font>
 
-
-## Flink部署方式
+## Flink Deployment Method
 <font size=3>
-本实施例使用容器化方式部署Flink集群。具体地，本实施例创建一个JobManager容器和两个TaskManager容器，容器配置均为8C32GB。其中每个TaskManager容器中部署4个TaskManager，每个TaskManager部署2个Slot。JobManager和TaskManager都分配8GB内存。<br>
-实施例使用的Flink配置如下：<br>
+In this example, the Flink cluster is deployed using containers. Specifically, one JobManager container and two TaskManager containers are deployed, each with a flavor of 8C32GB. Each TaskManager container hosts four TaskManagers, with each TaskManager configured with two slots. Each of the JobManager and TaskManagers is allocated 8 GB of memory.<br>
+The Flink configuration used in this example is as follows:<br>
 
 ```
 taskmanager.memory.process.size: 8G
@@ -81,33 +81,31 @@ state.backend.incremental: true
 ```
 </font>
 
-
-## 测试用例
+## Test Case
 <font size=3>
 
-本实施例基于nexmark0.2-Q4用例完成测试，其中Nexmark的获取方式请参阅[下载链接](https://github.com/nexmark/nexmark/releases/tag/v0.2.0)，使用方式请参阅[使用说明](#nexmark使用说明)。<br>
-该用例执行的操作是双流Join + AGG, 用例运行情况如下图所示：<br>
+This example test is based on the Nexmark 0.2 Q4 case. For instructions on downloading Nexmark, click [Download Link](https://github.com/nexmark/nexmark/releases/tag/v0.2.0). For details about how to use Nexmark, see [Usage Description](#Nexmark Usage Description).<br>
+In this test case, dual-stream Join + AGG is used. The following figure shows the test result.<br>
 
-**图1** nexmark q4 用例运行示意图
+**Figure 1** Running the Nexmark Q4 case
 
-<a href="./figures/Nexmark任务运行网页截图.png"><img src="./figures/Nexmark任务运行网页截图.png" alt="webUI" width="1000" /></a>
+<a href="./figures/Nexmark_task_screenshot.png"><img src="./figures/Nexmark_task_screenshot.png" alt="WebUI" width="1000" /></a>
 
 
-双流Join操作主要使用RocksDBMapState，AGG操作主要使用RocksDBValueState。通过采集火焰图信息，可以观测到该用例RocksDB占比超过60%，是该用例的主要性能瓶颈。火焰图信息如下图所示：
+RocksDBMapState is used for the dual-stream join operation, and RocksDBValueState is used for the AGG operation. Based on the collected flame graph data, RocksDB accounts for over 60% of the execution time, making it the primary performance bottleneck in this test case.  
 
-**图2** nexmark q4 用例CPU火焰图
+**Figure 2** CPU flame graph of the Nexmark Q4 case
 
-<a href="./figures/Nexmark任务火焰图.png"><img src="./figures/Nexmark任务火焰图.png" alt="flame graph" width="1000" /></a>
+<a href="./figures/Nexmark_task_flame_graph.png"><img src="./figures/Nexmark_task_flame_graph.png" alt="Flame_graph" width="1000" /></a>
 
-为了创建足够数量的状态以验证omniStateStore的加速效果，本实施例使用1亿数据量运行nexmark。Nexmark的配置文件样例请参阅[nexmark.yaml](#nexmark使用说明)。
+To generate a sufficient number of states for evaluating the acceleration effect of OmniStateStore, this example runs Nexmark with 100 million data records. For details about the Nexmark configuration file example, see [nexmark.yaml](#Nexmark usage description).
 
 </font>
 
-
-## OmniStateStore实践
+## OmniStateStore Practice
 <font size=3>
 
-本实施例按照[OmniStateStore安装指南](installation_guide.md)和[OmniStateStore用户指南](user_guide.md)完成OmniStateStore的安装和使能，在Flink日志中观察到以下日志信息，表示OmniStateStore使能成功。
+In this example, OmniStateStore is installed and enabled based on [Installation Guide](installation_guide.md) and [User Guide](user_guide.md). If the following log information is displayed in the Flink log, OmniStateStore is successfully enabled.
 
 ```
 2026-03-03 16:00:52,972 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - [FALCON] configuring falcon cache heap memory management system. current TM have 2 slots, so each slot can cache 10000 states.
@@ -143,28 +141,27 @@ state.backend.incremental: true
 2026-03-03 16:00:54,838 INFO  org.apache.flink.contrib.streaming.state.RocksDBKeyedStateBackend [] - [FALCON] <accState, VALUE> enable falcon cache, and update falcon cache size of each state to 2500.
 2026-03-03 16:00:54,855 INFO  org.apache.flink.contrib.streaming.state.RocksDBKeyedStateBackend [] - [FALCON] <accState, VALUE> enable falcon cache, and update falcon cache size of each state to 2500.
 ```
-使用原生Flink运行nexmark0.2-Q4用例，任务的单核吞吐量为20.52；使能OmniStateStore状态存储加速后，该任务的单核吞吐量上升至37.26。**若以单核吞吐量作为性能评价指标，OmniStateStore性能提升81.58%。**
+When running the Nexmark 0.2 Q4 test case on native Flink, the single-core task throughput is 20.52. After OmniStateStore is enabled, the single-core throughput increases to 37.26. **Using single-core throughput as the performance metric, OmniStateStore improves performance by 81.58%.**
 
 </font>
 
-
-## Nexmark使用说明
+## Nexmark Usage Description
 <font size=3>
 
-**步骤1**&emsp;下载Nexmark软件包，下载链接为[Link](https://github.com/nexmark/nexmark/releases/tag/v0.2.0)。
+**Step 1**&emsp;Download the [Nexmark software package](https://github.com/nexmark/nexmark/releases/tag/v0.2.0).
 
-**步骤2**&emsp;在环境上部署Nexmark软件包，以“/opt”目录为例：
+**Step 2**&emsp;Deploy the Nexmark software package in the environment, for example, in the **/opt** directory.
 ```
 cd /opt
 unzip nexmark-flink.zip
 rm -rf nexmark-flink.zip
 mv nexmark-flink nexmark
 ```
-**步骤3**&emsp;将Nexmark的JAR包部署到Flink的lib目录下：
+**Step 3**&emsp;Deploy the Nexmark JAR package to the **lib** directory of Flink.
 ```
 cp -r /opt/nexmark/lib/nexmark-flink-0.2-SNAPSHOT.jar $FLINK_HOME/lib/
 ```
-**步骤4**&emsp;修改nexmark的测试配置，即修改“/opt/nexmark/conf/nexmark.yaml”文件，配置样例如下：
+**Step 4**&emsp;Modify the Nexmark test configuration, that is, modify the **/opt/nexmark/conf/nexmark.yaml** file. The configuration example is as follows:
 ```
 # The metric reporter server host.
 nexmark.metric.reporter.host: 172.19.0.2
@@ -221,7 +218,7 @@ flink.rest.port: 8081
 nexmark.metric.monitor.delay: 8s
 ```
 
-**步骤5**&emsp;启动Flink集群，并运行Nexmark的指定用例。
+**Step 5**&emsp;Start the Flink cluster and run the specified Nexmark test case.
 ```
 cd $FLINK_HOME/bin && ./start-cluster.sh
 cd /opt/nexmark/bin && ./setup_cluster.sh

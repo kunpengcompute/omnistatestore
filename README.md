@@ -1,7 +1,5 @@
 # OmniStateStore介绍
 
----
-
 ## 最新消息
 <font size=3>
 
@@ -9,8 +7,6 @@
 - [2025.12.30] 发布OmniStateStore 1.1.0。新增支持对接Flink Metric框架并实现部分常用的Metric指标；支持Priority Queue持久化存储；支持KV分离存储。 
 - [2025.06.30] 发布OmniStateStore 1.0.0。解决了大数据场景下，针对大状态下IO性能较差的问题，实现了一种新型的状态存储方式，提升了Flink的IO性能。
 </font>
-
----
 
 ## 项目简介
 ### 简介
@@ -52,15 +48,11 @@ OmniStateStore适用于Apache Flink流处理任务中的有状态场景，通常
 通过状态缓存和状态过滤等技术，OmniStateStore可以有效减少Flink对RocksDB的访问频次，有效提升有状态作业的端到端吞吐。OmniStateStore适用于openEuler 22.03 LTS SP3等操作系统环境，并支持Flink1.16.3 + RocksDB6.20.3架构。
 </font>
 
----
-
 ## 约束与限制
 <font size="3">
 OmniStateStore的性能提升比依赖于用例的RocksDB占比和状态操作类型，对于RocksDB占比低的场景仅保证性能不劣化。<br>
 OmniStateStore作为Flink的加速组件，目前仅兼容华为鲲鹏计算平台，将在后续支持在通用X86服务器上运行。
 </font>
-
----
 
 ## 目录结构
 <font size="3">
@@ -92,22 +84,14 @@ OmniStateStore/                       # 项目根目录
 
 </font>
 
----
-
 ## 版本说明
 <font size="3">每个版本的特性变更详细信息，具体请参见[版本说明书](./docs/zh/release_notes.md)。</font>
-
----
 
 ## 环境部署
 <font size="3">介绍OmniStateStore的环境依赖及安装方式，具体请参见[安装指南](./docs/zh/installation_guide.md)。</font>
 
----
-
 ## 快速入门
 <font size="3">安装OmniStateStore后如何快速验证OmniStateStore是否生效，性能是否提升，具体请参见[快速入门](./docs/zh/quick_start.md)。</font>
-
----
 
 ## 学习文档
 <font size="3">
@@ -165,8 +149,6 @@ OmniStateStore/                       # 项目根目录
   </tbody>
 </table>
 </font>
-
----
 
 ## 安全声明
 <font size="3">
@@ -242,8 +224,6 @@ OmniStateStore/                       # 项目根目录
 </table>
 </font>
 
----
-
 ## 免责声明
 <font size="3">
 
@@ -261,12 +241,8 @@ OmniStateStore/                       # 项目根目录
 如果您不希望您的模型或数据等信息在OmniStateStore中被提及，或希望更新OmniStateStore中有关的描述，请在GitCode提交issue，我们将根据您的issue要求删除或更新您的描述。衷心感谢您对OmniStateStore的理解和贡献。
 </font>
 
----
-
 ## License
 <font size="3">OmniStateStore产品使用的许可证，具体请参见 [LICENSE](./LICENSE)。</font>
-
----
 
 ## 贡献声明
 <font size="3"> 
@@ -286,16 +262,10 @@ OmniStateStore/                       # 项目根目录
 &emsp; i. 审核和测试通过后，CI会将您的PR合并到项目的主干分支。
 </font>
 
----
-
 ## 法律声明
-
----
 
 ## 建议与交流
 <font size="3"> 欢迎大家为社区做贡献。如果有任何疑问或建议，请提交Issues，我们会尽快回复。感谢您的支持。</font>
-
----
 
 ## 致谢
 <font size="3">
