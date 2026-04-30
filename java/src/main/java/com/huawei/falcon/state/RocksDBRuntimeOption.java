@@ -33,8 +33,8 @@ public class RocksDBRuntimeOption {
         if (config.getOptional(custom_factory).isPresent() &&
                 config.get(custom_factory).equals("com.huawei.falcon.state.RocksDBOptOptionsFactory") &&
                 config.get(USE_HASHMEMTABLE)) {
-            // options.setMemTableConfig(new HashLinkedListMemTableConfig());
-            // options.useCappedPrefixExtractor(config.get(prefixLength));
+            options.setMemTableConfig(new HashLinkedListMemTableConfig());
+            options.useCappedPrefixExtractor(config.get(prefixLength));
             LOG.info("[FALCON] " + metaInfoBase.getName() + " is valueState, use HashLinkList as memTable structure.");
         } else {
             LOG.info("[FALCON] HashLinkList for memtable DISABLED. Check the value of factory and use-hash-memtable.");
