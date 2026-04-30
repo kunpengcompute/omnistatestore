@@ -1,5 +1,6 @@
 package com.huawei.falcon.state;
 
+import java.util.List;
 import java.util.Collection;
 
 import org.apache.flink.configuration.ConfigOption;
@@ -46,6 +47,12 @@ public class RocksDBOptOptionsFactory implements ConfigurableRocksDBOptionsFacto
                             "If true, value state will use HashLinkList for memtable. "
                                     + "It is disabled by default.");
 
+    public static final ConfigOption<Boolean> USE_L0_L1_LZ4_COMPRESSION =
+            key("state.backend.rocksdb.falcon.l0-l1-use-lz4")
+                    .booleanType()
+                    .defaultValue(false)
+                    .withDescription("If true, set compression type of rocksdb L0/L1 to LZ4.");
+
     @Override
     public DBOptions createDBOptions(DBOptions currentOptions,
                                      Collection<AutoCloseable> handlesToClose) {
@@ -81,6 +88,37 @@ public class RocksDBOptOptionsFactory implements ConfigurableRocksDBOptionsFacto
         }
 
         currentOptions.setTableFormatConfig(blockBasedTableConfig);
+
+        // rocksdb num levels
+        int numLevel = currentOptions.numLevels();
+        // rocksdb perLevel compression type, which is not set by default. user can modify this param by calling
+        // "currentOptions.setCompressionPerLevel(compressTypePerLevel)"
+        List<CompressionType> perLevelCompressionType = currentOptions.compressionPerLevel();
+        // rocksdb global compression type, which is set as snappy by default. user can modify this param be setting
+        // "state.backend.rocksdb.compression.type"
+        CompressionType globalCompressionType = currentOptions.compressionType();
+
+        if (config.get(USE_L0_L1_LZ4_COMPRESSION)) {
+            LOG.info("[FALCON] enable lz4 compression for rocksdb level0 and level1.");
+
+            // resize perLevelCompressionType to numLevel
+            int addCnt = numLevel - perLevelCompressionType.size();
+            for (int i = 0; i < addCnt; i++) {
+                perLevelCompressionType.add(globalCompressionType);
+            }
+            // if level_compaction_dynamic_level_bytes is true, compression_per_level[0] still determines L0, but other
+            // elements of the array are based on base level (the level L0 files are merged to).
+            if (currentOptions.levelCompactionDynamicLevelBytes()) {
+                // set LZ4 for level0. Excessive part will be ignored.
+                perLevelCompressionType.set(0, CompressionType.LZ4_COMPRESSION);
+            } else {
+                // set LZ4 for level0 and level1.
+                perLevelCompressionType.set(0, CompressionType.LZ4_COMPRESSION);
+                perLevelCompressionType.set(1, CompressionType.LZ4_COMPRESSION);
+            }
+
+            currentOptions.setCompressionPerLevel(perLevelCompressionType);
+        }
 
         return currentOptions;
     }
