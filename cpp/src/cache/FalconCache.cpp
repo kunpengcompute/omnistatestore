@@ -171,20 +171,8 @@ void FalconCache::clearAll()
 
 void FalconCache::removeEldestState(JNIEnv *env, jlong rocksdbHandle, jlong cfHandle, jlong writeOptionsHandle)
 {
-    if (cache.size() > CACHE_SIZE_UPPER_LIMIT_RATIO * cacheSizeLimit) { // defensive programming
-        flush(env, rocksdbHandle, cfHandle, writeOptionsHandle);
-        clearAll();
-    } else {
-        // get the coldest state, put it into rocksdb, and then remove it from falcon cache
-        auto &key_slice = cache.begin()->first;
-        auto &val_slice = cache.begin()->second;
-        rocksdb_put(env, rocksdbHandle, cfHandle, writeOptionsHandle, key_slice, val_slice);
-
-        delete[] key_slice.data_;
-        delete[] val_slice.data_;
-        val_slice.data_ = nullptr;  // key.data_ can not be set to null
-        cache.erase(cache.begin());
-    }
+    flush(env, rocksdbHandle, cfHandle, writeOptionsHandle);
+    clearAll();
 }
 
 int FalconCache::getSizeLimit() const
