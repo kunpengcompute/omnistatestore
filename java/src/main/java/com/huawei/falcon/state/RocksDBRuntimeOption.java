@@ -30,9 +30,17 @@ public class RocksDBRuntimeOption {
     public static void optimizeValueOption(RegisteredStateMetaInfoBase metaInfoBase, ColumnFamilyOptions options){
         Configuration config = GlobalConfiguration.loadConfiguration();
 
+        boolean supportHash = false;  // whether this state support hashMemTable optimization
+        if (metaInfoBase.getName().equals("accState") ||
+                metaInfoBase.getName().equals("Top1-Rank-State") ||
+                metaInfoBase.getName().equals("deduplicate-state") ||
+                metaInfoBase.getName().equals("distinctAcc_0_null_state") ||
+                metaInfoBase.getName().equals("distinctAcc_1_null_state")) {
+            supportHash = true;
+        }
         if (config.getOptional(custom_factory).isPresent() &&
                 config.get(custom_factory).equals("com.huawei.falcon.state.RocksDBOptOptionsFactory") &&
-                config.get(USE_HASHMEMTABLE)) {
+                config.get(USE_HASHMEMTABLE) && supportHash) {
             options.setMemTableConfig(new HashLinkedListMemTableConfig());
             options.useCappedPrefixExtractor(config.get(prefixLength));
             LOG.info("[FALCON] " + metaInfoBase.getName() + " is valueState, use HashLinkList as memTable structure.");
