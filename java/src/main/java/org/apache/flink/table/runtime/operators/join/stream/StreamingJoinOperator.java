@@ -279,15 +279,15 @@ public class StreamingJoinOperator extends AbstractStreamingJoinOperator impleme
     }
 
     /**
-     * When StreamingJoinOperator begins to do snapshot, trigger miniBatch join
-     * @param context state snapshot context
+     * Called when the operator should do a snapshot, trigger miniBatchJoin before the operator emits checkpoint barrier
+     * @param checkpointId checkpoint id
      */
     @Override
-    public void snapshotState(StateSnapshotContext context) throws Exception {
+    public void prepareSnapshotPreBarrier(long checkpointId) throws Exception {
         if (enableMiniBatchJoin && !leftIsOuter && !rightIsOuter) {
             triggerMiniBatchJoin();
         }
-        super.snapshotState(context);
+        super.prepareSnapshotPreBarrier(checkpointId);
     }
 
     // ---------------------------------------------------------------------------------------
