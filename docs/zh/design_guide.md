@@ -118,5 +118,5 @@ LZ4软算压缩优化的原理图如下图所示。其主要原理是，将rocks
 
 **图6** LZ4软算压缩优化原理示意图
 
-<a href="./figures/OmniStateStore的merge优化原理.png"><img src="./figures/OmniStateStore的merge优化原理.png" alt="filter原理图" width="450" /></a>
+<a href="./figures/LZ4软算压缩优化图.png"><img src="./figures/LZ4软算压缩优化图.png" alt="filter原理图" width="500" /></a>
 </font>
