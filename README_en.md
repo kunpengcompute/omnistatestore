@@ -100,7 +100,7 @@ OmniStateStore/                       # Project root directory
 <table>
   <thead>
     <tr>
-            <th style="text-align: left;">Name</th>
+      <th style="text-align: left;">Name</th>
       <th style="text-align: left;">Description</th>
     </tr>
   </thead>
@@ -114,23 +114,23 @@ OmniStateStore/                       # Project root directory
       <td style="text-align: left;">Provides basic information and feature updates for each OmniStateStore version.</td>
     </tr>
     <tr>
-            <td style="text-align: left;"><a href="./docs/en/design_guide.md">Design Guide</a></td>
+      <td style="text-align: left;"><a href="./docs/en/design_guide.md">Design Guide</a></td>
       <td style="text-align: left;">Provides OmniStateStore feature description.</td>
     </tr>
     <tr>
-            <td style="text-align: left;"><a href="./docs/en/installation_guide.md">Installation Guide</a></td>
+      <td style="text-align: left;"><a href="./docs/en/installation_guide.md">Installation Guide</a></td>
       <td style="text-align: left;">Provides detailed guidance for installing OmniStateStore.</td>
     </tr>
     <tr>
-            <td style="text-align: left;"><a href="./docs/en/user_guide.md">User Guide</a></td>
+      <td style="text-align: left;"><a href="./docs/en/user_guide.md">User Guide</a></td>
       <td style="text-align: left;">Provides detailed guidance for using OmniStateStore.</td>
     </tr>
     <tr>
-            <td style="text-align: left;"><a href="./docs/en/best_practices.md">Best Practices</a></td>
+      <td style="text-align: left;"><a href="./docs/en/best_practices.md">Best Practices</a></td>
       <td style="text-align: left;">Provides OmniStateStore practice cases.</td>
     </tr>
    <tr>
-            <td style="text-align: left;"><a href="./docs/en/faq.md">FAQs</a></td>
+      <td style="text-align: left;"><a href="./docs/en/faq.md">FAQs</a></td>
       <td style="text-align: left;">Provides solutions to issues that may arise during the installation and operation of OmniStateStore.</td>
     </tr>
       </tbody>
@@ -170,8 +170,8 @@ Handling suggestion: The vendor has released an upgrade patch to fix the vulnera
 
 ## SSH Hardening
 <font size="3">
-During the installation and deployment, you need to connect to the server through SSH. The **root** user has all the operation permissions. Logging in to the server as the **root** user may pose security risks. You are advised to log in to the server as a common user for installation and deployment and disable **root** user login using SSH to improve system security.  <br>
-Check the **PermitRootLogin** configuration item in **/etc/ssh/sshd_config**.
+During the installation and deployment, you need to connect to the server through SSH. The <strong>root</strong> user has all the operation permissions. Logging in to the server as the <strong>root</strong> user may pose security risks. You are advised to log in to the server as a common user for installation and deployment and disable <strong>root</strong> user login using SSH to improve system security.  <br>
+Check the <strong>PermitRootLogin</strong> configuration item in <strong>/etc/ssh/sshd_config</strong>.
 
 - If the value is **no**, **root** user login using SSH is disabled.
 - If the value is **yes**, change it to **no**.
@@ -237,10 +237,10 @@ If you do not want your model or dataset to be mentioned in OmniStateStore, or i
 
 ## Contribution Statement
 <font size="3"> 
-1. Submit an error report: If you discover a vulnerability in OmniStateStore that is not a security issue, first search the **Issues** in the OmniStateStore repository to avoid submitting duplicates. If the vulnerability is not listed, create a new issue. If you discover a security-related problem, do not disclose it publicly. Please refer to the security handling guidelines for details. All error reports must include complete information about the issue.<br>
+1. Submit an error report: If you discover a vulnerability in OmniStateStore that is not a security issue, first search the <strong>Issues</strong> in the OmniStateStore repository to avoid submitting duplicates. If the vulnerability is not listed, create a new issue. If you discover a security-related problem, do not disclose it publicly. Please refer to the security handling guidelines for details. All error reports must include complete information about the issue.<br>
 2. Security issue handling: For guidance on handling security issues in this project, please contact the core team via email for instructions.<br>
 3. Resolving existing issues: Review the issue list of the repository to identify issues that need attention, and attempt to resolve them.<br>
-4. Proposing new features: Use the **Feature** label when creating an issue for a new feature. We will review and confirm proposals periodically.<br>
+4. Proposing new features: Use the <strong>Feature</strong> label when creating an issue for a new feature. We will review and confirm proposals periodically.<br>
 5. How to contribute:<br>
 &emsp; a. Fork the repository of the project.<br>
 &emsp; b. Clone it to your local machine.<br>

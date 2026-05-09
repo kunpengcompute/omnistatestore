@@ -77,7 +77,7 @@ The following table describes the OS and dependency software installation requir
     <tr>
       <td style="text-align: left;">Docker</td>
       <td style="text-align: left;">18.09.0</td>
-      <td style="text-align: left;">/</td>
+      <td style="text-align: left;">-</td>
     </tr>
   </tbody>
 </table>
@@ -115,9 +115,9 @@ The following table describes the OS and dependency software installation requir
 ### Installing the JDK
 <font size=3>
 
-**Step 1**&emsp;Download the [JDK software package](https://oraclelinux.pkgs.org/8/ol8-appstream-aarch64/java-1.8.0-openjdk-1.8.0.482.b08-1.0.1.el8.aarch64.rpm.html).
+1. Download the [JDK software package](https://oraclelinux.pkgs.org/8/ol8-appstream-aarch64/java-1.8.0-openjdk-1.8.0.482.b08-1.0.1.el8.aarch64.rpm.html).
 
-**Step 2**&emsp;Go to the directory where the installation package is stored and execute the following command to install the JDK software.
+2. Go to the directory where the installation package is stored and execute the following command to install the JDK software.
 ```
 sudo yum localinstall java-1.8.0-openjdk-1.8.0.482.b08-1.0.1.el8.aarch64.rpm
   
@@ -127,7 +127,7 @@ sudo yum localinstall java-1.8.0-openjdk-1.8.0.482.b08-1.0.1.el8.aarch64.rpm
   ls -l /usr/java/ 
  ```
 
-**Step 3**&emsp;Configure the environment variables by adding the following information to the **/etc/profile** file.
+3. Configure the environment variables by adding the following information to the **/etc/profile** file.
 
 ```
 export JAVA_HOME=/usr/java/jdk-1.8.0
@@ -135,7 +135,7 @@ export JRE_HOME=$JAVA_HOME/jre
 export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
 export PATH=$JAVA_HOME/bin:$PATH
 ```
-**Step 4**&emsp;Update the environment variables.
+4. Update the environment variables.
 
 ```
 source /etc/profile
@@ -148,20 +148,20 @@ If the correct version is displayed, the installation is successful.
 ### Installing Maven
 <font size=3>
 
-**Step 1**&emsp;Download the [Maven software package](https://link.csdn.net/?from_id=119428896&target=https%3A%2F%2Farchive.apache.org%2Fdist%2Fmaven%2Fmaven-3%2F3.6.3%2Fbinaries%2Fapache-maven-3.6.3-bin.zip).
+1. Download the [Maven software package](https://link.csdn.net/?from_id=119428896&target=https%3A%2F%2Farchive.apache.org%2Fdist%2Fmaven%2Fmaven-3%2F3.6.3%2Fbinaries%2Fapache-maven-3.6.3-bin.zip).
 
-**Step 2**&emsp;Place the Maven software package in the installation directory (for example, **/opt**) and deploy the software package.
+2. Place the Maven software package in the installation directory (for example, **/opt**) and deploy the software package.
 ```
 cd /opt
 unzip apache-maven-3.6.3-bin.zip
 rm -rf apache-maven-3.6.3-bin.zip
 ```
-**Step 3**&emsp;Configure the environment variables by adding the following information to the **/etc/profile** file.
+3. Configure the environment variables by adding the following information to the **/etc/profile** file.
 ```
 export MAVEN_HOME=/opt/apache-maven-3.6.3
 export PATH=$MAVEN_HOME/bin:$PATH
 ```
-**Step 4**&emsp;Update and verify the environment variables.
+4. Update and verify the environment variables.
 ```
 source /etc/profile
 mvn -version # View the Maven version.
@@ -172,23 +172,23 @@ If the correct version is displayed, the installation is successful.
 ### Installing the GCC
 <font size=3>
 
-**Step 1**&emsp;Download the [GCC binary installation package](https://mirrors.huaweicloud.com/kunpeng/archive/compiler/kunpeng_gcc/gcc-10.3.1-2021.09-aarch64-linux.tar.gz).
+1. Download the [GCC binary installation package](https://mirrors.huaweicloud.com/kunpeng/archive/compiler/kunpeng_gcc/gcc-10.3.1-2021.09-aarch64-linux.tar.gz).
 
-**Step 2**&emsp;Place the software package in the installation directory (for example, **/opt**) and deploy the software package.
+2. Place the software package in the installation directory (for example, **/opt**) and deploy the software package.
 ```
 cd /opt
 tar -zxvf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
 mv gcc-10.3.1-2021.09-aarch64-linux gcc-10.3.1
 rm -rf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
 ```
-**Step 3**&emsp;Configure the environment variables by adding the following information to the **/etc/profile** file.
+3. Configure the environment variables by adding the following information to the **/etc/profile** file.
 ```
 export GCC_HOME=/opt/gcc-10.3.1
 export PATH=$GCC_HOME/bin:$PATH
 export LD_LIBRARY_PATH=$GCC_HOME/lib64:$GCC_HOME/lib:$LD_LIBRARY_PATH
 export CPLUS_INCLUDE_PATH=$GCC_HOME/include/c++/10.3.1:$GCC_HOME/include:$CPLUS_INCLUDE_PATH
 ```
-**Step 4**&emsp;Update the environment variables.
+4. Update the environment variables.
 ```
 source /etc/profile
 gcc --version
@@ -200,21 +200,21 @@ If the correct version is displayed, the installation is successful.
 ### Installing Flink
 <font size=3>
 
-**Step 1**&emsp;Download [Flink](https://archive.apache.org/dist/flink/flink-1.16.3), for example, **flink-1.16.3-bin-scala_2.12.tgz** for Scala 2.12.
+1. Download [Flink](https://archive.apache.org/dist/flink/flink-1.16.3), for example, **flink-1.16.3-bin-scala_2.12.tgz** for Scala 2.12.
 
-**Step 2**&emsp;Place the software package in the installation directory (for example, **/opt**) and deploy the software package.
+2. Place the software package in the installation directory (for example, **/opt**) and deploy the software package.
 ```
 cd /opt
 tar -zxvf flink-1.16.3-bin-scala_2.12.tgz
 mv flink-1.16.3-bin-scala_2.12 flink-1.16.3
 rm -rf flink-1.16.3-bin-scala_2.12.tgz
 ```
-**Step 3**&emsp;Configure the environment variables by adding the following information to the **/etc/profile** file.
+3. Configure the environment variables by adding the following information to the **/etc/profile** file.
 ```
 export FLINK_HOME=/opt/flink-1.16.3
 export PATH=$FLINK_HOME/bin:$PATH
 ```
-**Step 4**&emsp;Update the environment variables.
+4. Update the environment variables.
 ```
 source /etc/profile
 ```
@@ -225,7 +225,7 @@ source /etc/profile
 
 Install Docker and deploy multiple containers to set up the Flink environment. If the server cannot connect to the Internet, configure a local yum repository according to your environment to ensure a smooth installation.
 
-**Step 1**&emsp;Install Docker and import the base image. For details, see the [Docker Installation Guide (CentOS & openEuler)](https://www.hikunpeng.com/document/detail/en/kunpengcpfs/ecosystemEnable/Docker/kunpengdocker_03_0001.html).
+1. Install Docker and import the base image. For details, see the [Docker Installation Guide (CentOS & openEuler)](https://www.hikunpeng.com/document/detail/en/kunpengcpfs/ecosystemEnable/Docker/kunpengdocker_03_0001.html).
 
 ```
 cd /opt
@@ -233,13 +233,13 @@ wget --no-check-certificate https://mirrors.huaweicloud.com/openeuler/openEuler-
 docker load < openEuler-docker.aarch64.tar.xz
 ```
 
-**Step 2**&emsp;Create a network in bridge mode and check whether the network is successfully created.
+2. Create a network in bridge mode and check whether the network is successfully created.
 ```
 docker network create -d bridge flink-network
 docker network ls
 ```
 
-**Step 3**&emsp;Create and start three Docker containers. The container flavor is 8C32G, and the containers are named **flink\_jm\_8c32g**, **flink\_tm1\_8c32g**, and **flink\_tm2\_8c32g**. After all containers are started, the command execution process automatically exits.
+3. Create and start three Docker containers. The container flavor is 8C32G, and the containers are named **flink\_jm\_8c32g**, **flink\_tm1\_8c32g**, and **flink\_tm2\_8c32g**. After all containers are started, the command execution process automatically exits.
 ```
 docker run -it -d --name flink_jm_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
 docker run -it -d --name flink_tm1_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
@@ -247,7 +247,7 @@ docker run -it -d --name flink_tm2_8c32g --cpus=8 --memory=32g --network flink-n
 docker ps 
 ```
 
-**Step 4**&emsp;Log in to all containers, enable the SSH service in the containers, and configure password-free login.
+4. Log in to all containers, enable the SSH service in the containers, and configure password-free login.
 ```
 docker exec -it flink_jm_8c32g /bin/bash
 docker exec -it flink_tm1_8c32g /bin/bash
@@ -267,14 +267,14 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm2_8c32g # Configure SSH password-f
 ## Installing OmniStateStore
 <font size=3>
 
-**Step 1**&emsp;Obtain the software package **BoostKit-omniruntime-omnistatestore-1.2.0.zip** based on [OmniStateStore software list](#Obtaining the software package).
+1. Obtain the software package **BoostKit-omniruntime-omnistatestore-1.2.0.zip** based on [OmniStateStore software list](#Obtaining the software package).
 
-**Step 2**&emsp;Configure the environment variable by specifying **FLINK_HOME**, **JAVA_HOME**, and **LD_LIBRARY_PATH**.
+2. Configure the environment variable by specifying **FLINK_HOME**, **JAVA_HOME**, and **LD_LIBRARY_PATH**.
 
 ```
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
 ```
-**Step 3**&emsp;Log in to the installation node, extract **BoostKit-omniruntime-omnistatestore-1.2.0.zip** to **$FLINK_HOME/lib**, copy **librocksdb.so.6** to **/usr/local/lib**, and save **flink-alg-falcon.jar** to the current directory.
+3. Log in to the installation node, extract **BoostKit-omniruntime-omnistatestore-1.2.0.zip** to **$FLINK_HOME/lib**, copy **librocksdb.so.6** to **/usr/local/lib**, and save **flink-alg-falcon.jar** to the current directory.
 
 ```
 unzip BoostKit-omniruntime-omnistatestore-1.2.0.zip

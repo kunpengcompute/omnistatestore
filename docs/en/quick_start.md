@@ -89,22 +89,22 @@ Set up the OmniStateStore **runtime environment** as described in the following 
 ## Procedure
 <font size=3>
 
-**Step 1**&emsp;Download the [OmniStateStore source code](https://gitcode.com/openeuler/OmniStateStore.git) and select the **falcon** branch.
+1. Download the [OmniStateStore source code](https://gitcode.com/openeuler/OmniStateStore.git) and select the **falcon** branch.
 
-**Step 2**&emsp;Compile the OmniStateStore source code.<br>Use [sh build.sh](../../scripts/build.sh) to compile OmniStateStore and generate **BoostKit-omniruntime-omniStateStore-1.2.0.zip** in the root directory of the project. For details about how to install OmniStateStore, see the [Installation Guide](./installation_guide.md).
+2. Compile the OmniStateStore source code.<br>Use [sh build.sh](../../scripts/build.sh) to compile OmniStateStore and generate **BoostKit-omniruntime-omniStateStore-1.2.0.zip** in the root directory of the project. For details about how to install OmniStateStore, see the [Installation Guide](./installation_guide.md).
 
-**Step 3**&emsp;Deploy the environment.<br>Use Docker to deploy the containerized runtime environment of Flink, including one JobManager container and two TaskManager containers. The container flavor is 8C32GB. The JobManager is allocated 8 GB of memory. Each TaskManager is allocated two task slots and 8 GB of memory.
+3. Deploy the environment.<br>Use Docker to deploy the containerized runtime environment of Flink, including one JobManager container and two TaskManager containers. The container flavor is 8C32GB. The JobManager is allocated 8 GB of memory. Each TaskManager is allocated two task slots and 8 GB of memory.
 
-**Step 4**&emsp;Configure the environment variables.<br>Deploy Flink and Nexmark of the specified versions in the containers and configure the **JAVA_HOME** and **FLINK_HOME** environment variables. In addition, set **LD_LIBRARY_PATH** as follows:<br>
+4. Configure the environment variables.<br>Deploy Flink and Nexmark of the specified versions in the containers and configure the **JAVA_HOME** and **FLINK_HOME** environment variables. In addition, set **LD_LIBRARY_PATH** as follows:<br>
 ```
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
 ```
 
-**Step 5**&emsp;Install OmniStateStore.<br>Extract **BoostKit-omniruntime-omniStateStore-1.2.0.zip**, copy **librocksdb.so.6** to the **/usr/local/lib** directory, and copy **flink-alg-falcon.jar** to the **$FLINK_HOME/lib** directory.<br>Once the copying operation is complete, the installation is finished. No additional configuration is required.
+5. Install OmniStateStore.<br>Extract **BoostKit-omniruntime-omniStateStore-1.2.0.zip**, copy **librocksdb.so.6** to the **/usr/local/lib** directory, and copy **flink-alg-falcon.jar** to the **$FLINK_HOME/lib** directory.<br>Once the copying operation is complete, the installation is finished. No additional configuration is required.
 
-**Step 6**&emsp;Set the OmniStateStore parameters.<br>Set the OmniStateStore parameters in **$FLINK_HOME/conf/flink-conf.yaml** to enable the acceleration feature and specify the RocksDB state backend. For details, see [flink-conf.yaml](../../conf/flink-conf.yaml).
+6. Set the OmniStateStore parameters.<br>Set the OmniStateStore parameters in **$FLINK_HOME/conf/flink-conf.yaml** to enable the acceleration feature and specify the RocksDB state backend. For details, see [flink-conf.yaml](../../conf/flink-conf.yaml).
 
-**Step 7**&emsp;Verify the acceleration effect.<br>Use the native Flink to run the Nexmark q4 test case and record the single-core throughput of the task. Enable the OmniStateStore feature to run the same test case and check whether the single-core throughput of the task significantly improves compared to native Flink.<br>You can search for the following keywords in Flink run logs to check whether OmniStateStore has been enabled:<br>
+7. Verify the acceleration effect.<br>Use the native Flink to run the Nexmark q4 test case and record the single-core throughput of the task. Enable the OmniStateStore feature to run the same test case and check whether the single-core throughput of the task significantly improves compared to native Flink.<br>You can search for the following keywords in Flink run logs to check whether OmniStateStore has been enabled:<br>
 
 ```
 [FALCON] enable miniBatch process for StreaminJoinOperator.

@@ -245,37 +245,37 @@
   </thead>
   <tbody>
     <tr>
-      <td style="text-align: left;">《OmniStateStore 1.2.0 版本说明书》</td>
+      <td style="text-align: left;">1.2.0 版本说明书</td>
       <td style="text-align: left;">提供OmniStateStore的版本更新内容与发布说明。</td>
       <td style="text-align: left;">开源仓</td>
     </tr>
     <tr>
-      <td style="text-align: left;">《OmniStateStore 快速入门》</td>
+      <td style="text-align: left;">快速入门</td>
       <td style="text-align: left;">提供OmniStateStore的快速上手教程，帮助用户快速了解和使用该组件。</td>
       <td style="text-align: left;">开源仓</td>
     </tr>
     <tr>
-      <td style="text-align: left;">《OmniStateStore 安装指南》</td>
+      <td style="text-align: left;">安装指南</td>
       <td style="text-align: left;">提供OmniStateStore的安装部署指导。</td>
       <td style="text-align: left;">开源仓</td>
     </tr>
     <tr>
-      <td style="text-align: left;">《OmniStateStore 用户指南》</td>
+      <td style="text-align: left;">用户指南</td>
       <td style="text-align: left;">提供OmniStateStore的使用操作指导。</td>
       <td style="text-align: left;">开源仓</td>
     </tr>
     <tr>
-      <td style="text-align: left;">《OmniStateStore 常见问题》</td>
+      <td style="text-align: left;">常见问题</td>
       <td style="text-align: left;">记录安装、部署和使用过程中可能遇到的问题及其解决方法。</td>
       <td style="text-align: left;">开源仓</td>
     </tr>
     <tr>
-      <td style="text-align: left;">《OmniStateStore 最佳实践》</td>
+      <td style="text-align: left;">最佳实践</td>
       <td style="text-align: left;">提供OmniStateStore典型使用场景下的实践案例，帮助用户优化性能与使用体验。</td>
       <td style="text-align: left;">开源仓</td>
     </tr>
     <tr>
-      <td style="text-align: left;">《OmniStateStore 设计指南》</td>
+      <td style="text-align: left;">设计指南</td>
       <td style="text-align: left;">提供OmniStateStore的系统架构与加速机制，帮助开发者深入了解其设计原理。</td>
       <td style="text-align: left;">开源仓</td>
     </tr>

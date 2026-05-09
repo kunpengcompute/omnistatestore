@@ -8,4 +8,5 @@
 - [FAQs](./faq.md)
 - [Best Practices](./best_practices.md)
 - [Design Guide](./design_guide.md)
+- [Change History.md](./change_history.md)
 </font>

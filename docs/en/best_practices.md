@@ -148,20 +148,20 @@ When running the Nexmark 0.2 Q4 test case on native Flink, the single-core task 
 ## Nexmark Usage Description
 <font size=3>
 
-**Step 1**&emsp;Download the [Nexmark software package](https://github.com/nexmark/nexmark/releases/tag/v0.2.0).
+1. Download the [Nexmark software package](https://github.com/nexmark/nexmark/releases/tag/v0.2.0).
 
-**Step 2**&emsp;Deploy the Nexmark software package in the environment, for example, in the **/opt** directory.
+2. Deploy the Nexmark software package in the environment, for example, in the **/opt** directory.
 ```
 cd /opt
 unzip nexmark-flink.zip
 rm -rf nexmark-flink.zip
 mv nexmark-flink nexmark
 ```
-**Step 3**&emsp;Deploy the Nexmark JAR package to the **lib** directory of Flink.
+3. Deploy the Nexmark JAR package to the **lib** directory of Flink.
 ```
 cp -r /opt/nexmark/lib/nexmark-flink-0.2-SNAPSHOT.jar $FLINK_HOME/lib/
 ```
-**Step 4**&emsp;Modify the Nexmark test configuration, that is, modify the **/opt/nexmark/conf/nexmark.yaml** file. The configuration example is as follows:
+4. Modify the Nexmark test configuration, that is, modify the **/opt/nexmark/conf/nexmark.yaml** file. The configuration example is as follows:
 ```
 # The metric reporter server host.
 nexmark.metric.reporter.host: 172.19.0.2
@@ -218,7 +218,7 @@ flink.rest.port: 8081
 nexmark.metric.monitor.delay: 8s
 ```
 
-**Step 5**&emsp;Start the Flink cluster and run the specified Nexmark test case.
+5. Start the Flink cluster and run the specified Nexmark test case.
 ```
 cd $FLINK_HOME/bin && ./start-cluster.sh
 cd /opt/nexmark/bin && ./setup_cluster.sh
