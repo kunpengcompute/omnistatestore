@@ -97,7 +97,7 @@ RocksDBVauleState是Flink中常用的一种状态，而状态在RocksDB中均以
 **问题<br>**
 Flink的状态计数操作需多次读写RocksDB，例如在nexmark0.2-Q9用例中，状态技术操作的CPU占比高达20%。
 
-**OmniStateStore的merge优化原理<br>**
+**OmniStateStore的Merge优化原理<br>**
 Merge优化的原理图如下图所示。其主要原理是，使用rocksdb的merge接口替换状态更新的读写操作，将写入状态值修改为写入状态累加操作。通过这种方式，可以将一次状态读一次状态写缩减为一次状态写。当状态被第二次读时，或是触发compaction操作时，在后台触发状态的实际合并操作。<br>
 
 **图5** Merge读写优化算法原理示意图

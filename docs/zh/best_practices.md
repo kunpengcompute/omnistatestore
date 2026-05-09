@@ -107,7 +107,7 @@ state.backend.incremental: true
 ## OmniStateStore实践
 <font size=3>
 
-本实施例按照[OmniStateStore安装指南](installation_guide.md)和[OmniStateStore用户指南](user_guide.md)完成OmniStateStore的安装和使能，在Flink日志中观察到以下日志信息，表示OmniStateStore使能成功。
+本实施例按照[安装指南](installation_guide.md)和[用户指南](user_guide.md)完成OmniStateStore的安装和使能，在Flink日志中观察到以下日志信息，表示OmniStateStore使能成功。
 
 ```
 2026-03-03 16:00:52,972 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - [FALCON] configuring falcon cache heap memory management system. current TM have 2 slots, so each slot can cache 10000 states.
@@ -150,21 +150,20 @@ state.backend.incremental: true
 
 ## Nexmark使用说明
 <font size=3>
+1. 下载[Nexmark软件包](https://github.com/nexmark/nexmark/releases/tag/v0.2.0)。
 
-**步骤1**&emsp;下载Nexmark软件包，下载链接为[Link](https://github.com/nexmark/nexmark/releases/tag/v0.2.0)。
-
-**步骤2**&emsp;在环境上部署Nexmark软件包，以“/opt”目录为例：
+2. 在环境上部署Nexmark软件包，以“/opt”目录为例：
 ```
 cd /opt
 unzip nexmark-flink.zip
 rm -rf nexmark-flink.zip
 mv nexmark-flink nexmark
 ```
-**步骤3**&emsp;将Nexmark的JAR包部署到Flink的lib目录下：
+3. 将Nexmark的JAR包部署到Flink的lib目录下：
 ```
 cp -r /opt/nexmark/lib/nexmark-flink-0.2-SNAPSHOT.jar $FLINK_HOME/lib/
 ```
-**步骤4**&emsp;修改nexmark的测试配置，即修改“/opt/nexmark/conf/nexmark.yaml”文件，配置样例如下：
+4. 修改nexmark的测试配置，即修改“/opt/nexmark/conf/nexmark.yaml”文件，配置样例如下：
 ```
 # The metric reporter server host.
 nexmark.metric.reporter.host: 172.19.0.2
@@ -221,7 +220,7 @@ flink.rest.port: 8081
 nexmark.metric.monitor.delay: 8s
 ```
 
-**步骤5**&emsp;启动Flink集群，并运行Nexmark的指定用例。
+5. 启动Flink集群，并运行Nexmark的指定用例。
 ```
 cd $FLINK_HOME/bin && ./start-cluster.sh
 cd /opt/nexmark/bin && ./setup_cluster.sh

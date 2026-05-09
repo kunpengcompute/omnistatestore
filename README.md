@@ -85,13 +85,13 @@ OmniStateStore/                       # 项目根目录
 </font>
 
 ## 版本说明
-<font size="3">每个版本的特性变更详细信息，具体请参见[版本说明书](./docs/zh/release_notes.md)。</font>
+<font size="3">每个版本的特性变更详细信息，具体请参见《[版本说明书](./docs/zh/release_notes.md)》。</font>
 
 ## 环境部署
-<font size="3">介绍OmniStateStore的环境依赖及安装方式，具体请参见[安装指南](./docs/zh/installation_guide.md)。</font>
+<font size="3">介绍OmniStateStore的环境依赖及安装方式，具体请参见《[安装指南](./docs/zh/installation_guide.md)》。</font>
 
 ## 快速入门
-<font size="3">安装OmniStateStore后如何快速验证OmniStateStore是否生效，性能是否提升，具体请参见[快速入门](./docs/zh/quick_start.md)。</font>
+<font size="3">安装OmniStateStore后如何快速验证OmniStateStore是否生效，性能是否提升，具体请参见《[快速入门](./docs/zh/quick_start.md)》。</font>
 
 ## 学习文档
 <font size="3">
@@ -100,50 +100,41 @@ OmniStateStore/                       # 项目根目录
 <table>
   <thead>
     <tr>
-      <th style="text-align: left;">名称</th>
-      <th style="text-align: left;">路径</th>
+      <th style="text-align: left;">名称</th>      
       <th style="text-align: left;">简介</th>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td style="text-align: left;">快速入门</td>
-      <td style="text-align: left;"><a href="./docs/zh/quick_start.md">quick_start.md</a></td>
+    <tr>      
+      <td style="text-align: left;"><a  href="./docs/zh/quick_start.md">快速入门</a></td>
       <td style="text-align: left;">提供快速使能并验证OmniStateStore加速能力的快速入门指导。</td>
     </tr>
-    <tr>
-      <td style="text-align: left;">版本说明书</td>
-      <td style="text-align: left;"><a href="./docs/zh/release_notes.md">release_notes.md</a></td>
+    <tr>      
+      <td style="text-align: left;"><a href="./docs/zh/release_notes.md">版本说明书</a></td>
       <td style="text-align: left;">提供OmniStateStore每个版本发布的基础信息和特性更新信息。</td>
     </tr>
-    <tr>
-      <td style="text-align: left;">设计指南</td>
-      <td style="text-align: left;"><a href="./docs/zh/design_guide.md">design_guide.md</a></td>
+    <tr>      
+      <td style="text-align: left;"><a href="./docs/zh/design_guide.md">设计指南</a></td>
       <td style="text-align: left;">提供OmniStateStore的特性说明。</td>
     </tr>
-    <tr>
-      <td style="text-align: left;">安装指南</td>
-      <td style="text-align: left;"><a href="./docs/zh/installation_guide.md">installation_guide.md</a></td>
-      <td style="text-align: left;">提供安装OmniStateStore的详细指导。</td>
+    <tr>     
+      <td style="text-align: left;"><a href="./docs/zh/installation_guide.md">安装指南</a></td>
+      <td style="text-align: left;">提供安装OmniStateStore的详细安装指导。</td>
     </tr>
-    <tr>
-      <td style="text-align: left;">用户指南</td>
-      <td style="text-align: left;"><a href="./docs/zh/user_guide.md">user_guide.md</a></td>
-      <td style="text-align: left;">提供使用OmniStateStore的详细指导。</td>
+    <tr>      
+      <td style="text-align: left;"><a href="./docs/zh/user_guide.md">用户指南</a></td>
+      <td style="text-align: left;">提供使用OmniStateStore的详细使用指导。</td>
     </tr>
-    <tr>
-      <td style="text-align: left;">最佳实践</td>
-      <td style="text-align: left;"><a href="./docs/zh/best_practices.md">best_practices.md</a></td>
+    <tr>      
+      <td style="text-align: left;"><a href="./docs/zh/best_practices.md">最佳实践</a></td>
       <td style="text-align: left;">提供OmniStateStore的实践案例。</td>
     </tr>
-   <tr>
-      <td style="text-align: left;">常见问题</td>
-      <td style="text-align: left;"><a href="./docs/zh/faq.md">faq.md</a></td>
+   <tr>      
+      <td style="text-align: left;"><a href="./docs/zh/faq.md">常见问题</a></td>
       <td style="text-align: left;">提供omniStateStore安装和运行过程中的场景问题和解决方案。</td>
     </tr>
-    <tr>
-      <td style="text-align: left;">视频课程</td>
-      <td style="text-align: left;"><a href="https://www.hikunpeng.com/document/video-detail/2644?page=home&type=video&title=OmniRuntime%E7%89%B9%E6%80%A7%E5%A4%A7%E6%8F%AD%E7%A7%98">OmniRuntime特性大揭秘</a></td>
+    <tr>      
+      <td style="text-align: left;">视频课程：<a href="https://www.hikunpeng.com/document/video-detail/2644?page=home&type=video&title=OmniRuntime%E7%89%B9%E6%80%A7%E5%A4%A7%E6%8F%AD%E7%A7%98">OmniRuntime特性大揭秘</a></td>
       <td style="text-align: left;">提供操作视频，帮助开发者在鲲鹏服务器上了解、使能OmniRuntime特性。</td>
     </tr>
   </tbody>
@@ -154,6 +145,7 @@ OmniStateStore/                       # 项目根目录
 <font size="3">
 ## 防病毒软件例行检查
 定期开展对集群和Flink组件的防病毒扫描，防病毒例行检查会帮助集群免受病毒、恶意代码、间谍软件以及恶意程序，降低系统瘫痪、信息泄露风险。建议使用业界主流防病毒软件进行防病毒检查。</font>
+
 ## 日志控制
 <font size="3">
 
@@ -176,7 +168,7 @@ OmniStateStore/                       # 项目根目录
 漏洞描述：Netty 4.1.17版本存在两个Content-Length的http header可能发生混淆的风险通告，漏洞编号为CVE-2021037317。
 本系统使用hdfs-ceph(version 3.2.0)服务作为存算分离的存储对象，它因依赖aws-java-sdk-bundle-1.11.375.jar而涉及该漏洞。建议用户及时更新漏洞补丁进行防护，以免遭受黑客攻击。<br>
 影响范围：Netty 4.1.68及以前版本。<br>
-修复建议：目前厂商已发布升级补丁以修复漏洞，请参见[github](https://github.com/netty/netty/security/advisories/GHSA-9vjp-v76f-g363)修复漏洞。
+修复建议：目前厂商已发布升级补丁以修复漏洞，请参见[GitHub](https://github.com/netty/netty/security/advisories/GHSA-9vjp-v76f-g363)修复漏洞。
 </font>
 ## SSH加固
 <font size="3">
@@ -261,8 +253,6 @@ OmniStateStore/                       # 项目根目录
 &emsp; h. 当您的PR获得足够数量的检视者批准后，Committer会进行最终审核。<br>
 &emsp; i. 审核和测试通过后，CI会将您的PR合并到项目的主干分支。
 </font>
-
-## 法律声明
 
 ## 建议与交流
 <font size="3"> 欢迎大家为社区做贡献。如果有任何疑问或建议，请提交Issues，我们会尽快回复。感谢您的支持。</font>

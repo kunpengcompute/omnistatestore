@@ -1,12 +1,12 @@
 # 用户指南
-<font size=3>提供OmniStateStore的详细使用说明与操作指导，用户可以参阅该文档启动OmniStateStore加速功能。请确保已按照[安装指南](installation_guide.md)完成了OmniStateStore安装。</font>
+<font size=3>提供OmniStateStore的详细使用说明与操作指导，用户可以参阅该文档启动OmniStateStore加速功能。请确保已按照《[安装指南](installation_guide.md)》完成了OmniStateStore安装。</font>
 
 
 
 ## 使用OmniStateStore
 <font size=3>
 
-**步骤1**&emsp;根据业务使用情况和运行环境，设置$FLINK_HOME/conf/flink-conf.yaml文件中的相关配置项。请注意，需要在JobManager和所有TaskManager中同步进行修改。<br>
+1. 根据业务使用情况和运行环境，设置$FLINK_HOME/conf/flink-conf.yaml文件中的相关配置项。请注意，需要在JobManager和所有TaskManager中同步进行修改。<br>
 
 &emsp;&emsp;&emsp;&emsp;配置项格式为[配置项名称] + [英文冒号] + [空格] + [配置项值]，参数配置方法请参阅[配置项说明](#配置项说明)，配置样例如下：<br>
 <div style="margin-left: 50px;">
@@ -30,7 +30,7 @@ state.backend.rocksdb.falcon.use-merge: true
 ```
 </div>
 
-**步骤2**&emsp;启动Flink任务，查看日志中配置项是否正确配置，并在Flink日志中观测是否成功使能OmniStateStore。详细观测方式请参阅[OmniStateStore特性使能情况观测方式](#omnistatestore特性使能情况观测方式)。
+2. 启动Flink任务，查看日志中配置项是否正确配置，并在Flink日志中观测是否成功使能OmniStateStore。详细观测方式请参阅[OmniStateStore特性使能情况观测方式](#omnistatestore特性使能情况观测方式)。
 
 </font>
 
@@ -66,25 +66,25 @@ state.backend.rocksdb.falcon.use-merge: true
       <td style="text-align: left;">state.backend.rocksdb.options-factory</td>
       <td style="text-align: left;">com.huawei.falcon.state.RocksDBOptOptionsFactory</td>
       <td style="text-align: left;">配置该参数表示打开动态Filter技术总开关，该技术的子特性支持通过参数单独配置，默认值为null。</td>
-      <td style="text-align: left;">/</td>
+      <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-partition-filter</td>
       <td style="text-align: left;">true</td>
       <td style="text-align: left;">动态filter技术子特性1，用于优化状态点读点写操作，默认值为false。</td>
-      <td style="text-align: left;">/</td>
+      <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-hash-memtable</td>
       <td style="text-align: left;">true</td>
       <td style="text-align: left;">动态filter技术子特性2，用于优化ValueState读写操作，默认值为false。</td>
-      <td style="text-align: left;">/</td>
+      <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-range-filter</td>
       <td style="text-align: left;">true</td>
       <td style="text-align: left;">动态filter技术子特性3，用于优化MapState范围查询操作，默认值为false。</td>
-      <td style="text-align: left;">/</td>
+      <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.prefix-extractor.length</td>
@@ -96,19 +96,19 @@ state.backend.rocksdb.falcon.use-merge: true
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-opt-join</td>
       <td style="text-align: left;">true</td>
       <td style="text-align: left;">StreamingJoinOperator数据缓存优化技术开关，用于减少该算子的mapState范围查询频次，默认值为false。</td>
-      <td style="text-align: left;">/</td>
+      <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-merge</td>
       <td style="text-align: left;">true</td>
       <td style="text-align: left;">StreamingJoinOperator的merge读写优化开关，用于减少该算子的mapState读写开销，默认值为false。</td>
-      <td style="text-align: left;">/</td>
+      <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-state-cache</td>
       <td style="text-align: left;">true</td>
       <td style="text-align: left;">ValueState状态缓存优化开关，用于RocksDBValueState读写开销，默认值为false。</td>
-      <td style="text-align: left;">/</td>
+      <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.state-cache-sizeLimit</td>
@@ -160,12 +160,12 @@ state.backend.rocksdb.falcon.use-merge: true
     </tr>
     <tr>
       <td style="text-align: left;">Flink语义状态缓存-ValueState状态缓存</td>
-      <td style="text-align: left;">对于ValueState，通过状态缓存减少valueState范围点查点写开销。</td>
+      <td style="text-align: left;">对于ValueState，通过状态缓存减少ValueState范围点查点写开销。</td>
       <td style="text-align: left;">[FALCON] <{StateName}, VALUE> enable falcon cache，若观测到该关键字，表示特性使能成功。</td>
     </tr>
     <tr>
       <td style="text-align: left;">Merge读写优化</td>
-      <td style="text-align: left;">对于StreamingJoinOperator，使用rocksdb的merge接口替换状态RMW操作。</td>
+      <td style="text-align: left;">对于StreamingJoinOperator，使用RocksDB的merge接口替换状态RMW操作。</td>
       <td style="text-align: left;">[FALCON] merge operation is used for left-records，若观测到该关键字，表示特性使能成功。</td>
     </tr>
   </tbody>
@@ -178,6 +178,6 @@ state.backend.rocksdb.falcon.use-merge: true
 ## 维护特性
 <font size=3>
 
-若需要升级OmniStateStore，请参阅[安装指南](installation_guide.md/#12-安装omnistatestore)安装新版本omniStateStore，无需卸载旧版本。<br>
-若需要卸载OmniStateStore，请参阅[卸载指南](installation_guide.md/#13-卸载omnistatestore)卸载omniStateStore，并删除$FLINK_HOME/conf/flink-conf.yaml文件中的相关配置项。
+若需要升级OmniStateStore，请参阅《[安装指南](installation_guide.md/#12-安装omnistatestore)》安装新版本OmniStateStore，无需卸载旧版本。<br>
+若需要卸载OmniStateStore，请参阅《[安装指南](installation_guide.md/#13-卸载omnistatestore)》卸载OmniStateStore，并删除`$FLINK_HOME/conf/flink-conf.yaml`文件中的相关配置项。
 </font>

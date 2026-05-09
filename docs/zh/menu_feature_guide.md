@@ -8,4 +8,6 @@
 - [常见问题](./faq.md)
 - [最佳实践](./best_practices.md)
 - [设计指南](./design_guide.md)
+- [修订记录](./change_history.md)
+
 </font>
