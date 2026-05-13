@@ -17,7 +17,7 @@ set(ROCKSDB_LIBRARY_PATH "/usr/local/lib/librocksdb.so")
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include        # Falcon C++ header files
     ${CMAKE_CURRENT_SOURCE_DIR}/jni_headers    # Falcon JNI header files given by java
-    ${ROCKSDB_INCLUDE_PATH}                    # todo: RocksDB header file path
+    ${ROCKSDB_INCLUDE_PATH}                    # RocksDB header file path
     ${JNI_INCLUDE_DIRS}                        # java header files
 )
 
@@ -30,3 +30,10 @@ add_library(falcon SHARED
 
 # link rocksdb library and jvm library. avoid linking JNI_LIBRARY, which contains libwat.so and so on.
 target_link_libraries(falcon ${ROCKSDB_LIBRARY_PATH} ${JAVA_JVM_LIBRARY})
+
+# Optional GoogleTest-based unit tests. Enable with `-DFALCON_BUILD_TESTS=ON`.
+option(FALCON_BUILD_TESTS "Build Falcon C++ unit tests" OFF)
+if(FALCON_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(test)
+endif()
