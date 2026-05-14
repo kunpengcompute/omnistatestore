@@ -18,6 +18,8 @@
 
 package org.apache.flink.contrib.streaming.state;
 
+import com.huawei.falcon.state.RocksDBOptOptionsFactory;
+
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.runtime.memory.OpaqueMemoryResource;
@@ -431,16 +433,22 @@ public class RocksDBResourceContainerTest {
     }
 
     // ------------------------------------------------------------------------
-    // Falcon-specific: forceHashMemtableDbOptions behaviour
+    // Falcon-specific: RocksDBOptOptionsFactory.createDBOptions behaviour
     // ------------------------------------------------------------------------
+    // The factory must be wired into the container — the default
+    // RocksDBResourceContainer() constructor has no Falcon awareness, so
+    // just mocking GlobalConfiguration would never reach the factory path.
 
     @Test
     public void testFalconHashMemtableDisabledByDefault() throws Exception {
-        // GlobalConfiguration without FLINK_CONF_DIR returns an empty Configuration -> default
-        // value (false). The path under test: forceHashMemtableDbOptions returns early.
-        try (RocksDBResourceContainer container = new RocksDBResourceContainer()) {
+        // GlobalConfiguration without FLINK_CONF_DIR returns an empty
+        // Configuration -> use-hash-memtable defaults to false ->
+        // factory.createDBOptions returns early without mutation.
+        try (RocksDBResourceContainer container =
+                new RocksDBResourceContainer(
+                        PredefinedOptions.DEFAULT, new RocksDBOptOptionsFactory())) {
             DBOptions opts = container.getDbOptions();
-            // not mutated by Falcon; default for allowConcurrentMemtableWrite is true in RocksDB
+            // default for allowConcurrentMemtableWrite is true in RocksDB
             assertTrue(
                     "Falcon hash-memtable disabled should leave allowConcurrentMemtableWrite at default true",
                     opts.allowConcurrentMemtableWrite());
@@ -456,7 +464,9 @@ public class RocksDBResourceContainerTest {
         try (MockedStatic<GlobalConfiguration> mocked =
                 Mockito.mockStatic(GlobalConfiguration.class)) {
             mocked.when(GlobalConfiguration::loadConfiguration).thenReturn(falconConfig);
-            try (RocksDBResourceContainer container = new RocksDBResourceContainer()) {
+            try (RocksDBResourceContainer container =
+                    new RocksDBResourceContainer(
+                            PredefinedOptions.DEFAULT, new RocksDBOptOptionsFactory())) {
                 DBOptions opts = container.getDbOptions();
                 assertFalse(
                         "Falcon hash-memtable enabled must force allowConcurrentMemtableWrite=false",
@@ -473,7 +483,9 @@ public class RocksDBResourceContainerTest {
         try (MockedStatic<GlobalConfiguration> mocked =
                 Mockito.mockStatic(GlobalConfiguration.class)) {
             mocked.when(GlobalConfiguration::loadConfiguration).thenReturn(falconConfig);
-            try (RocksDBResourceContainer container = new RocksDBResourceContainer()) {
+            try (RocksDBResourceContainer container =
+                    new RocksDBResourceContainer(
+                            PredefinedOptions.DEFAULT, new RocksDBOptOptionsFactory())) {
                 DBOptions opts = container.getDbOptions();
                 assertTrue(
                         "Explicitly disabled Falcon hash-memtable must not mutate the option",
