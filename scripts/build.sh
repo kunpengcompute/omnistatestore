@@ -58,14 +58,27 @@ cd ..
 sudo cp -r build/librocksdb.* /usr/local/lib && cp -r build/librocksdb.so.6.20.3 ../librocksdb.so.6
 sudo cp -r include/rocksdb /usr/local/include
 
-# step2: build falcon dynamic library
+# step1b: build & install GoogleTest 1.14.0 into /usr/local.
+cd ..    # 3rdparty/frocksdb -> 3rdparty
+git clone https://gitee.com/hglcode/googletest.git
+#git clone https://github.com/google/googletest.git
+cd googletest && git checkout tags/v1.14.0
+mkdir -p build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j8
+sudo make install
+cd ..    # 3rdparty/googletest/build -> 3rdparty/googletest
+
+# step2: build falcon dynamic library + run cpp unit tests via ctest.
 cd ../../cpp && mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release && make -j8
+cmake .. -DCMAKE_BUILD_TYPE=Release -DFALCON_BUILD_TESTS=ON && make -j8
+ctest --output-on-failure
 cd .. && cp -r build/libfalcon.so ../3rdparty
 
-# step3: build flink-alg-falcon.jar
-cd ../java && mvn clean package
+# step3: build flink-alg-falcon.jar.
+cd ../java && mvn clean package -DskipTests
 cp -r target/flink-alg-falcon.jar ../3rdparty
+mvn test # step3b: run the java test suite.
 
 # get result files
 cd ../3rdparty && mkdir result
