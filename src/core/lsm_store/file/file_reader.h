@@ -32,7 +32,7 @@ namespace bss {
 class FileReader : public FileReaderBase, public std::enable_shared_from_this<FileReader> {
 public:
     FileReader(const FileMetaDataRef &fileMetaData, const ConfigRef &config, const PathRef &path,
-                const BlockCacheRef &blockCache, const MemManagerRef &memManager, FileProcHolder holder)
+               const BlockCacheRef &blockCache, const MemManagerRef &memManager, FileProcHolder holder)
         : FileReaderBase(fileMetaData, config, path, blockCache, memManager, holder)
     {
         LOG_DEBUG("Create FileReader success.");
@@ -74,8 +74,8 @@ public:
         RETURN_NULLPTR_AS_NULLPTR(mIndexReader);
         IteratorRef<BlockHandleRef> blockHandleIterator = mIndexReader->IteratorInner(false);
         RETURN_NULLPTR_AS_NULLPTR(blockHandleIterator);
-        return std::make_shared<FileIterator>(shared_from_this(), internalKeyFilter, blockHandleIterator,
-            mMemManager, mHolder, shareReader);
+        return std::make_shared<FileIterator>(shared_from_this(), internalKeyFilter, blockHandleIterator, mMemManager,
+                                              mHolder, shareReader);
     }
 
     KeyValueIteratorRef PrefixIterator(FullKeyFilterRef internalKeyFilter, const Key &prefixKey,
@@ -91,7 +91,7 @@ public:
     BlockRef GetOrLoadDataBlock(const BlockHandle &blockHandle) override;
 
 private:
-    BlockRef BuildBlock(const ByteBufferRef& buffer, BlockType blockType);
+    BlockRef BuildBlock(const ByteBufferRef &buffer, BlockType blockType);
 
     BlockRef BuildFilterBlock(ByteBufferRef byteBuffer) override;
 
@@ -120,7 +120,7 @@ private:
             return nullptr;
         }
         return std::make_shared<FileSubIterator>(shared_from_this(), internalKeyFilter, blockHandleIterator, startKey,
-                                                  endKey, reverseOrder);
+                                                 endKey, reverseOrder);
     }
 
 private:

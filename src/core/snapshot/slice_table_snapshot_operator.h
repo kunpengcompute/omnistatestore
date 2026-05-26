@@ -13,6 +13,7 @@
 #define BOOST_SS_SLICE_TABLE_SNAPSHOT_OPERATOR_H
 
 #include <dirent.h>
+
 #include <cerrno>
 
 #include "abstract_snapshot_operator.h"
@@ -25,8 +26,11 @@ class SliceTableSnapshotOperator : public AbstractSnapshotOperator {
 public:
     SliceTableSnapshotOperator(uint64_t operatorId, const SliceTableManagerRef &sliceTable, const ConfigRef &config,
                                const MemManagerRef &memManager, uint64_t snapshotId)
-        : AbstractSnapshotOperator(operatorId), mSliceTable(sliceTable), mConfig(config),
-          mMemManager(memManager), mSnapshotId(snapshotId)
+        : AbstractSnapshotOperator(operatorId),
+          mSliceTable(sliceTable),
+          mConfig(config),
+          mMemManager(memManager),
+          mSnapshotId(snapshotId)
     {
     }
 
@@ -62,7 +66,7 @@ public:
     }
 
     static inline BResult createHardlinks(const PathRef &backupPath, const PathRef &snapshotPath,
-        const std::string &sliceFile)
+                                          const std::string &sliceFile)
     {
         PathRef sourcePath = std::make_shared<Path>(backupPath, sliceFile);
         PathRef destPath = std::make_shared<Path>(snapshotPath, sliceFile);

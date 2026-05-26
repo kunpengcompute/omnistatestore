@@ -20,11 +20,10 @@ namespace bss {
 class CompareSliceKey {
 public:
     explicit CompareSliceKey(uint32_t rightShiftBits) : mRightShiftBits(rightShiftBits){};
-    bool operator()(const std::pair<SliceKey, Value> pair1,
-                    const std::pair<SliceKey, Value> pair2) const
+    bool operator()(const std::pair<SliceKey, Value> pair1, const std::pair<SliceKey, Value> pair2) const
     {
         return BssMath::RotateRight(pair1.first.MixedHashCode(), mRightShiftBits) <
-            BssMath::RotateRight(pair2.first.MixedHashCode(), mRightShiftBits);
+               BssMath::RotateRight(pair2.first.MixedHashCode(), mRightShiftBits);
     }
 
 private:

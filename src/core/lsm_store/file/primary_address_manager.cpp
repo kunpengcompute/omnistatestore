@@ -10,6 +10,7 @@
  */
 
 #include "primary_address_manager.h"
+
 #include "common/util/timestamp_util.h"
 #include "lsm_store/file/file_address_util.h"
 #include "lsm_store/file/file_cache_type.h"
@@ -62,7 +63,7 @@ void PrimaryAddressManager::DecPrimaryAddressRef(uint64_t primaryAddress)
         if (toRemoveAddress->GetFileStatus() == FileStatus::LOCAL ||
             toRemoveAddress->GetFileAddress() != persistentAddress->GetFileAddress()) {
             LOG_INFO("Decreasing persistent DB reference of file " << persistentAddress->GetFileAddress()
-                                                                     << " from dfs file manager.");
+                                                                   << " from dfs file manager.");
             mDfsFileManager->DecDbRef(FileAddressUtil::GetFileId(persistentAddress->GetFileAddress()), 0L,
                                       TimeStampUtil::GetCurrentTime(), persistentAddress->GetFileLength());
         }
@@ -81,8 +82,8 @@ FileInfoRef PrimaryAddressManager::GetPrimaryFileInfo(uint64_t primaryAddress)
     } else if (result->GetFileStatus() == FileStatus::DFS) {
         auto fileInfo = mDfsFileManager->GetFileInfo(FileAddressUtil::GetFileId(primaryAddress));
         if (UNLIKELY(fileInfo == nullptr)) {
-            LOG_ERROR("Get dfs file info is nullptr, address:" << primaryAddress
-                                                   << ", fileId:" << FileAddressUtil::GetFileId(primaryAddress));
+            LOG_ERROR("Get dfs file info is nullptr, address:" << primaryAddress << ", fileId:"
+                                                               << FileAddressUtil::GetFileId(primaryAddress));
             return nullptr;
         }
         fileInfo->SetFileStatus(FileStatus::DFS);

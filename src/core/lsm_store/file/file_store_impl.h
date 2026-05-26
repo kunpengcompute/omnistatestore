@@ -364,15 +364,15 @@ private:
     BResult BuildLsmStoreFlushFile(const PQTableIteratorRef &iter, FileMetaDataRef &fileMetaData, bool &flag);
 
     bool KeyNotExistBeyondOutputLevels(const Key &key, const VersionPtr &currentVersion, uint32_t numLevels,
-        std::vector<int32_t> &levelPointers) const;
+                                       std::vector<int32_t> &levelPointers) const;
 
     bool FindKeyInFileMetaDataGroups(const Key &key, uint32_t level, std::vector<int32_t> &levelPointers,
-        const std::vector<FileMetaDataGroupRef> &fileMetaDataGroups) const;
+                                     const std::vector<FileMetaDataGroupRef> &fileMetaDataGroups) const;
 
     bool FindKeyInLevel0(const Key &key, const std::vector<FileMetaDataRef> &files) const;
 
     bool FindKeyInOtherLevels(const Key &key, uint32_t level, std::vector<int32_t> &levelPointers,
-        const std::vector<FileMetaDataRef> &files) const;
+                              const std::vector<FileMetaDataRef> &files) const;
 
     inline void NotifyStop() override
     {
@@ -429,7 +429,7 @@ private:
 
     void CountCompaction(CompactionProcessorRef &processor)
     {
-        if (!(mBoostNativeMetric != nullptr && mBoostNativeMetric->IsFileStoreMetricEnabled()))  {
+        if (!(mBoostNativeMetric != nullptr && mBoostNativeMetric->IsFileStoreMetricEnabled())) {
             return;
         }
         auto compaction = processor->mCompaction;
@@ -464,10 +464,11 @@ private:
 
     void CreateVersion(const FileMetaDataRef &fileMetaData);
 
-    static inline void DivideFileMetas(std::vector<FileMetaDataRef>& toDivide,
-        std::vector<FileMetaDataRef>& pqFileMetas, std::vector<FileMetaDataRef>& kvFileMetas)
+    static inline void DivideFileMetas(std::vector<FileMetaDataRef> &toDivide,
+                                       std::vector<FileMetaDataRef> &pqFileMetas,
+                                       std::vector<FileMetaDataRef> &kvFileMetas)
     {
-        for (FileMetaDataRef& fileMeta : toDivide) {
+        for (FileMetaDataRef &fileMeta : toDivide) {
             if (fileMeta->GetSmallest()->IsPqKey()) {
                 pqFileMetas.emplace_back(fileMeta);
             } else {
@@ -475,6 +476,7 @@ private:
             }
         }
     }
+
 private:
     FileStoreIDRef mFileStoreID = nullptr;
     ConfigRef mConf = nullptr;

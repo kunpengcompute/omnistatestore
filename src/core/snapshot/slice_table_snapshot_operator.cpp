@@ -31,8 +31,8 @@ BResult SliceTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
 
     SliceTableSnapshotRef sliceTableSnapshot = std::make_shared<SliceTableSnapshot>();
     RETURN_NOT_OK(sliceTableSnapshot->Initialize(mSliceTable->GetSliceBucketIndex(),
-                                                 mSliceTable->GetBucketGroupManager(),
-                                                 mMemManager, isSavepoint, mSnapshotId));
+                                                 mSliceTable->GetBucketGroupManager(), mMemManager, isSavepoint,
+                                                 mSnapshotId));
     mSliceTable->AddSliceTableSnapshot(mSnapshotId, sliceTableSnapshot);
     mSliceTableSnapshot = sliceTableSnapshot;
 
@@ -68,7 +68,7 @@ BResult SliceTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
     IteratorRef<SliceAddressRef> sliceIterator = mSliceTableSnapshot->GetSnapshotSliceFlushIterator();
     while (!mIsReleased.load() && sliceIterator->HasNext()) {
         SliceAddressRef sliceAddress = sliceIterator->Next();
-        if (UNLIKELY(sliceAddress == nullptr || sliceAddress->IsEvicted())) { // 当前slice已经被淘汰则直接跳过.
+        if (UNLIKELY(sliceAddress == nullptr || sliceAddress->IsEvicted())) {  // 当前slice已经被淘汰则直接跳过.
             continue;
         }
 
@@ -83,8 +83,8 @@ BResult SliceTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
             LOG_ERROR("Failed to create hardlink for new slice file: " << file);
             return ret;
         }
-        // 增量场景下，slice的LocalAddress为空，说明当前slice还没有做过checkpoint, 反之则代表当前slice已经做过checkpoint；
-        // 之前版本会在当前slice已经做过checkpoint时创建空文件用于后续增量比较；
+        // 增量场景下，slice的LocalAddress为空，说明当前slice还没有做过checkpoint,
+        // 反之则代表当前slice已经做过checkpoint； 之前版本会在当前slice已经做过checkpoint时创建空文件用于后续增量比较；
         // 为了支持本地恢复，现在版本不再使用创建空文件的方式，而是将新文件创建到cp本地目录父目录的自定义子目录，
         // 每次创建cp都为cp本地目录所需的新文件和旧文件创建指向cp本地目录父目录的自定义子目录中文件的硬链接。
         if (sliceAddress->GetLocalAddress().empty()) {
@@ -131,8 +131,8 @@ BResult SliceTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
             sliceAddress->SetRawLocalAddress(snapshotPath->Name() + '/' +
                                              mFileOutputView->GetFilePath()->ExtractFileName());
             dataTotalSize += sliceBuffer->Capacity();
-            LOG_DEBUG("Slice table async checkpoint write data slice success, file path:" <<
-                      mFileOutputView->GetFilePath()->ExtractFileName() << ", sliceId:" << sliceAddress->GetSliceId()
+            LOG_DEBUG("Slice table async checkpoint write data slice success, file path:"
+                      << mFileOutputView->GetFilePath()->ExtractFileName() << ", sliceId:" << sliceAddress->GetSliceId()
                       << ", startOffset:" << startOffset << ", writenSize:" << sliceBuffer->Capacity()
                       << ", checkSum:" << sliceAddress->GetCheckSum());
             continue;
@@ -182,21 +182,22 @@ BResult SliceTableSnapshotOperator::AsyncSnapshotWithoutLocalRecovery(uint64_t s
     IteratorRef<SliceAddressRef> sliceIterator = mSliceTableSnapshot->GetSnapshotSliceFlushIterator();
     while (!mIsReleased.load() && sliceIterator->HasNext()) {
         SliceAddressRef sliceAddress = sliceIterator->Next();
-        if (UNLIKELY(sliceAddress == nullptr || sliceAddress->IsEvicted())) { // 当前slice已经被淘汰则直接跳过.
+        if (UNLIKELY(sliceAddress == nullptr || sliceAddress->IsEvicted())) {  // 当前slice已经被淘汰则直接跳过.
             continue;
         }
 
-        if (mFileOutputView != nullptr && mFileOutputView->Size() >= IO_SIZE_32M) { // 快照文件要凑满32M
+        if (mFileOutputView != nullptr && mFileOutputView->Size() >= IO_SIZE_32M) {  // 快照文件要凑满32M
             mFileOutputView->Close();
             mFileOutputView = nullptr;
         }
 
-        // 增量场景下, slice的LocalAddress为非空，说明当前slice已经有做过checkpoint, 则本次不做, 只创一个空文件用于后续增量比较.
+        // 增量场景下, slice的LocalAddress为非空，说明当前slice已经有做过checkpoint, 则本次不做,
+        // 只创一个空文件用于后续增量比较.
         if (isIncremental && !sliceAddress->GetLocalAddress().empty()) {
             auto fileName = PathTransform::ExtractFileName(sliceAddress->GetLocalAddress());
             auto filePath = std::make_shared<Path>(snapshotPath, fileName);
             auto fileOutputView = std::make_shared<FileOutputView>();
-            if (fileSet.find(fileName) == fileSet.end()) { // 如果之前没有创建，则创建一个空文件，用于增量比较.
+            if (fileSet.find(fileName) == fileSet.end()) {  // 如果之前没有创建，则创建一个空文件，用于增量比较.
                 RETURN_NOT_OK(fileOutputView->Init(filePath, mConfig));
                 LOG_DEBUG("Create empty file when incremental checkpoint, file path:" << filePath->ExtractFileName());
                 fileSet.emplace(fileName);
@@ -236,18 +237,19 @@ BResult SliceTableSnapshotOperator::AsyncSnapshotWithoutLocalRecovery(uint64_t s
         auto ret = mFileOutputView->WriteByteBuffer(sliceBuffer, static_cast<int64_t>(sizeToCheck),
                                                     sliceBuffer->Capacity());
         if (UNLIKELY(ret != BSS_OK)) {
-            LOG_ERROR("Slice table snapshot write failed, ret:" << ret << ", writenSize:" << sliceBuffer->Capacity() <<
-                      ", file path:" << mFileOutputView->GetFilePath()->ExtractFileName());
+            LOG_ERROR("Slice table snapshot write failed, ret:" << ret << ", writenSize:" << sliceBuffer->Capacity()
+                                                                << ", file path:"
+                                                                << mFileOutputView->GetFilePath()->ExtractFileName());
             return BSS_ERR;
         }
         // 设置当前slice checkpoint的文件和文件的偏移起始地址, 在恢复的时候从这个位置开始读取.
         sliceAddress->SetRawStartOffset(startOffset);
         sliceAddress->SetRawLocalAddress(mFileOutputView->GetFilePath()->Name());
         dataTotalSize += sliceBuffer->Capacity();
-        LOG_DEBUG("Slice table async checkpoint write data slice success, file path:" <<
-                  mFileOutputView->GetFilePath()->ExtractFileName() << ", sliceId:" << sliceAddress->GetSliceId() <<
-                  ", startOffset:" << startOffset << ", writenSize:" << sliceBuffer->Capacity() << ", checkSum:" <<
-                  sliceAddress->GetCheckSum());
+        LOG_DEBUG("Slice table async checkpoint write data slice success, file path:"
+                  << mFileOutputView->GetFilePath()->ExtractFileName() << ", sliceId:" << sliceAddress->GetSliceId()
+                  << ", startOffset:" << startOffset << ", writenSize:" << sliceBuffer->Capacity()
+                  << ", checkSum:" << sliceAddress->GetCheckSum());
     }
     if (mFileOutputView != nullptr) {
         mFileOutputView->Close();

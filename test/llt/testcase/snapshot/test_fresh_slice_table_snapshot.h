@@ -15,13 +15,13 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
 #include <cerrno>
 #include <iostream>
 #include <random>
 #include <string>
 
 #include "gtest/gtest.h"
-
 #include "common/bss_log.h"
 #include "fresh_table/fresh_table.h"
 #include "slice_table/slice_table.h"
@@ -153,7 +153,7 @@ public:
     {
         for (auto &key : originKeyList) {
             // 进行查询，lsm store 中是否有对应的key，这里能保证slice中没有数据，所以get找到的值一定在lsm store中
-            Value valueInLsmStore {};
+            Value valueInLsmStore{};
             bool ret = mBoostStateDB->GetSliceTable()->Get(key, valueInLsmStore);
             ASSERT_TRUE(ret);
         }

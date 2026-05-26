@@ -34,14 +34,16 @@ public:
     }
 
     // 禁止拷贝，只允许移动
-    DLinkedNode(const DLinkedNode&) = delete;
-    DLinkedNode& operator=(const DLinkedNode&) = delete;
+    DLinkedNode(const DLinkedNode &) = delete;
+    DLinkedNode &operator=(const DLinkedNode &) = delete;
 
-    DLinkedNode(DLinkedNode&& other) noexcept
+    DLinkedNode(DLinkedNode &&other) noexcept
         : key(other.key), value(std::move(other.value)), prev(other.prev), next(other.next)
     {
-        if (prev) prev->next = this;
-        if (next) next->prev = this;
+        if (prev)
+            prev->next = this;
+        if (next)
+            next->prev = this;
         // 重置 other 的 prev 和 next 指针
         other.prev = nullptr;
         other.next = nullptr;
@@ -50,8 +52,8 @@ public:
 public:
     uint64_t key;
     BlockRef value;
-    DLinkedNode* prev;
-    DLinkedNode* next;
+    DLinkedNode *prev;
+    DLinkedNode *next;
 };
 
 class LRUCache {
@@ -82,7 +84,7 @@ public:
             return nullptr;
         }
 
-        DLinkedNode* node = iter->second.get();
+        DLinkedNode *node = iter->second.get();
         MoveToHead(node);
         mLock.UnLock();
         return node->value;
@@ -97,7 +99,7 @@ public:
         mLock.Lock();
         auto iter = mCache.find(key);
         if (iter != mCache.end()) {
-            DLinkedNode* node = iter->second.get();
+            DLinkedNode *node = iter->second.get();
             auto oldValueLen = node->value->BufferLen();
 
             UpdateCacheStat(node->value->GetBlockType(), false, oldValueLen);
@@ -108,7 +110,7 @@ public:
             mCurrentSize = mCurrentSize - oldValueLen + value->BufferLen();
         } else {
             auto nodePtr = std::make_unique<DLinkedNode>(key, value);
-            DLinkedNode* node = nodePtr.get();
+            DLinkedNode *node = nodePtr.get();
 
             mCache.emplace(key, std::move(nodePtr));
             AddToHead(node);
@@ -128,7 +130,7 @@ public:
             std::unique_ptr<DLinkedNode> nodePtr = std::move(iter->second);
             mCache.erase(iter);
 
-            DLinkedNode* node = nodePtr.get();
+            DLinkedNode *node = nodePtr.get();
             UpdateCacheStat(node->value->GetBlockType(), false, node->value->BufferLen());
             RemoveNode(node);
 
@@ -156,7 +158,7 @@ public:
         uint64_t removeSize = 0;
         do {
             if (mCurrentSize > 0 && !mCache.empty()) {
-                DLinkedNode* node = RemoveTailNode();
+                DLinkedNode *node = RemoveTailNode();
                 if (UNLIKELY(node == nullptr)) {
                     break;
                 }
@@ -174,7 +176,7 @@ public:
         } while (removeSize < size);
         if (UNLIKELY(removeSize < size)) {
             LOG_DEBUG("Remove eldest entry not enough, removeSize:" << removeSize << ", expectSize:" << size
-                << ", currentSize:" << mCurrentSize);
+                                                                    << ", currentSize:" << mCurrentSize);
         }
         mLock.UnLock();
     }
@@ -214,8 +216,9 @@ public:
             it->second->UpdateCacheStat(type, isAdd, size);
         }
     }
+
 private:
-    void AddToHead(DLinkedNode* node)
+    void AddToHead(DLinkedNode *node)
     {
         node->prev = mHead.get();
         node->next = mHead->next;
@@ -223,7 +226,7 @@ private:
         mHead->next = node;
     }
 
-    void RemoveNode(DLinkedNode* node)
+    void RemoveNode(DLinkedNode *node)
     {
         if (node == mTail.get() || node == mHead.get() || node == nullptr) {
             return;
@@ -236,15 +239,15 @@ private:
         node->next = nullptr;
     }
 
-    void MoveToHead(DLinkedNode* node)
+    void MoveToHead(DLinkedNode *node)
     {
         RemoveNode(node);
         AddToHead(node);
     }
 
-    DLinkedNode* RemoveTailNode()
+    DLinkedNode *RemoveTailNode()
     {
-        DLinkedNode* node = mTail->prev;
+        DLinkedNode *node = mTail->prev;
         if (node == mHead.get() || node == nullptr) {
             return nullptr;
         }
@@ -255,7 +258,7 @@ private:
     void TrimToSize()
     {
         while ((mCurrentSize > (mCapacity * TRIM_RATIO)) && !mCache.empty()) {
-            DLinkedNode* node = RemoveTailNode();
+            DLinkedNode *node = RemoveTailNode();
             if (node == nullptr) {
                 return;
             }
@@ -266,7 +269,7 @@ private:
                 mCurrentSize -= iter->second->value->BufferLen();
                 mCache.erase(iter);
                 LOG_DEBUG("Trim eldest entry, key:" << node->key << " valueSize:" << node->value->BufferLen()
-                    << ", currentSize:" << mCurrentSize);
+                                                    << ", currentSize:" << mCurrentSize);
             }
         }
     }

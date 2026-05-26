@@ -41,8 +41,12 @@ public:
 
     Version(void *versionSet, std::vector<Level> &levels, uint32_t compactionLevel, const GroupRangeRef &group,
             double compactionScore, Reason compactionReason)
-        : mParentVersionSet(versionSet), mLevels(levels), mCompactionReason(compactionReason),
-          mCompactionLevel(compactionLevel), mCompactionScore(compactionScore), mGroupRange(group)
+        : mParentVersionSet(versionSet),
+          mLevels(levels),
+          mCompactionReason(compactionReason),
+          mCompactionLevel(compactionLevel),
+          mCompactionScore(compactionScore),
+          mGroupRange(group)
     {
         mReferenceCount.store(1);
     }
@@ -170,9 +174,10 @@ public:
     std::string ToString()
     {
         std::ostringstream oss;
-        oss << " seqId:" << mSeqId << ", referenceCount:" << mReferenceCount << ", compactionReason:" <<
-            static_cast<uint32_t>(mCompactionReason) << ", compactionLevel:" << mCompactionLevel <<
-            ", compactionScore:" << mCompactionScore << ", groupRange:" << mGroupRange->ToString() << ".";
+        oss << " seqId:" << mSeqId << ", referenceCount:" << mReferenceCount
+            << ", compactionReason:" << static_cast<uint32_t>(mCompactionReason)
+            << ", compactionLevel:" << mCompactionLevel << ", compactionScore:" << mCompactionScore
+            << ", groupRange:" << mGroupRange->ToString() << ".";
         oss << " Level info:" << LevelSummary() << ".";
         return oss.str();
     }

@@ -17,7 +17,8 @@ BResult FreshHandler::Handle(const BoostSegmentRef &segment)
 {
     // 1. 组织数据.
     std::unordered_map<SliceIndexContextRef, std::shared_ptr<RawDataSlice>, SliceIndexContextHash,
-                       SliceIndexContextEqual> organizedData;
+                       SliceIndexContextEqual>
+        organizedData;
     BResult ret = DivideFreshData(organizedData, segment);
     if (UNLIKELY(ret != BSS_OK)) {
         LOG_ERROR("Organize fresh table memory segment failed, ret:" << ret);
@@ -28,9 +29,9 @@ BResult FreshHandler::Handle(const BoostSegmentRef &segment)
     return WriteDataToSlice(organizedData);
 }
 
-BResult FreshHandler::DivideFreshData(
-    std::unordered_map<SliceIndexContextRef, std::shared_ptr<RawDataSlice>, SliceIndexContextHash,
-    SliceIndexContextEqual> &organizedData, const BoostSegmentRef &segment)
+BResult FreshHandler::DivideFreshData(std::unordered_map<SliceIndexContextRef, std::shared_ptr<RawDataSlice>,
+                                                         SliceIndexContextHash, SliceIndexContextEqual> &organizedData,
+                                      const BoostSegmentRef &segment)
 {
     if (UNLIKELY(segment == nullptr)) {
         LOG_ERROR("Memory segment is nullptr.");
@@ -66,8 +67,8 @@ BResult FreshHandler::DivideFreshData(
                 rawDataSlice->PutMixHashCode(pair.first.mMixedHashCode);
                 rawDataSlice->PutIndexVec();
             } else {
-                std::shared_ptr<RawDataSlice> rawDataSlice
-                    = std::make_shared<RawDataSlice>(binaryData->GetMemorySegment(), segment->GetVersion());
+                std::shared_ptr<RawDataSlice> rawDataSlice =
+                    std::make_shared<RawDataSlice>(binaryData->GetMemorySegment(), segment->GetVersion());
                 rawDataSlice->AddBinaryData(pair);
                 rawDataSlice->PutMixHashCode(pair.first.mMixedHashCode);
                 rawDataSlice->PutIndexVec();
@@ -120,9 +121,8 @@ BResult FreshHandler::DoTrans(FreshKeyNodePtr key, FreshValueNodePtr value,
     return BSS_OK;
 }
 
-BResult FreshHandler::WriteDataToSlice(
-    std::unordered_map<SliceIndexContextRef, RawDataSliceRef, SliceIndexContextHash,
-                       SliceIndexContextEqual> &organizedData)
+BResult FreshHandler::WriteDataToSlice(std::unordered_map<SliceIndexContextRef, RawDataSliceRef, SliceIndexContextHash,
+                                                          SliceIndexContextEqual> &organizedData)
 {
     if (UNLIKELY(organizedData.empty())) {
         LOG_WARN("Organized data is empty, not need to write data to slice.");
@@ -151,11 +151,12 @@ BResult FreshHandler::WriteDataToSlice(
         } while (UNLIKELY(ret == BSS_ALLOC_FAIL) && (usleep(NO_100), 1));
         RETURN_NOT_OK(ret);
         auto self = shared_from_this();
-        mSliceTable->TryCompact(bucketIndexContext, [self](LogicalSliceChainRef logicalSliceChain,
-                                                   uint32_t bucketIndex, uint32_t compactionStartChainIndex,
-                                                   uint32_t compactionEndChainIndex, DataSliceRef compactedDataSlice,
-                                                   std::vector<SliceAddressRef> invalidSliceAddressList,
-                                                   uint32_t finalOldSliceSize, bool fromRestore) {
+        mSliceTable->TryCompact(bucketIndexContext, [self](LogicalSliceChainRef logicalSliceChain, uint32_t bucketIndex,
+                                                           uint32_t compactionStartChainIndex,
+                                                           uint32_t compactionEndChainIndex,
+                                                           DataSliceRef compactedDataSlice,
+                                                           std::vector<SliceAddressRef> invalidSliceAddressList,
+                                                           uint32_t finalOldSliceSize, bool fromRestore) {
             self->CompactCallback(logicalSliceChain, bucketIndex, compactionStartChainIndex, compactionEndChainIndex,
                                   compactedDataSlice, invalidSliceAddressList);
         });
@@ -178,9 +179,9 @@ void FreshHandler::CompactCallback(LogicalSliceChainRef &logicalSliceChain, uint
 
     ReplaceLogicalSliceRef replaceLogicalSlice = std::make_shared<ReplaceLogicalSlice>(mSliceTable, mConfig);
     RunnablePtr processor = std::make_shared<ReplaceLogicalSliceTask>(replaceLogicalSlice, logicalSliceChain,
-                                                                     bucketIndex, compactionStartChainIndex,
-                                                                     compactionEndChainIndex, compactedDataSlice,
-                                                                     invalidSliceAddressList);
+                                                                      bucketIndex, compactionStartChainIndex,
+                                                                      compactionEndChainIndex, compactedDataSlice,
+                                                                      invalidSliceAddressList);
     if (!mTransExecutor->Execute(processor, true)) {
         logicalSliceChain->SetCompactionToNormal();
         LOG_ERROR("Execute replace logic slice task failed.");

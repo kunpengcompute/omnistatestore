@@ -15,7 +15,8 @@ namespace ock {
 namespace bss {
 
 BResult SortedKeyValueMergingIterator::Init(const SliceKVIteratorPtr &sliceTableIterator,
-    KeyValueIteratorRef &lsmIterator, const MemManagerRef &memManager, bool sectionRead, FileProcHolder holder)
+                                            KeyValueIteratorRef &lsmIterator, const MemManagerRef &memManager,
+                                            bool sectionRead, FileProcHolder holder)
 {
     if (UNLIKELY(sliceTableIterator == nullptr || lsmIterator == nullptr)) {
         LOG_ERROR("sliceTableIterator is nullptr");
@@ -28,7 +29,7 @@ BResult SortedKeyValueMergingIterator::Init(const SliceKVIteratorPtr &sliceTable
     mSectionRead = sectionRead;
     mHolder = holder;
 
-    if (mSliceTableIterator->HasNext()  == Iterator_Result_Continue) {
+    if (mSliceTableIterator->HasNext() == Iterator_Result_Continue) {
         mSliceTablePointer = this->mSliceTableIterator->Next();
     }
 

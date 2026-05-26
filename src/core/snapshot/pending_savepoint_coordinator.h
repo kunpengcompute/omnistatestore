@@ -28,10 +28,15 @@ public:
     enum class State { CREATED, RUNNING, COMPLETED, FAILED, CANCELED };
 
     PendingSavepointCoordinator(const SnapshotManagerRef &snapshotManager, const FreshTableRef &freshTable,
-        const SliceTableManagerRef &sliceTable, uint64_t savepointId, const StateIdProviderRef &stateIdProvider,
-        const MemManagerRef &memManager, const std::vector<PQTableRef> &pqTable)
-        : mSnapshotManagerRef(snapshotManager), mFreshTable(freshTable), mSliceTable(sliceTable),
-          mSavepointId(savepointId), mStateIdProvider(stateIdProvider), mMemManager(memManager),
+                                const SliceTableManagerRef &sliceTable, uint64_t savepointId,
+                                const StateIdProviderRef &stateIdProvider, const MemManagerRef &memManager,
+                                const std::vector<PQTableRef> &pqTable)
+        : mSnapshotManagerRef(snapshotManager),
+          mFreshTable(freshTable),
+          mSliceTable(sliceTable),
+          mSavepointId(savepointId),
+          mStateIdProvider(stateIdProvider),
+          mMemManager(memManager),
           mPqTables(pqTable)
     {
     }

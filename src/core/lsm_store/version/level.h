@@ -107,8 +107,7 @@ public:
 
     std::vector<FileMetaDataRef> GetFilesContainingStateId(uint32_t stateId);
 
-    void GetFilesForKey(const Key &key, int32_t keyGroup, bool checkOrderRange,
-                        std::vector<FileMetaDataRef> &result);
+    void GetFilesForKey(const Key &key, int32_t keyGroup, bool checkOrderRange, std::vector<FileMetaDataRef> &result);
 
     uint64_t GetTotalFileSize() const
     {

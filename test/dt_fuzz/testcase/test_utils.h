@@ -13,26 +13,27 @@
 #define BOOST_STATE_STORE_KV_TEST_UTILS_H
 
 #include <glob.h>
-#include <climits>
-#include <csignal>
-#include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <cstdint>
-#include <string>
-#include <sstream>
-#include <iostream>
-#include <deque>
-#include <thread>
-#include <random>
-#include <unordered_map>
-#include <queue>
+#include <unistd.h>
+
 #include <atomic>
-#include <mutex>
-#include <memory>
+#include <climits>
+#include <csignal>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <deque>
 #include <fstream>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <random>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <unordered_map>
 
 #include "gtest/gtest.h"
 #include "securec.h"

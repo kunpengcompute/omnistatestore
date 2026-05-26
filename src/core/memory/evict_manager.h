@@ -34,7 +34,7 @@ public:
     }
 
     BResult Initialize(const ConfigRef &config, const BucketGroupManagerRef &bucketGroupManager,
-        const AccessRecorderRef &accessRecord);
+                       const AccessRecorderRef &accessRecord);
 
     void Exit();
 

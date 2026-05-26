@@ -10,26 +10,28 @@
  */
 
 #include "jni_common.h"
+
 #include "com_huawei_ock_bss_table_KListTableImpl.h"
 #include "common/jvm_instance.h"
 
 static bool g_initialized = false;
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
 {
     if (UNLIKELY(vm == nullptr)) {
         LOG_ERROR("Input vm is nullptr.");
         return JNI_ERR;
     }
-    if (g_initialized) return JNI_VERSION_1_6;
-    JNIEnv* env;
+    if (g_initialized)
+        return JNI_VERSION_1_6;
+    JNIEnv *env;
 
     if (UNLIKELY(vm == nullptr)) {
         LOG_ERROR("Input vm is nullptr.");
         return JNI_ERR;
     }
 
-    if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+    if (vm->GetEnv((void **)&env, JNI_VERSION_1_6) != JNI_OK) {
         return JNI_ERR;
     }
 
@@ -40,14 +42,14 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
     return JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved)
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved)
 {
     if (UNLIKELY(vm == nullptr)) {
         LOG_ERROR("Input vm is nullptr.");
         return;
     }
-    JNIEnv* env;
-    if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) == JNI_OK) {
+    JNIEnv *env;
+    if (vm->GetEnv((void **)&env, JNI_VERSION_1_6) == JNI_OK) {
         KListTableImplExit(env);
         SubTableEntryExit(env);
     }

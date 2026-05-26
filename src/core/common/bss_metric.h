@@ -136,13 +136,7 @@ enum class LayerType : uint8_t {
 
 using IOResult = int8_t;
 
-enum SliceReadResult : int8_t {
-    NOT_FOUND = -2,
-    SLICE_FOUND_DELETE = -1,
-    IO_ERR = 0,
-    SLICE_FOUND = 1,
-    LSM_FOUND = 2
-};
+enum SliceReadResult : int8_t { NOT_FOUND = -2, SLICE_FOUND_DELETE = -1, IO_ERR = 0, SLICE_FOUND = 1, LSM_FOUND = 2 };
 
 class BoostNativeMetric {
 public:
@@ -217,8 +211,7 @@ public:
                          [this]() -> uint64_t { return mFreshSegmentCreateFailCount; });
         mMetrics.emplace(MetricType::FRESH_FLUSH_COUNT, [this]() -> uint64_t { return mFreshFlushCount; });
         mMetrics.emplace(MetricType::FRESH_BINARY_KEY_SIZE, [this]() -> uint64_t { return mFreshBinaryKeySize; });
-        mMetrics.emplace(MetricType::FRESH_BINARY_VALUE_SIZE,
-                         [this]() -> uint64_t { return mFreshBinaryValueSize; });
+        mMetrics.emplace(MetricType::FRESH_BINARY_VALUE_SIZE, [this]() -> uint64_t { return mFreshBinaryValueSize; });
         mMetrics.emplace(MetricType::FRESH_BINARY_MAP_NODE_SIZE,
                          [this]() -> uint64_t { return mFreshBinaryMapNodeSize; });
         mMetrics.emplace(MetricType::FRESH_WASTED_SIZE, [this]() -> uint64_t { return mFreshWastedSize; });
@@ -243,8 +236,7 @@ public:
             }
             return mSliceEvictWaitingCount();
         });
-        mMetrics.emplace(MetricType::SLICE_COMPACTION_COUNT,
-                         [this]() -> uint64_t { return mSliceCompactionCount; });
+        mMetrics.emplace(MetricType::SLICE_COMPACTION_COUNT, [this]() -> uint64_t { return mSliceCompactionCount; });
         mMetrics.emplace(MetricType::SLICE_COMPACTION_SLICE_COUNT,
                          [this]() -> uint64_t { return mSliceCompactionSliceCount; });
         mMetrics.emplace(MetricType::SLICE_COMPACTION_AVG_SLICE_COUNT, [this]() -> uint64_t {
@@ -721,7 +713,7 @@ public:
     uint64_t GetMemoryFreshUsed()
     {
         if (LIKELY(mUsedMemoryGetter != nullptr)) {
-            return mUsedMemoryGetter(MemoryType::FRESH_TABLE);        
+            return mUsedMemoryGetter(MemoryType::FRESH_TABLE);
         }
         return 0;
     }

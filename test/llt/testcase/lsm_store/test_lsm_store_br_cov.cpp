@@ -10,6 +10,7 @@
  */
 
 #include "fs/local/local_file_system.h"
+
 #include "lsm_store/file/file_structure.h"
 #include "test_lsm_store_br_cov.h"
 

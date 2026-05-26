@@ -10,6 +10,7 @@
  */
 
 #include "include/bss_err.h"
+
 #include "include/bss_types.h"
 #include "securec.h"
 #include "serialized_data.h"

@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "boost_state_dbgroup.h"
+
 #include <utility>
 
-#include "boost_state_dbgroup.h"
 #include "boost_state_db_impl.h"
 #include "boost_state_dbgroup_impl.h"
 
@@ -121,13 +122,13 @@ BResult BoostStateDbGroupImpl::TryEvict(bool isSync, bool isForce, uint32_t minS
         RETURN_ALLOC_FAIL_AS_NULLPTR(fullSortEvictor);
         // 淘汰刷盘
         uint64_t selectedSize = fullSortEvictor->Flush(minSize != UINT32_MAX ? minSize : mEvictMinSize, minGroup,
-            isSync);
+                                                       isSync);
         if (selectedSize == 0) {
             break;
         }
-        LOG_INFO("Evict select bucketGroupId:" << minGroup->GetBucketGroupId() << ", useTotal:" << useTotal <<
-                 ", evictWaterMark:" << evictWaterMark << ", flushTotal:" << flushingTotal <<
-                 ", selectSize:" << selectedSize << ", isForce:" << isForce);
+        LOG_INFO("Evict select bucketGroupId:"
+                 << minGroup->GetBucketGroupId() << ", useTotal:" << useTotal << ", evictWaterMark:" << evictWaterMark
+                 << ", flushTotal:" << flushingTotal << ", selectSize:" << selectedSize << ", isForce:" << isForce);
         RETURN_NOT_OK(GetEvictFlushInfo(useTotal, flushingTotal));
         if (isForce) {
             // 内存不足强制淘汰，至少淘汰一次
@@ -256,5 +257,5 @@ ReadWriteLock &BoostStateDbGroupMgr::GetOrCreateLock(uint32_t dbGroupId)
     return *lockPtr;
 }
 
-}
-}
+}  // namespace bss
+}  // namespace ock

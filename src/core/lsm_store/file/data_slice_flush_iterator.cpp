@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "include/bss_types.h"
+
 #include <algorithm>
 
-#include "include/bss_types.h"
 #include "data_slice_flush_iterator.h"
 
 namespace ock {
@@ -19,8 +20,7 @@ namespace bss {
 ByteBufferRef SliceKVIterator::CreateBuffer(uint32_t size)
 {
     uintptr_t dataAddress;
-    auto retVal = mMemManager->GetMemory(MemoryType::SLICE_TABLE, size, dataAddress,
-        mForceAlloc, mAllocWaitTime);
+    auto retVal = mMemManager->GetMemory(MemoryType::SLICE_TABLE, size, dataAddress, mForceAlloc, mAllocWaitTime);
     // for q5
     if (retVal == BSS_ALLOC_FAIL) {
         retVal = mMemManager->GetMemory(MemoryType::FILE_STORE, size, dataAddress, mForceAlloc, mAllocWaitTime);
@@ -149,7 +149,7 @@ BResult SliceKVIterator::MergeDataSlices(const std::vector<DataSliceRef> &dataSl
                 BResult result = olderValue.MergeWithNewerValue(key, newerValue, allocator, deleteAction);
                 if (result != BSS_OK) {
                     LOG_WARN("Failed to merge value. newerValue:" << newerValue.ToString()
-                                                                   << ", olderValue:" << olderValue.ToString());
+                                                                  << ", olderValue:" << olderValue.ToString());
                     return BSS_ERR;
                 }
             }

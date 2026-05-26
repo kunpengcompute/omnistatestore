@@ -14,6 +14,7 @@
 
 #include <fcntl.h>
 #include <sys/epoll.h>
+
 #include <cstdint>
 #include <cstdio>
 
@@ -64,7 +65,7 @@ public:
     BResult ReadUTF(std::string &value)
     {
         // 1. 读取UTF value的长度.
-        uint64_t utfLen = 0; // UTF长度统一用uint64_t, 请勿改动.
+        uint64_t utfLen = 0;  // UTF长度统一用uint64_t, 请勿改动.
         if (UNLIKELY(Read(utfLen) != BSS_OK)) {
             LOG_ERROR("Read UTF len failed, errno:" << strerror(errno) << ", file:" << mFilePath->ExtractFileName());
             return BSS_IO_ERR;
@@ -75,7 +76,7 @@ public:
             return BSS_IO_ERR;
         }
         // 2. 读取value的数据.
-        auto *tempBuf = new (std::nothrow)uint8_t[utfLen];
+        auto *tempBuf = new (std::nothrow) uint8_t[utfLen];
         RETURN_ALLOC_FAIL_AS_NULLPTR(tempBuf);
         auto ret = ReadBuffer(tempBuf, utfLen);
         if (UNLIKELY(ret != BSS_OK)) {
@@ -109,8 +110,8 @@ public:
     {
         RETURN_INVALID_PARAM_AS_NULLPTR(buffer);
         if (UNLIKELY(position >= buffer->Capacity() || length > buffer->Capacity() - position)) {
-            LOG_ERROR("Invalid read param, buffer Capacity:" << buffer->Capacity() << " buffer position:" <<
-                position << " read length:" << length);
+            LOG_ERROR("Invalid read param, buffer Capacity:" << buffer->Capacity() << " buffer position:" << position
+                                                             << " read length:" << length);
             return BSS_INVALID_PARAM;
         }
         return fileSystem->Read(buffer->Data() + position, length, offset);
@@ -129,8 +130,8 @@ public:
     {
         RETURN_INVALID_PARAM_AS_NULLPTR(segment);
         if (UNLIKELY(position >= segment->GetLen() || length > segment->GetLen() - position)) {
-            LOG_ERROR("Invalid read param, segment Capacity:" << segment->GetLen() << " segment position:" <<
-                      position << " read length:" << length);
+            LOG_ERROR("Invalid read param, segment Capacity:" << segment->GetLen() << " segment position:" << position
+                                                              << " read length:" << length);
             return BSS_INVALID_PARAM;
         }
         return fileSystem->Read(segment->GetSegment() + position, length, offset);

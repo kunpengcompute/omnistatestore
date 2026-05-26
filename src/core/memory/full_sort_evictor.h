@@ -32,10 +32,7 @@ namespace bss {
 struct SliceScore {
     SliceScore() = default;
     SliceScore(SliceAddressRef &sliceAddress, uint64_t queue, SliceIndexContextRef &indexContext, uint64_t tick)
-        : mScore(sliceAddress->Score(tick)),
-          mQueue(queue),
-          mSliceAddress(sliceAddress),
-          mIndexContext(indexContext)
+        : mScore(sliceAddress->Score(tick)), mQueue(queue), mSliceAddress(sliceAddress), mIndexContext(indexContext)
     {
     }
     float mScore;

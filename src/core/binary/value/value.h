@@ -173,7 +173,7 @@ public:
      * @return return BSS_OK if success, else return BSS_ERR.
      */
     inline BResult MergeWithNewerValue(const Key &key, const Value &newerValue, BufferAllocator allocator,
-        std::function<void(const Key&, const Value&)> action)
+                                       std::function<void(const Key &, const Value &)> action)
     {
         mSeqId = newerValue.mSeqId;
         if (newerValue.mValueType == APPEND) {
@@ -214,8 +214,8 @@ public:
     inline std::string ToString() const
     {
         std::ostringstream oss;
-        oss << "ValueType: " << static_cast<int>(mValueType) << ", ValueLen: " << mValueLen << ", seqId: " << mSeqId <<
-            ", ValueData: [";
+        oss << "ValueType: " << static_cast<int>(mValueType) << ", ValueLen: " << mValueLen << ", seqId: " << mSeqId
+            << ", ValueData: [";
         if (UNLIKELY(mValueData != nullptr)) {
             uint32_t printLen = std::min(NO_10, mValueLen);
             for (uint32_t i = 0; i < printLen; i++) {
@@ -229,6 +229,7 @@ public:
         oss << "]";
         return oss.str();
     }
+
 protected:
     uint64_t mSeqId{ INVALID_U64 };
     uint8_t mValueType{ INVALID_U8 };
@@ -264,15 +265,14 @@ private:
         }
 
         // copy older value to buffer.
-        errno_t ret1 = memcpy_s(buffer->Data(), mergedValueLen, olderValue.ValueData(),
-            olderValueLen);
+        errno_t ret1 = memcpy_s(buffer->Data(), mergedValueLen, olderValue.ValueData(), olderValueLen);
         if (UNLIKELY(ret1 != EOK)) {
             LOG_ERROR("memcpy_s failed for older value, ret = " << ret1);
             return { 0, nullptr };
         }
         // append newer value to buffer.
-        errno_t ret2 = memcpy_s(buffer->Data() + olderValueLen, mergedValueLen - olderValueLen,
-            newerValue.ValueData(), newerValueLen);
+        errno_t ret2 = memcpy_s(buffer->Data() + olderValueLen, mergedValueLen - olderValueLen, newerValue.ValueData(),
+                                newerValueLen);
         if (UNLIKELY(ret2 != EOK)) {
             LOG_ERROR("memcpy_s failed for newer value, ret = " << ret2);
             return { 0, nullptr };

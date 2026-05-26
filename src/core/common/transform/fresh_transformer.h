@@ -40,8 +40,8 @@ public:
     /**
      * write data to slice table.
      */
-    BResult WriteDataToSlice(std::unordered_map<SliceIndexContextRef, RawDataSliceRef,
-        SliceIndexContextHash, SliceIndexContextEqual> &organizedData);
+    BResult WriteDataToSlice(std::unordered_map<SliceIndexContextRef, RawDataSliceRef, SliceIndexContextHash,
+                                                SliceIndexContextEqual> &organizedData);
 
     /**
      * compaction callback.
@@ -51,7 +51,7 @@ public:
                          DataSliceRef &compactedDataSlice, std::vector<SliceAddressRef> &invalidSliceAddressList);
 
     BResult DoTrans(FreshKeyNodePtr key, FreshValueNodePtr value,
-        std::vector<std::pair<BinaryKey, FreshValueNodePtr>> &collection, const BoostSegmentRef &segment);
+                    std::vector<std::pair<BinaryKey, FreshValueNodePtr>> &collection, const BoostSegmentRef &segment);
 
 private:
     ConfigRef mConfig;
@@ -86,8 +86,7 @@ public:
                 return;
             }
             times--;
-            LOG_WARN("Fresh table transform handle failed, need to inner retry, times:" << times
-                << ", ret:" << result);
+            LOG_WARN("Fresh table transform handle failed, need to inner retry, times:" << times << ", ret:" << result);
         } while (UNLIKELY(result != BSS_OK) && (usleep(NO_100), 1));
         mFreshTable->EndSegmentFlush();
     }

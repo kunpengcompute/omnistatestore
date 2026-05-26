@@ -17,7 +17,6 @@
 #include <random>
 
 #include "gtest/gtest.h"
-
 #include "boost_state_db_impl.h"
 #include "generator.h"
 #include "slice_table.h"
@@ -203,7 +202,7 @@ public:
     void AddSliceForDeleteKv(std::vector<KVPair> &kvList)
     {
         std::map<SliceIndexContextRef, std::vector<KVPair>> contextMap;
-        for (auto iter:kvList) {
+        for (auto iter : kvList) {
             Value value;
             value.Init(DELETE, 0, nullptr, value.SeqId(), nullptr);
             auto kvPair = KVPair(iter.first, value);

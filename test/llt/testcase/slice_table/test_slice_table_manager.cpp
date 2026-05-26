@@ -9,10 +9,12 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "fresh_table/fresh_table.h"
+
 #include <unistd.h>
+
 #include <map>
 
-#include "fresh_table/fresh_table.h"
 #include "test_slice_table_manager.h"
 
 using namespace ock::bss;

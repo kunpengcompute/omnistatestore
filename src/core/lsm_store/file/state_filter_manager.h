@@ -63,8 +63,8 @@ public:
 
     ~StateFilterManager() override
     {
-        std::unordered_map<TableDescriptionRef, SequenceIdFilterRef, TableDescriptionHashTTL,
-                           TableDescriptionEqualTTL>().swap(mStateFilterMap);
+        std::unordered_map<TableDescriptionRef, SequenceIdFilterRef, TableDescriptionHashTTL, TableDescriptionEqualTTL>()
+            .swap(mStateFilterMap);
     }
 
     inline bool Filter(const SliceKey &sliceKey, uint64_t seqId)

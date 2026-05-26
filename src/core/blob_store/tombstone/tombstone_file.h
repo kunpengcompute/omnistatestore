@@ -23,7 +23,7 @@ namespace bss {
 class TombstoneFile {
 public:
     TombstoneFile(const ConfigRef &config, const FileCacheManagerRef &fileCacheManager,
-        const TombstoneFileMetaRef &fileMeta, bool initFileOutView)
+                  const TombstoneFileMetaRef &fileMeta, bool initFileOutView)
         : mConfig(config), mFileCacheManager(fileCacheManager), mFileMeta(fileMeta), mInitFileOutView(initFileOutView)
     {
     }

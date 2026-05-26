@@ -121,9 +121,7 @@ public:
 
     std::function<bool(SliceKey)> GetSlotStateFilter(uint32_t slot)
     {
-        return [slot, this](const SliceKey& key) {
-            return ((key.KeyHashCode() >> mUnsignedRightShiftBits) != slot);
-        };
+        return [slot, this](const SliceKey &key) { return ((key.KeyHashCode() >> mUnsignedRightShiftBits) != slot); };
     }
 
     inline uint32_t GetSliceChainMappingSize() const
@@ -137,9 +135,9 @@ public:
         oss << "TotalBucketNum:" << mTotalBucketNum << ", bucketIndex info[";
         for (uint32_t idx = 0; idx < mMappingTable.size(); idx++) {
             auto chain = mMappingTable[idx];
-            oss << "idx:" << idx << " status:" << static_cast<uint32_t>(chain->GetSliceStatus()) << " end:" <<
-                chain->GetSliceChainTailIndex() << " base:" << chain->GetBaseSliceIndex() << " size:" <<
-                chain->GetSliceSize() << " fileSize:" << chain->GetFilePageSize() << " ";
+            oss << "idx:" << idx << " status:" << static_cast<uint32_t>(chain->GetSliceStatus())
+                << " end:" << chain->GetSliceChainTailIndex() << " base:" << chain->GetBaseSliceIndex()
+                << " size:" << chain->GetSliceSize() << " fileSize:" << chain->GetFilePageSize() << " ";
         }
         oss << "]";
         return oss.str();
@@ -148,12 +146,11 @@ public:
     std::string ToString(uint32_t index) const
     {
         std::ostringstream oss;
-        oss << " TotalBucketNum:" << mTotalBucketNum << ", tableSize:" << mMappingTable.size() <<
-            ", bucketIndex info[";
+        oss << " TotalBucketNum:" << mTotalBucketNum << ", tableSize:" << mMappingTable.size() << ", bucketIndex info[";
         auto chain = mMappingTable[index];
-        oss << "idx:" << index << " status:" << static_cast<uint32_t>(chain->GetSliceStatus()) << " end:" <<
-            chain->GetSliceChainTailIndex() << " base:" << chain->GetBaseSliceIndex() << " size:" <<
-            chain->GetSliceSize() << " fileSize:" << chain->GetFilePageSize() << " ]";
+        oss << "idx:" << index << " status:" << static_cast<uint32_t>(chain->GetSliceStatus())
+            << " end:" << chain->GetSliceChainTailIndex() << " base:" << chain->GetBaseSliceIndex()
+            << " size:" << chain->GetSliceSize() << " fileSize:" << chain->GetFilePageSize() << " ]";
         return oss.str();
     }
 
@@ -163,7 +160,8 @@ public:
             LOG_ERROR("Invalid bucketIndex: " << bucketIndex);
             return;
         }
-        ReadLocker<ReadWriteLock> lk(&mMappingLocks[bucketIndex % LOCKS_NUM]); // 互斥compaction流程去替换bucketIndex上的logicChain
+        ReadLocker<ReadWriteLock> lk(
+            &mMappingLocks[bucketIndex % LOCKS_NUM]);  // 互斥compaction流程去替换bucketIndex上的logicChain
         auto sliceChain = mMappingTable[bucketIndex];
         if (UNLIKELY(sliceChain == nullptr)) {
             LOG_ERROR("Invalid bucket index:" << bucketIndex);
@@ -189,12 +187,13 @@ public:
 
 public:
     uint32_t mUnsignedRightShiftBits = 0;
+
 private:
     ConfigRef mConfig = nullptr;
     uint32_t mTotalBucketNum = 0;
     std::array<ReadWriteLock, LOCKS_NUM> mLocks;
-    std::array<ReadWriteLock, LOCKS_NUM> mMappingLocks; // 该锁保护mMappingTable的修改.
-    std::vector<LogicalSliceChainRef> mMappingTable;  // 挂载sliceChain的数组.
+    std::array<ReadWriteLock, LOCKS_NUM> mMappingLocks;  // 该锁保护mMappingTable的修改.
+    std::vector<LogicalSliceChainRef> mMappingTable;     // 挂载sliceChain的数组.
     bool mIsRestoreBuild = false;
 };
 using SliceBucketIndexRef = std::shared_ptr<SliceBucketIndex>;

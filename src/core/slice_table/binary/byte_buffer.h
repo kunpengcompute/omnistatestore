@@ -84,7 +84,7 @@ public:
             mMemManager->ReleaseMemory(addr);
         }
         if (mDataFree) {
-            delete[] (mData - mMemFreeOffset);
+            delete[](mData - mMemFreeOffset);
         }
         mData = nullptr;
         mCapacity = mOffset = 0;
@@ -113,7 +113,7 @@ public:
             mMemManager->ReleaseMemory(addr);
         }
         if (mDataFree) {
-            delete[] (mData - mMemFreeOffset);
+            delete[](mData - mMemFreeOffset);
         }
         mData = buf.mData;
         mCapacity = buf.mCapacity;
@@ -348,8 +348,8 @@ public:
     inline BResult UpdateDataWithFreeOffset(uint32_t freeOffset)
     {
         if (UNLIKELY(freeOffset >= mCapacity || mData == nullptr)) {
-            LOG_ERROR("The input offset is greater than the actual memory capacity, freeOffset: " << freeOffset
-                << "capacity: " << mCapacity);
+            LOG_ERROR("The input offset is greater than the actual memory capacity, freeOffset: "
+                      << freeOffset << "capacity: " << mCapacity);
             return BSS_INVALID_PARAM;
         }
         mMemFreeOffset = freeOffset;
@@ -420,7 +420,7 @@ public:
     {
         if (UNLIKELY(mOffset > capacity || capacity > mCapacity)) {
             LOG_ERROR("Update buffer capacity failed, mOffset: " << mOffset << ", mCapacity: " << mCapacity
-                << ", new capacity: " << capacity);
+                                                                 << ", new capacity: " << capacity);
             return;
         }
         mCapacity = capacity;
@@ -438,8 +438,9 @@ public:
 
 class CompositeBuffer : public Buffer {
 public:
-    CompositeBuffer(ByteBufferRef &priBuffer, ByteBufferRef &secBuffer) : mPriBuffer(priBuffer),
-        mSecBuffer(secBuffer) {}
+    CompositeBuffer(ByteBufferRef &priBuffer, ByteBufferRef &secBuffer) : mPriBuffer(priBuffer), mSecBuffer(secBuffer)
+    {
+    }
     ~CompositeBuffer() noexcept override = default;
     uint8_t *Data() override
     {
@@ -450,6 +451,7 @@ public:
     {
         return mPriBuffer->Length() + mSecBuffer->Length();
     }
+
 private:
     ByteBufferRef mPriBuffer;
     ByteBufferRef mSecBuffer;

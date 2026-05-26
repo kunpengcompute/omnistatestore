@@ -18,7 +18,8 @@ const char *g_holderNames[] = { "Flush", "Get", "Iterator", "Compaction", "Snaps
 void FileMemAllocator::AllocStrategy(FileProcHolder holder, bool &force, uint32_t &ts)
 {
     /*
-     * 1. SliceTable调用FlushLevel0Table流程必须保证内存申请成功, 避免SliceTable内存水位高导致FreshTable淘汰memorySegment失败.
+     * 1. SliceTable调用FlushLevel0Table流程必须保证内存申请成功,
+     * 避免SliceTable内存水位高导致FreshTable淘汰memorySegment失败.
      * 2. SliceTable调用Get流程必须保证内存申请成功, 避免返回上层失败, 进而导致业务读请求失败.
      * 3. SliceTable调用Iterator流程必须保证内存申请成功, 避免返回上层失败, 进而导致业务读请求失败.
      */
@@ -27,7 +28,7 @@ void FileMemAllocator::AllocStrategy(FileProcHolder holder, bool &force, uint32_
         case FileProcHolder::FILE_STORE_ITERATOR:
         case FileProcHolder::FILE_STORE_SNAPSHOT:
         case FileProcHolder::FILE_STORE_FLUSH:
-            force = true; // 强制申请内存.
+            force = true;  // 强制申请内存.
             ts = 0;
             break;
         case FileProcHolder::FILE_STORE_COMPACTION:
@@ -54,7 +55,7 @@ uintptr_t FileMemAllocator::Alloc(const MemManagerRef &memMgr, FileProcHolder ho
 
     // 1. 根据holder决定内存分配策略.
     bool isForce = false;
-    uint32_t timeout = NO_3000; // 3s
+    uint32_t timeout = NO_3000;  // 3s
     AllocStrategy(holder, isForce, timeout);
 
     // 2. 申请内存资源.
@@ -68,5 +69,5 @@ uintptr_t FileMemAllocator::Alloc(const MemManagerRef &memMgr, FileProcHolder ho
     }
     return addr;
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

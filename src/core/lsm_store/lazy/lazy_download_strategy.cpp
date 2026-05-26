@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "lazy_download_task.h"
+
 #include <memory>
 
-#include "lazy_download_task.h"
 #include "lsm_store/file/file_address_util.h"
 #include "lazy_download_strategy.h"
 
@@ -96,9 +97,7 @@ void LazyDownloadRestore::BatchDownloadThenMigrate(std::vector<FileHolderRef> &f
 
 FileInfoRef LazyDownloadStrategy::Download(RestoreFileInfo &restoreFileInfo, const PathRef &localPath)
 {
-    std::function<std::string()> function = [&localPath]() -> std::string {
-        return localPath->Name();
-    };
+    std::function<std::string()> function = [&localPath]() -> std::string { return localPath->Name(); };
     FileInfoRef fileInfo = mLocalFileManager->AllocateFile(function);
     if (fileInfo == nullptr) {
         LOG_ERROR("Allocate local file fail!");
@@ -153,9 +152,9 @@ void LazyDownloadRestore::UpdateMetric()
         return;
     }
     if ((*mMetricPtrAddr) != nullptr && (*mMetricPtrAddr)->IsRestoreMetricEnabled()) {
-        mLazyDownloadEndTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                   std::chrono::system_clock::now().time_since_epoch())
-                                   .count();
+        mLazyDownloadEndTime =
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+                .count();
         if (mLazyDownloadEndTime > mLazyDownloadStartTime) {
             (*mMetricPtrAddr)->SetLazyDownloadTime(mLazyDownloadEndTime - mLazyDownloadStartTime);
         } else {

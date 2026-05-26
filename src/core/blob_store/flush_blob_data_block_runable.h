@@ -20,7 +20,7 @@ namespace bss {
 class FlushBlobDataBlockProcessor : public Runnable {
 public:
     explicit FlushBlobDataBlockProcessor(const BlobWriteBufferRef &blobWriteBuffer,
-        const BlobFileManagerRef &blobFileManager)
+                                         const BlobFileManagerRef &blobFileManager)
         : mBlobWriteBuffer(blobWriteBuffer), mBlobFileManager(blobFileManager)
     {
     }
@@ -57,7 +57,7 @@ private:
     BlobWriteBufferRef mBlobWriteBuffer = nullptr;
     BlobFileManagerRef mBlobFileManager = nullptr;
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

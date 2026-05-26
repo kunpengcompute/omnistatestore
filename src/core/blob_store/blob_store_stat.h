@@ -51,7 +51,7 @@ private:
     std::atomic<int64_t> mTotalBlobSize{ 0 };
 };
 using BlobStoreStatRef = std::shared_ptr<BlobStoreStat>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

@@ -17,7 +17,7 @@
 namespace ock {
 namespace bss {
 BResult BlobStore::Init(const MemManagerRef &memManager, const FileCacheManagerRef &fileCacheManager,
-    const ConfigRef &config, const BlockCacheRef &blockCache)
+                        const ConfigRef &config, const BlockCacheRef &blockCache)
 {
     mMemManager = memManager;
     mFileCacheManager = fileCacheManager;
@@ -40,7 +40,7 @@ BResult BlobStore::Init(const MemManagerRef &memManager, const FileCacheManagerR
 }
 
 BResult BlobStore::WriteBlobValue(const uint8_t *value, uint32_t length, uint64_t expireTime, uint32_t keyGroup,
-    uint64_t &blobId)
+                                  uint64_t &blobId)
 {
     RETURN_ERROR_AS_NULLPTR(mBlobStoreStat);
     RETURN_ERROR_AS_NULLPTR(mBlobWriteBuffer);
@@ -107,7 +107,7 @@ uint64_t BlobStore::ToBlobId(const Value &value)
 }
 
 BResult BlobStore::Restore(const std::vector<std::pair<FileInputViewRef, int64_t>> &metaList,
-    std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale)
+                           std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale)
 {
     uint64_t maxVersion = 0;
     uint64_t maxSeqId = 0;
@@ -163,5 +163,5 @@ TombstoneServiceRef BlobStore::CreateTombstoneService(const std::string &name)
 {
     return mBlobFileManager->RegisterTombstoneService(name);
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

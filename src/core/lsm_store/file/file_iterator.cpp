@@ -10,6 +10,7 @@
  */
 
 #include "file_iterator.h"
+
 #include "lsm_store/block/data_block.h"
 
 namespace ock {
@@ -86,7 +87,8 @@ KeyValueRef FileSubIterator::Advance()
             if (mStartKey.IsPqKey()) {
                 auto keyFilter = [this](const Key &key) -> bool {
                     return PQBinaryDataComparator::ComparePrefix(key.PriKey().KeyData(), key.PriKey().KeyLen(),
-                    mStartKey.PriKey().KeyData(), mStartKey.PriKey().KeyLen()) != 0;
+                                                                 mStartKey.PriKey().KeyData(),
+                                                                 mStartKey.PriKey().KeyLen()) != 0;
                 };
                 mDataBlockIterator = dataBlock->Iterator(keyFilter);
             } else {

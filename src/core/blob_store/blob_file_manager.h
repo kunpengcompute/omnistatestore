@@ -34,7 +34,7 @@ public:
     }
 
     BResult Init(const MemManagerRef &memManager, const FileCacheManagerRef &fileCacheManager, const ConfigRef &config,
-        const BlockCacheRef &blockCache, uint64_t version);
+                 const BlockCacheRef &blockCache, uint64_t version);
 
     void Close()
     {
@@ -60,14 +60,14 @@ public:
     BlobFileGroupManagerRef CopyBlobFileGroupManager(uint64_t version);
 
     BResult Restore(const std::vector<std::pair<FileInputViewRef, int64_t>> &fileInputViews, uint64_t version,
-        std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale);
+                    std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale);
 
     BResult RestoreFileGroup(FileInputViewRef &fileInputView,
-        std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale);
+                             std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale);
 
     BResult RestoreFileMeta(FileInputViewRef &fileInputView,
-        std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,
-        BlobFileMetaRef &blobFileMeta, RestoreFileInfo &restoreFileInfo);
+                            std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,
+                            BlobFileMetaRef &blobFileMeta, RestoreFileInfo &restoreFileInfo);
 
     BlobCleanerRef &GetBlobCleaner()
     {
@@ -75,10 +75,10 @@ public:
     }
 
     void FindMaxDeleteRatioFile(double &maxDeleteRatio, BlobFileGroupRef &maxDeleteRatioGroup,
-        BlobImmutableFileRef &maxDeleteRatioFile, uint32_t &selectFileIndex);
+                                BlobImmutableFileRef &maxDeleteRatioFile, uint32_t &selectFileIndex);
 
     std::vector<BlobImmutableFileRef> SelectMaxCompactionRateFiles(uint32_t &startIndex,
-        BlobFileGroupRef &maxDeleteRatioGroup);
+                                                                   BlobFileGroupRef &maxDeleteRatioGroup);
 
     std::vector<BlobImmutableFileRef> SelectContinuousFilesByMaxDeleteRatioFile(
         double &maxDeleteRatio, BlobFileGroupRef &maxDeleteRatioGroup, BlobImmutableFileRef &maxDeleteRatioFile,
@@ -158,7 +158,7 @@ private:
     std::mutex mMutex;
 };
 using BlobFileManagerRef = std::shared_ptr<BlobFileManager>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

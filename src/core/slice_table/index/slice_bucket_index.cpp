@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "common/bss_log.h"
+
 #include <memory>
 
-#include "common/bss_log.h"
 #include "common/util/bss_math.h"
 #include "slice_bucket_index.h"
 
@@ -27,7 +28,7 @@ BResult SliceBucketIndex::Initialize(uint32_t totalBucketNum, const ConfigRef &c
     mTotalBucketNum = totalBucketNum;
     mMappingTable.reserve(totalBucketNum);
     for (uint32_t i = 0; i < totalBucketNum; ++i) {
-        mMappingTable.emplace_back(LogicalSliceChain::mEmptySliceChain); // 初始化为empty chain.
+        mMappingTable.emplace_back(LogicalSliceChain::mEmptySliceChain);  // 初始化为empty chain.
     }
     // 上层hashcode为正数，首位为0，所以有效位为31位
     mUnsignedRightShiftBits = NO_31 - BssMath::IntegerBitCount(totalBucketNum - 1);

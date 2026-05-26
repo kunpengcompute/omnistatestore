@@ -10,6 +10,7 @@
  */
 
 #include "include/bss_types.h"
+
 #include "include/config.h"
 #include "memory/allocator.h"
 #include "securec.h"

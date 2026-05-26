@@ -12,9 +12,10 @@
 #ifndef BLOB_IMMUTABLE_FILE_H
 #define BLOB_IMMUTABLE_FILE_H
 
+#include <config.h>
+
 #include <memory>
 
-#include <config.h>
 #include "blob_file_meta.h"
 #include "blob_file_reader.h"
 #include "block/block_cache.h"
@@ -29,9 +30,9 @@ struct Value;
 class BlobImmutableFile : public std::enable_shared_from_this<BlobImmutableFile> {
 public:
     BlobImmutableFile(const PathRef &filePath, const ConfigRef &config, const MemManagerRef &memManager,
-        const BlockCacheRef &blockCache, const FileCacheManagerRef &fileCacheManager,
-        const BlockHandle &blockHandle, const BlobFileMetaRef &blobFileMeta,
-        const BlobFileReaderRef &blobFileReader)
+                      const BlockCacheRef &blockCache, const FileCacheManagerRef &fileCacheManager,
+                      const BlockHandle &blockHandle, const BlobFileMetaRef &blobFileMeta,
+                      const BlobFileReaderRef &blobFileReader)
         : mFilePath(filePath),
           mConfig(config),
           mMemManager(memManager),
@@ -45,7 +46,7 @@ public:
     }
 
     BlobImmutableFile(const ConfigRef &config, const BlobFileMetaRef &blobFileMeta, const MemManagerRef &memManager,
-        const BlockCacheRef &blockCache, const FileCacheManagerRef &fileCacheManager)
+                      const BlockCacheRef &blockCache, const FileCacheManagerRef &fileCacheManager)
         : mConfig(config),
           mMemManager(memManager),
           mBlockCache(blockCache),
@@ -174,7 +175,7 @@ private:
     mutable std::mutex mMutex;
 };
 using BlobImmutableFileRef = std::shared_ptr<BlobImmutableFile>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

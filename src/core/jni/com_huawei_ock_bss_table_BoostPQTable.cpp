@@ -20,7 +20,7 @@
 using namespace ock::bss;
 
 JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_table_BoostPQTable_open(JNIEnv *env, jobject, jlong jDBHandle,
-    jstring jStateName)
+                                                                        jstring jStateName)
 {
     if (UNLIKELY(env == nullptr)) {
         LOG_ERROR("Input env is nullptr.");
@@ -45,7 +45,7 @@ JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_table_BoostPQTable_open(JNIEnv *
 }
 
 JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_BoostPQTable_add(JNIEnv *env, jobject, jlong jpqTable,
-    jbyteArray add, jint hashCode)
+                                                                          jbyteArray add, jint hashCode)
 {
     if (UNLIKELY(env == nullptr)) {
         LOG_ERROR("Input env is nullptr.");
@@ -73,7 +73,7 @@ JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_BoostPQTable_add(JNIEnv
 }
 
 JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_BoostPQTable_remove(JNIEnv *env, jobject, jlong jpqTable,
-    jbyteArray remove, jint hashCode)
+                                                                             jbyteArray remove, jint hashCode)
 {
     if (UNLIKELY(env == nullptr)) {
         LOG_ERROR("Input env is nullptr.");

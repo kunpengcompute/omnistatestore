@@ -202,8 +202,8 @@ private:
 
         // if deleted, return.
         if (valueNode->ValueType() != DELETE) {
-            value.Init(valueNode->ValueType(), valueNode->ValueDataLen(), valueNode->Value(),
-                       valueNode->ValueSeqId(), mMemorySegment);
+            value.Init(valueNode->ValueType(), valueNode->ValueDataLen(), valueNode->Value(), valueNode->ValueSeqId(),
+                       mMemorySegment);
         }
 
         return true;
@@ -217,7 +217,7 @@ private:
 
     template <typename T> const FreshValueNode *FindValueNode(const uint8_t *segment, const T &key)
     {
-        uint32_t nodeOffset = GetBucketBase(segment, key.HashCode()); // fresh 层用hashcode获取 bucketBase
+        uint32_t nodeOffset = GetBucketBase(segment, key.HashCode());  // fresh 层用hashcode获取 bucketBase
         while (nodeOffset != 0) {
             FreshNode freshNode(segment, nodeOffset);
             if (freshNode.KeyNode()->Equal(key)) {

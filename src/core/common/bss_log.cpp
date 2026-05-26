@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "spdlog/sinks/rotating_file_sink.h"
+
 #include <iostream>
 
-#include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "bss_log.h"
 
@@ -43,7 +44,8 @@ constexpr int ROTATION_FILE_COUNT_MAX = 50;
 
 void Logger::LogToStdErr(const std::ostringstream &oss)
 {
-    struct timeval tv {};
+    struct timeval tv {
+    };
     char strTime[24];
 
     gettimeofday(&tv, nullptr);

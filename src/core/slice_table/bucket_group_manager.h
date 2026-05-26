@@ -87,7 +87,7 @@ public:
     uint32_t ComputeBucketGroupIndex(uint32_t bucketIndex);
     BResult RestoreFileStore(const std::vector<SliceTableRestoreMetaRef> &sliceTableRestoreMetaList,
                              std::unordered_map<std::string, std::string> &lazyPathMapping,
-                             std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,  bool isLazyDownload);
+                             std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool isLazyDownload);
 
     /**
      * For testing, force clean current version.

@@ -150,10 +150,9 @@ public:
 
     class Builder {
     public:
-        void Fill(const FullKeyRef &smallest, const FullKeyRef &largest, uint64_t fileSize,
-                  uint64_t fileAddress, int64_t seqId, const GroupRangeRef &groupRange,
-                  const HashCodeOrderRangeRef &orderRange, std::string identifier, StateIdInterval interval,
-                  FileStatus fileStatus = FileStatus::LOCAL)
+        void Fill(const FullKeyRef &smallest, const FullKeyRef &largest, uint64_t fileSize, uint64_t fileAddress,
+                  int64_t seqId, const GroupRangeRef &groupRange, const HashCodeOrderRangeRef &orderRange,
+                  std::string identifier, StateIdInterval interval, FileStatus fileStatus = FileStatus::LOCAL)
         {
             mSmallest = smallest;
             mLargest = largest;
@@ -173,8 +172,7 @@ public:
                 return nullptr;
             }
             return std::make_shared<FileMetaData>(mFileAddress, mSeqId, mFileSize, mSmallest, mLargest, mGroupRange,
-                                                  mOrderRange, mIdentifier, mStateIdInterval,
-                                                  mFileStatus);
+                                                  mOrderRange, mIdentifier, mStateIdInterval, mFileStatus);
         }
 
     private:

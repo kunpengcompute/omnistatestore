@@ -9,10 +9,11 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "binary/query_binary.h"
+
 #include <algorithm>
 #include <vector>
 
-#include "binary/query_binary.h"
 #include "common/path_transform.h"
 #include "common/util/seq_generator.h"
 #include "file_address_util.h"
@@ -186,8 +187,7 @@ void LsmStore::FinalizeVersionEdit(const CompactionProcessorRef &processor, std:
 BResult LsmStore::AddEntry(const CompactionProcessorRef &compactionProcessor, const KeyValueRef &keyValue,
                            FileProcHolder holder) const
 {
-    if (compactionProcessor->mFileBuilder != nullptr &&
-        compactionProcessor->mFileBuilder->IsStateChange(keyValue)) {
+    if (compactionProcessor->mFileBuilder != nullptr && compactionProcessor->mFileBuilder->IsStateChange(keyValue)) {
         RETURN_NOT_OK_NO_LOG(FinishCompactionOutputFile(compactionProcessor));
     }
     BResult ret = InitNewFileIfNecessary(compactionProcessor, holder);
@@ -277,7 +277,8 @@ Compaction::Result LsmStore::BackgroundCompaction()
             }
 
             // 2. 根据选择的compaction的groupRange判断是否为简单移动.
-            if ((isTrivialMove = compaction->IsTrivialMove())) {  // 移动流程则只将文件移动到下一层，不需要做具体的压缩操作.
+            if ((isTrivialMove =
+                     compaction->IsTrivialMove())) {  // 移动流程则只将文件移动到下一层，不需要做具体的压缩操作.
                 FileMetaDataRef fileMetaData = compaction->GetLevelInputs().at(0);
                 VersionEditRef versionEdit = compaction->GetEditBuilder()
                                                  ->DeleteFile(mGroupRange, compaction->GetInputLevelId(),
@@ -472,7 +473,7 @@ BResult LsmStore::BuildLsmStoreFlushFile(const IteratorRef<std::vector<DataSlice
 
 // 判断targetKey是否在lsm level文件中不存在.
 bool LsmStore::KeyNotExistBeyondOutputLevels(const Key &key, const VersionPtr &currentVersion, uint32_t numLevels,
-    std::vector<int32_t> &levelPointers) const
+                                             std::vector<int32_t> &levelPointers) const
 {
     for (uint32_t level = 0; level < numLevels; level++) {
         if (UNLIKELY(level >= currentVersion->GetLevels().size())) {
@@ -490,7 +491,7 @@ bool LsmStore::KeyNotExistBeyondOutputLevels(const Key &key, const VersionPtr &c
 }
 
 bool LsmStore::FindKeyInFileMetaDataGroups(const Key &key, uint32_t level, std::vector<int32_t> &levelPointers,
-    const std::vector<FileMetaDataGroupRef> &fileMetaDataGroups) const
+                                           const std::vector<FileMetaDataGroupRef> &fileMetaDataGroups) const
 {
     for (auto &fileMetaDataGroup : fileMetaDataGroups) {
         if (UNLIKELY(!fileMetaDataGroup->GetGroupRange()->Equals(mGroupRange))) {
@@ -524,7 +525,7 @@ bool LsmStore::FindKeyInLevel0(const Key &key, const std::vector<FileMetaDataRef
 }
 
 bool LsmStore::FindKeyInOtherLevels(const Key &key, uint32_t level, std::vector<int32_t> &levelPointers,
-    const std::vector<FileMetaDataRef> &files) const
+                                    const std::vector<FileMetaDataRef> &files) const
 {
     auto fileSize = static_cast<int32_t>(files.size());
     while (levelPointers[level] < fileSize) {
@@ -557,8 +558,8 @@ BResult LsmStore::BuildLsmStoreFlushFile(const PQTableIteratorRef &iter, FileMet
         // 如果当前键值对的值类型为删除并且底层也不存在，则跳过该键值对.
         auto keyValue = iter->Next();
         CONTINUE_LOOP_AS_NULLPTR(keyValue);
-        if ((keyValue->value.ValueType() == ValueType::DELETE) && KeyNotExistBeyondOutputLevels(keyValue->key,
-            currentVersion, numLevels, levelPointers)) {
+        if ((keyValue->value.ValueType() == ValueType::DELETE) &&
+            KeyNotExistBeyondOutputLevels(keyValue->key, currentVersion, numLevels, levelPointers)) {
             continue;
         }
         auto ret = fileBuilder->Add(keyValue);
@@ -655,11 +656,9 @@ void LsmStore::CreateVersion(const FileMetaDataRef &fileMetaData)
     innerVersionBuilder->InternalRelease();
     LOG_INFO("Flush file store success, fileStoreSeqId:"
              << mSeqId << ", versionId:" << newVersion->GetVersionSeqId()
-             << ", fileName:" << PathTransform::ExtractFileName(fileMetaData->GetIdentifier())
-             << ", smallestKey:" << fileMetaData->GetSmallest()->ToString()
-             << ", largestKey:" << fileMetaData->GetLargest()->ToString()
-             << ", fileAddress:" << fileMetaData->GetFileAddress()
-             << ", fileId:" << fileMetaData->GetFileId()
+             << ", fileName:" << PathTransform::ExtractFileName(fileMetaData->GetIdentifier()) << ", smallestKey:"
+             << fileMetaData->GetSmallest()->ToString() << ", largestKey:" << fileMetaData->GetLargest()->ToString()
+             << ", fileAddress:" << fileMetaData->GetFileAddress() << ", fileId:" << fileMetaData->GetFileId()
              << ", fileSize:" << fileMetaData->GetFileSize());
 }
 

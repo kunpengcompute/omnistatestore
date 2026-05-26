@@ -25,8 +25,8 @@
 namespace ock {
 namespace bss {
 BResult BlobCleaner::Restore(const FileInputViewRef &fileInputView,
-    std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, uint64_t restoreVersion,
-    bool rescale)
+                             std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, uint64_t restoreVersion,
+                             bool rescale)
 {
     return mTombstoneFileManager->Restore(fileInputView, restorePathFileIdMap, restoreVersion, rescale);
 }
@@ -37,7 +37,7 @@ void BlobCleaner::FinishRestore()
 }
 
 void BlobCleaner::TriggerSnapshot(uint64_t snapshotId, uint64_t blobStoreVersion, uint64_t seqId,
-    BlobStoreSnapshotOperatorRef &blobStoreSnapshotOperator)
+                                  BlobStoreSnapshotOperatorRef &blobStoreSnapshotOperator)
 {
     if (mEnableTombstone) {
         // 快照互斥，如果当前有墓碑文件正在compaction，需要等待compaction完成并关闭，待快照完成重新开启，ReleaseTombstoneSnapshot入口
@@ -47,8 +47,8 @@ void BlobCleaner::TriggerSnapshot(uint64_t snapshotId, uint64_t blobStoreVersion
 }
 
 BResult BlobCleaner::Init(const ConfigRef &config, const BlobFileGroupManagerRef &blobFileGroupManager,
-    const FileCacheManagerRef &fileCacheManager, const BlobFileManagerRef &blobFileManager,
-    const MemManagerRef &memManager, uint64_t version)
+                          const FileCacheManagerRef &fileCacheManager, const BlobFileManagerRef &blobFileManager,
+                          const MemManagerRef &memManager, uint64_t version)
 {
     mConfig = config;
     mEnableTombstone = mConfig->GetEnableTombstone();
@@ -72,7 +72,7 @@ BResult BlobCleaner::Init(const ConfigRef &config, const BlobFileGroupManagerRef
         return BSS_ERR;
     }
     mTombstoneFileManager = std::make_shared<TombstoneFileManager>(mConfig, mFileCacheManager, range, version,
-        mMemManager, executorService, mBlobFileManager);
+                                                                   mMemManager, executorService, mBlobFileManager);
     mTombstoneFileManager->InitLevel();
     if (mEnableTombstone) {
         StartScheduleCompaction();
@@ -183,7 +183,7 @@ void BlobCleaner::DoCompaction()
 }
 
 BResult BlobCleaner::ProcessCompaction(const std::vector<BlobImmutableFileRef> &blobFiles,
-    const std::vector<TombstoneFileRef> &tombstoneFiles, CompactionResult &result)
+                                       const std::vector<TombstoneFileRef> &tombstoneFiles, CompactionResult &result)
 {
     if (blobFiles.empty() || tombstoneFiles.empty()) {
         return BSS_INVALID_PARAM;
@@ -199,9 +199,9 @@ BResult BlobCleaner::ProcessCompaction(const std::vector<BlobImmutableFileRef> &
     }
     uint64_t blobFileMaxVersion = blobFiles.back()->GetBlobFileMeta()->GetVersion();
     auto blobFileWriter = std::make_shared<BlobCompactionFileWriter>(mConfig, mMemManager, mBlobFileManager,
-        blobFileMaxVersion);
-    auto tombstoneFileWriter = std::make_shared<TombstoneFileWriter>(mConfig, mTombstoneFileManager,
-        tombFileMaxVersion, mMemManager);
+                                                                     blobFileMaxVersion);
+    auto tombstoneFileWriter = std::make_shared<TombstoneFileWriter>(mConfig, mTombstoneFileManager, tombFileMaxVersion,
+                                                                     mMemManager);
     auto tombstoneMergeIterator = std::make_shared<TombstoneFileMergingIterator>(tombstoneFileIterators);
     BResult ret = tombstoneMergeIterator->Init();
     if (UNLIKELY(ret != BSS_OK)) {
@@ -216,7 +216,7 @@ BResult BlobCleaner::ProcessCompaction(const std::vector<BlobImmutableFileRef> &
         return ret;
     }
     RETURN_NOT_OK(DoCompactionForBlobAndTombstone(blobMergeIterator, tombstoneMergeIterator, blobFileWriter,
-        tombstoneFileWriter));
+                                                  tombstoneFileWriter));
     std::vector<TombstoneFileRef> newTombstoneFiles;
     RETURN_NOT_OK(tombstoneFileWriter->FinishWrite(newTombstoneFiles));
     std::vector<BlobImmutableFileRef> newBlobFiles;
@@ -225,7 +225,8 @@ BResult BlobCleaner::ProcessCompaction(const std::vector<BlobImmutableFileRef> &
     return BSS_OK;
 }
 
-BResult BlobCleaner::DoCompactionForBlobAndTombstone(const std::shared_ptr<BlobFileMergingIterator> &blobMergeIterator,
+BResult BlobCleaner::DoCompactionForBlobAndTombstone(
+    const std::shared_ptr<BlobFileMergingIterator> &blobMergeIterator,
     const std::shared_ptr<TombstoneFileMergingIterator> &tombstoneMergeIterator,
     const std::shared_ptr<BlobCompactionFileWriter> &blobFileWriter,
     const std::shared_ptr<TombstoneFileWriter> &tombstoneFileWriter)
@@ -248,7 +249,7 @@ BResult BlobCleaner::DoCompactionForBlobAndTombstone(const std::shared_ptr<BlobF
             auto fileMeta = blobMergeIterator->GetCurFileMeta();
             blobValue = blobMergeIterator->Next();
             if (!(IsBlobNotExpire(blobValue) &&
-                fileMeta->GetValidGroupRange()->ContainsGroup(blobValue->GetKeyGroup()))) {
+                  fileMeta->GetValidGroupRange()->ContainsGroup(blobValue->GetKeyGroup()))) {
                 continue;
             }
             ret = blobFileWriter->WriteBlob(*blobValue);
@@ -349,7 +350,7 @@ double BlobCleaner::CalBlobSpaceWasteRate(uint64_t minBlobId)
                 expiredRatio = 0.0F;
             } else {
                 expiredRatio = static_cast<float>(currentTime - minExpireTime) /
-                    static_cast<float>(maxExpireTime - minExpireTime);
+                               static_cast<float>(maxExpireTime - minExpireTime);
             }
         }
         auto validGroupRange = blobFileMeta->GetValidGroupRange();
@@ -357,7 +358,7 @@ double BlobCleaner::CalBlobSpaceWasteRate(uint64_t minBlobId)
         auto coveredGroupRange = blobFileMeta->GetCoveredGroupRange();
         CONTINUE_LOOP_AS_NULLPTR(coveredGroupRange);
         float keyGroupValidRatio = static_cast<float>(validGroupRange->GetKeyGroupRangeSize()) /
-            static_cast<float>(coveredGroupRange->GetKeyGroupRangeSize());
+                                   static_cast<float>(coveredGroupRange->GetKeyGroupRangeSize());
         uint32_t blobNum = blobFileMeta->GetBlobNum();
         totalValidBlobNum +=
             static_cast<uint64_t>(static_cast<float>(blobNum) * keyGroupValidRatio * (1 - expiredRatio));
@@ -371,14 +372,13 @@ double BlobCleaner::CalBlobSpaceWasteRate(uint64_t minBlobId)
     }
     uint64_t tmp = 1;
     totalValidBlobNum = std::max(tmp, totalValidBlobNum);
-    double blobSpaceWasteRate = (static_cast<float>(totalBlobNum) /
-        static_cast<float>(totalValidBlobNum) * (1.0F - static_cast<float>(totalTombstoneNum) /
-        static_cast<float>(totalBlobNumBelongKeyGroupRange)));
-    LOG_DEBUG("Blob cleaner cal blob space waste rate, totalBlobNum: " << totalBlobNum
-        << ", totalBlobNumBelongKeyGroupRange: " <<  totalBlobNumBelongKeyGroupRange
-        << ", totalTombstoneNum: " << totalTombstoneNum
-        << ", totalValidBlobNum: " << totalValidBlobNum
-        << ", blobSpaceWasteRate: " << blobSpaceWasteRate);
+    double blobSpaceWasteRate =
+        (static_cast<float>(totalBlobNum) / static_cast<float>(totalValidBlobNum) *
+         (1.0F - static_cast<float>(totalTombstoneNum) / static_cast<float>(totalBlobNumBelongKeyGroupRange)));
+    LOG_DEBUG("Blob cleaner cal blob space waste rate, totalBlobNum: "
+              << totalBlobNum << ", totalBlobNumBelongKeyGroupRange: " << totalBlobNumBelongKeyGroupRange
+              << ", totalTombstoneNum: " << totalTombstoneNum << ", totalValidBlobNum: " << totalValidBlobNum
+              << ", blobSpaceWasteRate: " << blobSpaceWasteRate);
     return blobSpaceWasteRate;
 }
 
@@ -393,5 +393,5 @@ void BlobCleaner::ReleaseTombstoneSnapshot(uint64_t snapshotId)
     }
 }
 
-}
-}
+}  // namespace bss
+}  // namespace ock

@@ -26,8 +26,10 @@ using SkipListCompletedNotify = std::function<void(const PQSkipList &item)>;
 class SkiplistProcessor : public Runnable {
 public:
     SkiplistProcessor(const PQTableIteratorRef iterator, const LsmStoreRef &lsmStore, const PQSkipList &skipList,
-        SkipListCompletedNotify notify) : mIterator(iterator), mLsmStore(lsmStore),
-        mSkipList(skipList), mNotify(notify) {}
+                      SkipListCompletedNotify notify)
+        : mIterator(iterator), mLsmStore(lsmStore), mSkipList(skipList), mNotify(notify)
+    {
+    }
 
     ~SkiplistProcessor() override = default;
 
@@ -62,8 +64,15 @@ using SkiplistProcessorRef = std::shared_ptr<SkiplistProcessor>;
 class PQTable : public AutoCloseable {
 public:
     PQTable(const MemManagerRef &memManager, const ExecutorServicePtr &service, const LsmStoreRef &lsmStore,
-        const std::string &stateName, StateIdProviderRef provider, TableDescriptionRef &des) : mMemManager(memManager),
-        mService(service), mLsmStore(lsmStore), mStateName(stateName), mStateIdProvider(provider), mDescription(des) {}
+            const std::string &stateName, StateIdProviderRef provider, TableDescriptionRef &des)
+        : mMemManager(memManager),
+          mService(service),
+          mLsmStore(lsmStore),
+          mStateName(stateName),
+          mStateIdProvider(provider),
+          mDescription(des)
+    {
+    }
 
     BResult Initialize();
 
@@ -71,7 +80,7 @@ public:
 
     BResult RemoveKey(const BinaryData &key, uint32_t hashcode);
 
-    PQKeyIterator* KeyIterator(const BinaryData &data);
+    PQKeyIterator *KeyIterator(const BinaryData &data);
 
     inline std::string &GetStateName()
     {
@@ -103,15 +112,15 @@ public:
         uint32_t capacity = IO_SIZE_8M;
         auto ret = mMemManager->GetMemory(MemoryType::FILE_STORE, capacity, dataAddress, true);
         RETURN_NULLPTR_AS_NOT_OK(ret);
-        FixedSizeMemoryPoolRef memoryPool = 
-            MakeRef<FixedSizeMemoryPool>(reinterpret_cast<uint8_t*>(dataAddress), capacity, mMemManager);
+        FixedSizeMemoryPoolRef memoryPool = MakeRef<FixedSizeMemoryPool>(reinterpret_cast<uint8_t *>(dataAddress),
+                                                                         capacity, mMemManager);
         if (UNLIKELY(memoryPool == nullptr)) {
             mMemManager->ReleaseMemory(dataAddress);
             return nullptr;
         }
         PQBinaryDataComparator comparator;
         auto list = std::make_shared<SkipList<PQBinaryData, PQBinaryDataComparator>>(comparator, memoryPool,
-            mSeqId.fetch_add(1));
+                                                                                     mSeqId.fetch_add(1));
         ret = list->Initialize();
         if (UNLIKELY(ret != BSS_OK)) {
             mMemManager->ReleaseMemory(dataAddress);
@@ -133,10 +142,9 @@ public:
         }
         AddFlushingSegment();
         PQTableIteratorRef iter = std::make_shared<PQIterator>(mSkipList, mStateId);
-        auto processor = std::make_shared<SkiplistProcessor>(iter, mLsmStore, mSkipList,
-            [this](const PQSkipList &item) {
-                PollFlushingSegment(item);
-        });
+        auto processor =
+            std::make_shared<SkiplistProcessor>(iter, mLsmStore, mSkipList,
+                                                [this](const PQSkipList &item) { PollFlushingSegment(item); });
         auto ret = mService->Execute(std::static_pointer_cast<Runnable>(processor));
         if (UNLIKELY(!ret)) {
             LOG_ERROR("Submit task failed" << mService->QueueSize());
@@ -152,7 +160,7 @@ public:
                 double elapsed = duration.count() / 1e3;  // 转换为ms
                 LOG_WARN("PQ table check snapshot queue cost time:" << elapsed << "ms.");
             }
-            usleep(NO_100000); // 100ms
+            usleep(NO_100000);  // 100ms
         }
         mSkipList = InitNewSkipList();
         return BSS_OK;
@@ -208,13 +216,13 @@ private:
     PQSkipList mSkipList;
     ReadWriteLock mRwLock;
     ConcurrentDeque<std::shared_ptr<SkipList<PQBinaryData, PQBinaryDataComparator>>> mSnapshotQueue;
-    std::atomic<uint64_t> mSeqId {0};
+    std::atomic<uint64_t> mSeqId{ 0 };
     std::string mStateName;
     StateIdProviderRef mStateIdProvider;
     TableDescriptionRef mDescription;
     uint16_t mStateId = 0;
 };
 using PQTableRef = std::shared_ptr<PQTable>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 #endif  // BOOST_SS_PQ_TABLE_H

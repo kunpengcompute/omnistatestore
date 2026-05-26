@@ -21,10 +21,7 @@
 
 namespace ock {
 namespace bss {
-enum class SerializerType : uint8_t {
-    UNKNOWN,
-    BINARY_ROW_DATA_SERIALIZER
-};
+enum class SerializerType : uint8_t { UNKNOWN, BINARY_ROW_DATA_SERIALIZER };
 
 struct FieldType {
     uint16_t mFixedBytes;
@@ -43,8 +40,8 @@ struct TableSerializer {
 
 class TableDescription {
 public:
-    TableDescription(StateType stateType, std::string tableName, int64_t tableTTL,
-                     TableSerializer tblSerializer, const Config &config)
+    TableDescription(StateType stateType, std::string tableName, int64_t tableTTL, TableSerializer tblSerializer,
+                     const Config &config)
         : mTableName(std::move(tableName)),
           mTableSerializer(std::move(tblSerializer)),
           mStateType(stateType),
@@ -109,13 +106,13 @@ public:
     std::string ToString() const
     {
         return "TableDescription(name: " + mTableName + ", type: " + std::to_string(mStateType) +
-                ", ttl: " + std::to_string(mTableTTL) + ")";
+               ", ttl: " + std::to_string(mTableTTL) + ")";
     }
 
     inline uint32_t HashCode()
     {
         return std::hash<std::string>()(mTableName) + static_cast<uint32_t>(mStateType) + mStartGroup + mEndGroup +
-            mMaxParallelism;
+               mMaxParallelism;
     }
 
 private:
@@ -129,7 +126,7 @@ private:
     int32_t mPeakFilterElemNum;
 };
 using TableDescriptionRef = std::shared_ptr<TableDescription>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

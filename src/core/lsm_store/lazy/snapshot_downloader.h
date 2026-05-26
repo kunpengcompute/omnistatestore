@@ -29,8 +29,7 @@ public:
     {
         PathRef path = std::make_shared<Path>(remotePath);
         if (UNLIKELY(path == nullptr)) {
-            LOG_ERROR("Failed to make sharedPtr for Path, remotePath: "
-                      << PathTransform::ExtractFileName(remotePath));
+            LOG_ERROR("Failed to make sharedPtr for Path, remotePath: " << PathTransform::ExtractFileName(remotePath));
             return BSS_ERR;
         }
         HadoopFileSystemRef fileSystem = std::make_shared<HadoopFileSystem>(path);

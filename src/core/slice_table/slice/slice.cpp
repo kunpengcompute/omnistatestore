@@ -28,7 +28,7 @@
 namespace ock {
 namespace bss {
 BResult ValueSpace::Put(uint32_t index, FreshValueNodePtr &value, const MemorySegment &freshSegment, bool isValue,
-    SliceTableManagerRef sliceTable, uint32_t keyHashCode, uint16_t stateId, uint64_t &seqId)
+                        SliceTableManagerRef sliceTable, uint32_t keyHashCode, uint16_t stateId, uint64_t &seqId)
 {
     uint32_t count = 0;
     bool deleteOrPut = false;
@@ -78,8 +78,8 @@ BResult ValueSpace::Put(uint32_t index, FreshValueNodePtr &value, const MemorySe
     return BSS_OK;
 }
 
-BResult Slice::Initialize(std::vector<std::pair<SliceKey, Value>> &kvPairs,
-                          const SliceCreateMeta &meta, const MemManagerRef &memManager, bool forceMemory)
+BResult Slice::Initialize(std::vector<std::pair<SliceKey, Value>> &kvPairs, const SliceCreateMeta &meta,
+                          const MemManagerRef &memManager, bool forceMemory)
 {
     if (kvPairs.empty()) {
         return BSS_INVALID_PARAM;
@@ -99,10 +99,8 @@ BResult Slice::Initialize(std::vector<std::pair<SliceKey, Value>> &kvPairs,
     return BSS_OK;
 }
 
-BResult Slice::CreateAndInitBuffer(const SliceCreateMeta &meta,
-                                   std::vector<std::pair<SliceKey, Value>> &kvPairs,
-                                   std::vector<std::pair<SliceKey, uint32_t>> &sortedKeySlotList,
-                                   bool forceMemory)
+BResult Slice::CreateAndInitBuffer(const SliceCreateMeta &meta, std::vector<std::pair<SliceKey, Value>> &kvPairs,
+                                   std::vector<std::pair<SliceKey, uint32_t>> &sortedKeySlotList, bool forceMemory)
 {
     uint32_t kvCount = kvPairs.size();
 
@@ -123,9 +121,7 @@ BResult Slice::CreateAndInitBuffer(const SliceCreateMeta &meta,
         uint32_t rotatedHash = BssMath::RotateRight(pair.first.MixedHashCode(), rightShiftBits);
         sortedPairs.emplace_back(rotatedHash, index);
     }
-    std::sort(sortedPairs.begin(), sortedPairs.end(), [](const auto &a, const auto &b) {
-        return a.first < b.first;
-    });
+    std::sort(sortedPairs.begin(), sortedPairs.end(), [](const auto &a, const auto &b) { return a.first < b.first; });
     std::vector<std::pair<SliceKey, Value>> newKvPairs;
     newKvPairs.reserve(kvPairs.size());
     for (const auto &pair : sortedPairs) {
@@ -250,8 +246,8 @@ uint32_t GetTotalValLen(const MemorySegment &freshSegment, FreshValueNodePtr &va
 }  // namespace
 
 BResult Slice::CreateAndInitBuffer(const SliceCreateMeta &meta, RawDataSlice &rawDataSlice,
-                                   std::vector<std::pair<BinaryKey, uint32_t>> &sortedKeySlotList,
-                                   bool &forceEvict, SliceTableManagerRef sliceTable)
+                                   std::vector<std::pair<BinaryKey, uint32_t>> &sortedKeySlotList, bool &forceEvict,
+                                   SliceTableManagerRef sliceTable)
 {
     auto &kvPairs = rawDataSlice.GetSliceData();
     auto &indexVec = rawDataSlice.GetVectorGroup()->GetIndexVec();
@@ -272,9 +268,8 @@ BResult Slice::CreateAndInitBuffer(const SliceCreateMeta &meta, RawDataSlice &ra
     for (uint32_t index : indexVec) {
         rotatedHashes.emplace_back(BssMath::RotateRight(mixHashCodeVec[index], rightShiftBits));
     }
-    std::sort(indexVec.begin(), indexVec.end(), [&](uint32_t a, uint32_t b) {
-        return rotatedHashes[a] < rotatedHashes[b];
-    });
+    std::sort(indexVec.begin(), indexVec.end(),
+              [&](uint32_t a, uint32_t b) { return rotatedHashes[a] < rotatedHashes[b]; });
 
     // calculate buffer size
     uint32_t totalKeySize = 0;
@@ -387,9 +382,9 @@ BResult Slice::FillBuffer(const std::vector<std::pair<SliceKey, Value>> &kvPairs
     // sort by primary and secondary key.
     if (!sortedKeySlotList.empty()) {
         std::sort(sortedKeySlotList.begin(), sortedKeySlotList.end(),
-            [](const std::pair<SliceKey, uint32_t>& first, const std::pair<SliceKey, uint32_t>& second) {
-                return first.first.ComparePrimaryKeyAndSecondKey(second.first);
-        });
+                  [](const std::pair<SliceKey, uint32_t> &first, const std::pair<SliceKey, uint32_t> &second) {
+                      return first.first.ComparePrimaryKeyAndSecondKey(second.first);
+                  });
         // put sorted key index.
         uint32_t slot = 0;
         for (const auto &sortedKeySlot : sortedKeySlotList) {
@@ -401,7 +396,7 @@ BResult Slice::FillBuffer(const std::vector<std::pair<SliceKey, Value>> &kvPairs
 }
 
 BResult Slice::FillBuffer(RawDataSlice &rawDataSlice, std::vector<std::pair<BinaryKey, uint32_t>> &sortedKeySlotList,
-    SliceTableManagerRef sliceTable)
+                          SliceTableManagerRef sliceTable)
 {
     // put key and value.
     uint32_t curIndex = 0;
@@ -479,7 +474,7 @@ BResult Slice::FillBuffer(RawDataSlice &rawDataSlice, std::vector<std::pair<Bina
         // value
         uint64_t seqId = 0;
         RETURN_NOT_OK(mValueSpace->Put(curIndex, kv.second, freshSegment, kv.first.mIsValue, sliceTable,
-            key.KeyHashCode(), key.StateId(), seqId));
+                                       key.KeyHashCode(), key.StateId(), seqId));
 
         // seqId;
         mSeqIdSpace->Put(curIndex, seqId);
@@ -488,9 +483,9 @@ BResult Slice::FillBuffer(RawDataSlice &rawDataSlice, std::vector<std::pair<Bina
     // sort by primary and secondary key.
     if (!sortedKeySlotList.empty()) {
         std::sort(sortedKeySlotList.begin(), sortedKeySlotList.end(),
-            [](const std::pair<BinaryKey, uint32_t> &first, const std::pair<BinaryKey, uint32_t> &second) {
-                return first.first.ComparePrimaryKeyAndSecondKey(second.first) < 0;
-        });
+                  [](const std::pair<BinaryKey, uint32_t> &first, const std::pair<BinaryKey, uint32_t> &second) {
+                      return first.first.ComparePrimaryKeyAndSecondKey(second.first) < 0;
+                  });
         // put sorted key index.
 #if defined(__aarch64__)
 #ifdef BUILD_SVE

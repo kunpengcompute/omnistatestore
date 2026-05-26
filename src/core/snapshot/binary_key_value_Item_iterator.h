@@ -70,7 +70,7 @@ public:
     }
 
 public:
-    KeyValueRef mKeyValue = nullptr; // 持有相关引用，避免buffer被提前释放
+    KeyValueRef mKeyValue = nullptr;  // 持有相关引用，避免buffer被提前释放
     StateType mStateType;
     std::string mStateName;
     uint32_t mKeyGroup = 0;
@@ -142,8 +142,8 @@ private:
     void BuildKey(const Key &key, const std::string &stateName, const StateType &stateType,
                   BinaryKeyValueItemRef &reuseItem);
 
-    void BuildSecondaryKey(const Key &key, const std::string &stateName,
-                           const StateType &stateType, BinaryKeyValueItemRef &reuseItem) const;
+    void BuildSecondaryKey(const Key &key, const std::string &stateName, const StateType &stateType,
+                           BinaryKeyValueItemRef &reuseItem) const;
 };
 using BinaryKeyValueItemIteratorRef = Ref<BinaryKeyValueItemIterator>;
 

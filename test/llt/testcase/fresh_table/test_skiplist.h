@@ -30,13 +30,12 @@ public:
     };
 
     struct StringComparator {
-        int operator()(const std::string& a, const std::string& b) const
+        int operator()(const std::string &a, const std::string &b) const
         {
             return a.compare(b);
         }
     };
     FixedSizeMemoryPoolRef memoryPool;
 };
-
 
 #endif  // BOOST_SS_TEST_SKIPLIST_H

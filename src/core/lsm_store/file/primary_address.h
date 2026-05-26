@@ -63,7 +63,10 @@ extern PersistentAddressRef PERSISTENT_ADDRESS_NONE;
 class PrimaryAddress {
 public:
     PrimaryAddress(uint64_t fileAddress, uint32_t fileLength, std::string identifier, FileStatus fileStatus)
-        : mFileAddress(fileAddress), mFileLength(fileLength), mIdentifier(identifier), mFileStatus(fileStatus),
+        : mFileAddress(fileAddress),
+          mFileLength(fileLength),
+          mIdentifier(identifier),
+          mFileStatus(fileStatus),
           mPersistentAddress(PERSISTENT_ADDRESS_NONE)
     {
     }

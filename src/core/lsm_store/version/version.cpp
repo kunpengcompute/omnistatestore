@@ -10,6 +10,7 @@
  */
 
 #include "version.h"
+
 #include "include/config.h"
 #include "version_set.h"
 
@@ -146,8 +147,9 @@ VersionPtr Version::MigrateVersion(
                 auto newFile = newFileBuilder->Build();
                 RETURN_NULLPTR_AS_NULLPTR(newFile);
                 groupBuilder->AddFileMeta(newFile);
-                LOG_INFO("Migrate version success, file:" << PathTransform::ExtractFileName(file->GetIdentifier())
-                          << ", local path:" << PathTransform::ExtractFileName(fileInfo.restoreLocalFileName));
+                LOG_INFO("Migrate version success, file:"
+                         << PathTransform::ExtractFileName(file->GetIdentifier())
+                         << ", local path:" << PathTransform::ExtractFileName(fileInfo.restoreLocalFileName));
                 relocated = true;
             }
             versionBuilder->AddLevel(level.GetLevelId(), groupBuilder->Build());
@@ -177,8 +179,8 @@ VersionPtr RestoreBuilder::Build()
         mLevels.push_back(levelBuilder->Build());
     }
     FinalizeVersion();
-    auto result = std::make_shared<Version>(mParentVersionSet, mLevels, mCompactionLevel,
-                                            mCurGroupRange, mCompactionScore, mCompactionReason);
+    auto result = std::make_shared<Version>(mParentVersionSet, mLevels, mCompactionLevel, mCurGroupRange,
+                                            mCompactionScore, mCompactionReason);
     result->SetVersionSeqId();
     return result;
 }

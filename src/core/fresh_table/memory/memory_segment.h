@@ -30,8 +30,7 @@ public:
     {
     }
 
-    MemorySegment(uint32_t capacity, uint8_t *data, bool toFree)
-        : mSegment(data), mCapacity(capacity), mFree(toFree)
+    MemorySegment(uint32_t capacity, uint8_t *data, bool toFree) : mSegment(data), mCapacity(capacity), mFree(toFree)
     {
     }
 
@@ -147,7 +146,7 @@ public:
         if (UNLIKELY(ret != BSS_OK)) {
             LOG_ERROR("Failed to Copy from origin segment to new segment, ret:" << ret);
         } else {
-            newSegment->UpdatePosition(mPosition); // 更新newSegment的mPosition.
+            newSegment->UpdatePosition(mPosition);  // 更新newSegment的mPosition.
         }
         return ret;
     }

@@ -10,6 +10,7 @@
  */
 
 #include "pending_snapshot_operator_coordinator.h"
+
 #include "fresh_table_snapshot_operator.h"
 #include "slice_table_snapshot_operator.h"
 #include "snapshot_meta.h"
@@ -30,7 +31,7 @@ BResult PendingSnapshotOperatorCoordinator::Start()
 
     // 1. FreshTable执行checkpoint.
     auto freshTableSnapshotOperator = std::make_shared<FreshTableSnapshotOperator>(AllocateOperatorId(), mFreshTable,
-        mConfig, mMemManager, mPqTables);
+                                                                                   mConfig, mMemManager, mPqTables);
     RegisterSnapshotOperator(freshTableSnapshotOperator);
     freshTableSnapshotOperator->Start();
     RETURN_NOT_OK(freshTableSnapshotOperator->SyncSnapshot(IsSavepoint()));
@@ -55,7 +56,8 @@ BResult PendingSnapshotOperatorCoordinator::Start()
 
     // 2. SliceTable执行checkpoint.
     auto sliceTableSnapshotOperator = std::make_shared<SliceTableSnapshotOperator>(AllocateOperatorId(), mSliceTable,
-        mConfig, mMemManager, GetSnapshotId());
+                                                                                   mConfig, mMemManager,
+                                                                                   GetSnapshotId());
     RegisterSnapshotOperator(sliceTableSnapshotOperator);
     sliceTableSnapshotOperator->Start();
     RETURN_NOT_OK(sliceTableSnapshotOperator->SyncSnapshot(IsSavepoint()));
@@ -109,7 +111,9 @@ BResult PendingSnapshotOperatorCoordinator::WriteMeta()
 
         // 2. 写入DB的元数据.
         auto totalSnapshotMeta = SnapshotRestoreUtils::WriteDbMeta(mSnapshotId, mStartKeyGroup, mEndKeyGroup, mSeqId,
-            mStateIdProvider, mLocalSnapshotPath, localOutputView, mLocalFileManager, snapshotOperators, mSnapshotStat);
+                                                                   mStateIdProvider, mLocalSnapshotPath,
+                                                                   localOutputView, mLocalFileManager,
+                                                                   snapshotOperators, mSnapshotStat);
         if (UNLIKELY(totalSnapshotMeta == nullptr)) {
             return BSS_ERR;
         }
@@ -153,8 +157,8 @@ BResult PendingSnapshotOperatorCoordinator::CreateHardLinkForLocalFiles(const Pa
         PathRef targetFile = std::make_shared<Path>(basePath, srcFile->ExtractFileName());
         auto ret = link(srcFile->Name().c_str(), targetFile->Name().c_str());
         if (ret != 0) {
-            LOG_ERROR("Create hard link failed, errno:" << errno << ", from " << srcFile->ExtractFileName() <<
-                      " to " << targetFile->ExtractFileName());
+            LOG_ERROR("Create hard link failed, errno:" << errno << ", from " << srcFile->ExtractFileName() << " to "
+                                                        << targetFile->ExtractFileName());
             return BSS_ERR;
         }
     }

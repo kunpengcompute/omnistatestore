@@ -112,5 +112,5 @@ const std::vector<BlobFileGroupRef> &BlobFileGroupManager::GetFileGroups()
 {
     return mBlobFileGroups;
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

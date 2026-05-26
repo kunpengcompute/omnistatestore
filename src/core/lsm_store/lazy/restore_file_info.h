@@ -19,14 +19,14 @@
 namespace ock {
 namespace bss {
 struct RestoreFileInfo {
-    std::string fileIdentifier;       // snapshot时文件地址
+    std::string fileIdentifier;  // snapshot时文件地址
     uint64_t fileAddress;
     FileStatus fileStatus;
     uint64_t fileLength;
     uint32_t refCount;
     uint64_t remoteFileAddress;
-    std::string remoteFileName;       // 远程文件地址
-    std::string restoreLocalFileName; // restore后本地文件地址
+    std::string remoteFileName;        // 远程文件地址
+    std::string restoreLocalFileName;  // restore后本地文件地址
 };
 
 }  // namespace bss

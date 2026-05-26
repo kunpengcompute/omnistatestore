@@ -653,7 +653,7 @@ TEST_F(TestTable, test_restore_not_ok)
     DT_FUZZ_END()
 }
 
-} // test_table
-} // test
-} // bss
-} // ock
+}  // namespace test_table
+}  // namespace test
+}  // namespace bss
+}  // namespace ock

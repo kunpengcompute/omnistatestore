@@ -13,10 +13,10 @@
 #define BOOST_STATE_STORE_KV_TEST_UTILS_H
 
 #include <cstdint>
-#include <iostream>
-#include <random>
-#include <memory>
 #include <fstream>
+#include <iostream>
+#include <memory>
+#include <random>
 
 #include "gtest/gtest.h"
 

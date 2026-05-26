@@ -10,6 +10,7 @@
  */
 
 #include "data_block_index_writer.h"
+
 #include "lsm_store/key/full_key_util.h"
 
 namespace ock {
@@ -42,7 +43,6 @@ uint32_t DataBlockIndexWriter::GetSecondaryKeyIndexFromPointer(uint64_t pointer)
 {
     return static_cast<uint32_t>(pointer);
 }
-
 
 BResult DataBlockIndexWriter::Finish(const OutputViewRef &outputView)
 {
@@ -109,7 +109,6 @@ BResult DataBlockIndexWriter::Finish(const OutputViewRef &outputView)
     return BSS_OK;
 }
 
-
 BResult DataBlockIndexReader::Lookup(uint32_t hash, const ByteBufferRef &byteBuffer, DataBlockIndexIterator &iterator)
 {
     if (UNLIKELY(mNumBuckets == 0)) {
@@ -123,11 +122,12 @@ BResult DataBlockIndexReader::Lookup(uint32_t hash, const ByteBufferRef &byteBuf
     uint32_t bucketIndex = DataBlockIndexWriter::GetBucketIndex(hash, mNumBuckets);
     uint32_t bucketOffset = mBucketIndexOffset + bucketIndex * mNumBytesForBucketElement;
     uint32_t startPointerIndex = FullKeyUtil::ReadValueWithNumberOfBytes(byteBuffer, bucketOffset,
-        mNumBytesForBucketElement);
-    uint32_t endPointerIndex =
-        ((bucketIndex + 1) == mNumBuckets) ?
-            mNumEntries : FullKeyUtil::ReadValueWithNumberOfBytes(byteBuffer, bucketOffset + mNumBytesForBucketElement,
-            mNumBytesForBucketElement);
+                                                                         mNumBytesForBucketElement);
+    uint32_t endPointerIndex = ((bucketIndex + 1) == mNumBuckets) ?
+                                   mNumEntries :
+                                   FullKeyUtil::ReadValueWithNumberOfBytes(byteBuffer,
+                                                                           bucketOffset + mNumBytesForBucketElement,
+                                                                           mNumBytesForBucketElement);
     if (startPointerIndex == endPointerIndex) {
         return BSS_NOT_EXISTS;
     }
@@ -139,7 +139,7 @@ uint64_t DataBlockIndexReader::GetPointAt(uint32_t pointerIndex, const ByteBuffe
 {
     uint64_t encodedPointer =
         FullKeyUtil::ReadValueWithNumberOfBytes(byteBuffer, mPointerIndexOffset + pointerIndex * mNumBytesForPointer,
-            mNumBytesForPointer);
+                                                mNumBytesForPointer);
     return DataBlockIndexWriter::DecodePointer(encodedPointer, mNumBitsForSecondaryKeyIndex);
 }
 

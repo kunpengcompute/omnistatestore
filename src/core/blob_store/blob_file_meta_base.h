@@ -26,7 +26,7 @@ public:
     BlobFileMetaBase() = default;
 
     BlobFileMetaBase(const std::string &identifier, const GroupRangeRef &validGroupRange,
-        const GroupRangeRef &coveredGroupRange, uint32_t fileId)
+                     const GroupRangeRef &coveredGroupRange, uint32_t fileId)
         : FileMetaBase(identifier, FileAddressUtils::GetFileAddressWithZeroOffset(fileId)),
           mValidGroupRange(validGroupRange),
           mCoveredGroupRange(coveredGroupRange)
@@ -75,6 +75,7 @@ public:
     {
         return mCoveredGroupRange;
     }
+
 protected:
     uint64_t mMinBlobId = UINT64_MAX;
     uint64_t mMaxBlobId = 0;
@@ -85,7 +86,7 @@ protected:
 };
 
 using BlobFileMetaBaseRef = std::shared_ptr<BlobFileMetaBase>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

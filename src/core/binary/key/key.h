@@ -232,8 +232,8 @@ public:
     inline std::string ToString() const
     {
         std::ostringstream oss;
-        oss << "StateId: " << mStateId << ", KeyHashCode: " << KeyHashCode()
-            << ", KeyLen: " << mKeyLen << ", KeyData: [";
+        oss << "StateId: " << mStateId << ", KeyHashCode: " << KeyHashCode() << ", KeyLen: " << mKeyLen
+            << ", KeyData: [";
         if (UNLIKELY(mKeyData != nullptr)) {
             uint32_t printLen = std::min(NO_20, mKeyLen);
             for (uint32_t i = 0; i < printLen; i++) {
@@ -385,7 +385,7 @@ public:
     inline int32_t Compare(const Key &other) const
     {
         int32_t cmp = ComparePQKey(other);
-        if (cmp != NO_PQ_DATA) { // 2 表示不是pq数据，继续执行下面的比较数据方法.
+        if (cmp != NO_PQ_DATA) {  // 2 表示不是pq数据，继续执行下面的比较数据方法.
             return cmp;
         }
         // compare primary key.
@@ -416,8 +416,8 @@ public:
         } else if (StateId::GetStateType(key2.StateId()) != PQ) {
             return -1;
         }
-        auto cmp  = PQBinaryDataComparator::Compare(mPriKey.KeyData(), mPriKey.KeyLen(), key2.mPriKey.KeyData(),
-                                        key2.mPriKey.KeyLen());
+        auto cmp = PQBinaryDataComparator::Compare(mPriKey.KeyData(), mPriKey.KeyLen(), key2.mPriKey.KeyData(),
+                                                   key2.mPriKey.KeyLen());
         cmp = cmp > 0 ? 1 : (cmp < 0 ? -1 : 0);
         return cmp;
     }

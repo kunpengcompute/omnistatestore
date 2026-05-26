@@ -10,6 +10,7 @@
  */
 
 #include "primary_key_info.h"
+
 #include "lsm_store/block/data_block.h"
 
 namespace ock {

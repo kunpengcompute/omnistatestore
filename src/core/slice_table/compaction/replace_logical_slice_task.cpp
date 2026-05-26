@@ -14,8 +14,10 @@
 namespace ock {
 namespace bss {
 BResult ReplaceLogicalSlice::SyncReplaceChainAndSlice(LogicalSliceChainRef &logicalSliceChain, uint32_t sliceIndexSlot,
-    uint32_t compactionStartChainIndex, uint32_t compactionEndChainIndex, DataSliceRef &compactedDataSLice,
-    std::vector<SliceAddressRef> &invalidSliceAddressList)
+                                                      uint32_t compactionStartChainIndex,
+                                                      uint32_t compactionEndChainIndex,
+                                                      DataSliceRef &compactedDataSLice,
+                                                      std::vector<SliceAddressRef> &invalidSliceAddressList)
 {
     if (logicalSliceChain != mBucketIndex->GetLogicChainedSlice(sliceIndexSlot)) {
         LOG_ERROR("Logical slice chain not matched, sliceIndexSlot:" << sliceIndexSlot);
@@ -71,7 +73,7 @@ BResult ReplaceLogicalSlice::SyncReplaceChainAndSlice(LogicalSliceChainRef &logi
 
     // 2. 插入compacted的sliceAddress.
     SliceAddressRef compactedSliceAddress = compactedLogicalSliceChain->CreateSlice(compactedDataSLice,
-        mSliceTable->GetTick());
+                                                                                    mSliceTable->GetTick());
     if (UNLIKELY(compactedSliceAddress == nullptr)) {
         LOG_ERROR("Create compacted slice address failed.");
         mBucketIndex->Unlock(sliceIndexSlot);
@@ -101,7 +103,7 @@ BResult ReplaceLogicalSlice::SyncReplaceChainAndSlice(LogicalSliceChainRef &logi
 }
 
 BResult ReplaceLogicalSlice::SyncUpdateChain(LogicalSliceChainRef &oldLogicalSliceChain,
-    LogicalSliceChainRef &newLogicalSliceChain, uint32_t sliceIndexSlot)
+                                             LogicalSliceChainRef &newLogicalSliceChain, uint32_t sliceIndexSlot)
 {
     // 替换sliceChain
     mBucketIndex->UpdateLogicalSliceChain(sliceIndexSlot, oldLogicalSliceChain, newLogicalSliceChain);
@@ -111,7 +113,8 @@ BResult ReplaceLogicalSlice::SyncUpdateChain(LogicalSliceChainRef &oldLogicalSli
 void ReplaceLogicalSliceTask::Run()
 {
     BResult ret = mReplaceLogicalSlice->SyncReplaceChainAndSlice(mLogicalSliceChain, mSliceIndexSlot,
-        mCompactionStartChainIndex, mCompactionEndChainIndex, mCompactedDataSlice, mInvalidSliceAddressList);
+                                                                 mCompactionStartChainIndex, mCompactionEndChainIndex,
+                                                                 mCompactedDataSlice, mInvalidSliceAddressList);
     if (UNLIKELY(ret != BSS_OK)) {
         LOG_ERROR("Replace slice chain failed, ret: " << ret << ", index:" << mSliceIndexSlot);
         mLogicalSliceChain->SetCompactionToNormal();

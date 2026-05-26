@@ -18,8 +18,8 @@
 using namespace ock::bss;
 class TestExecutor : public testing::Test {
 public:
-    TestExecutor() {};
-    ~TestExecutor() {};
+    TestExecutor(){};
+    ~TestExecutor(){};
     // TestCase only enter once
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -28,6 +28,5 @@ public:
     void SetUp() const;
     void TearDown() const;
     static ExecutorServicePtr mService;
-
 };
 #endif

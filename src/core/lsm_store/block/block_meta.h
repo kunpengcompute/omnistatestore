@@ -22,8 +22,8 @@ public:
     BlockMeta() = default;
     ~BlockMeta() = default;
 
-    inline void Reset(const BlockHandleRef &blockHandle, uint32_t rawSize, uint32_t numKeys,
-                      const FullKeyRef &startKey, const FullKeyRef &endKey)
+    inline void Reset(const BlockHandleRef &blockHandle, uint32_t rawSize, uint32_t numKeys, const FullKeyRef &startKey,
+                      const FullKeyRef &endKey)
     {
         mBlockHandle = blockHandle;
         mRawSize = rawSize;

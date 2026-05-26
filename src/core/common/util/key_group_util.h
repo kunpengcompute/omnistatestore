@@ -61,8 +61,8 @@ public:
     }
 
 private:
-    using SetKeyGroupFuncPtr = void(*)(uint32_t &, uint32_t);
-    using ComputeKeyGroupFuncPtr = uint32_t(*)(uint32_t);
+    using SetKeyGroupFuncPtr = void (*)(uint32_t &, uint32_t);
+    using ComputeKeyGroupFuncPtr = uint32_t (*)(uint32_t);
 
     static SetKeyGroupFuncPtr mSetKeyGroupFunc;
     static ComputeKeyGroupFuncPtr mComputeKeyGroupFunc;

@@ -101,7 +101,7 @@ public:
     }
 
     BResult Restore(FileInputViewRef &inputView, RestoreFileInfo &restoreFileInfo, const PathRef &workingPath,
-        std::unordered_map<std::string, uint32_t> &restorePathFileIdMap)
+                    std::unordered_map<std::string, uint32_t> &restorePathFileIdMap)
     {
         RETURN_NOT_OK(inputView->ReadUTF(mIdentifier));
         mIdentifier = workingPath->Name() + "/blobFile/" + PathTransform::ExtractFileName(mIdentifier);
@@ -147,7 +147,7 @@ public:
             return DOUBLE_MAX_VALUE;
         }
         double keyGroupNotContainsRatio = 1.0 - mValidGroupRange->GetKeyGroupRangeSize() * 1.0 /
-            mCoveredGroupRange->GetKeyGroupRangeSize();
+                                                    mCoveredGroupRange->GetKeyGroupRangeSize();
         uint64_t totalDeleteNum = mDeletedBlobNum + static_cast<uint64_t>(keyGroupNotContainsRatio * mTotalBlobNum);
         if (totalDeleteNum >= mTotalBlobNum) {
             return 1.0;
@@ -175,7 +175,7 @@ private:
     FileStatus mFileStatus = LOCAL;
 };
 using BlobFileMetaRef = std::shared_ptr<BlobFileMeta>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

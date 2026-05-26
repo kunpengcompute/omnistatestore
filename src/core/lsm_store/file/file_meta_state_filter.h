@@ -23,7 +23,8 @@ class FileMetaStateFilter : public FullKeyFilter {
 public:
     FileMetaStateFilter(const GroupRangeRef &fileMetaGroupRange, const HashCodeOrderRangeRef &fileMetaOrderRange,
                         const StateFilterManagerRef &stateFilterManager)
-        : mFileMetaGroupRange(fileMetaGroupRange), mFileMetaOrderRange(fileMetaOrderRange),
+        : mFileMetaGroupRange(fileMetaGroupRange),
+          mFileMetaOrderRange(fileMetaOrderRange),
           mStateFilterManager(stateFilterManager)
     {
     }

@@ -125,4 +125,4 @@ using TombstoneFileMergingIteratorRef = std::shared_ptr<TombstoneFileMergingIter
 }  // namespace bss
 }  // namespace ock
 
-#endif // BOOST_SS_TOMBSTONE_FILE_MERGING_ITERATOR_H
+#endif  // BOOST_SS_TOMBSTONE_FILE_MERGING_ITERATOR_H

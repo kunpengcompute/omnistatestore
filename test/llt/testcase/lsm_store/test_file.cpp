@@ -9,17 +9,18 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "include/bss_types.h"
+
 #include <iostream>
 #include <vector>
 
-#include "include/bss_types.h"
 #include "include/config.h"
 #include "binary/query_binary.h"
 #include "test_file.h"
 
 using namespace ock::bss;
 
-const std::vector<std::string> compressionLevelPolicyForTestFile = {"lz4", "lz4", "lz4"};
+const std::vector<std::string> compressionLevelPolicyForTestFile = { "lz4", "lz4", "lz4" };
 const std::string lsmStoreCompressionPolicyForTestFile = "lz4";
 
 std::vector<std::pair<SliceKey, Value>> TestFile::GenerateKeyValue(uint64_t size, int32_t seed)
@@ -40,7 +41,7 @@ std::vector<std::pair<SliceKey, Value>> TestFile::GenerateKeyValue(uint64_t size
 }
 
 std::vector<std::pair<SliceKey, Value>> TestFile::GenerateKeyMapValue(uint64_t size, std::vector<uint32_t> &priKeyHash,
-    KeyVectorValueMap &prefixEntries, int32_t seed)
+                                                                      KeyVectorValueMap &prefixEntries, int32_t seed)
 {
     uint64_t currentSize = 0;
     std::vector<std::pair<SliceKey, Value>> result;
@@ -222,8 +223,8 @@ TEST_F(TestFile, test_value_state_with_deleted_value_return_ok)
     for (uint32_t i = 0; i < fileCount; i++) {
         std::vector<std::pair<SliceKey, Value>> putEntries;
         std::vector<uint32_t> priKeyHash;
-        std::vector<std::pair<SliceKey, Value>> newEntries =
-            GenerateKeyMapValue(NO_1024, priKeyHash, prefixEntries, i * NO_10000);
+        std::vector<std::pair<SliceKey, Value>> newEntries = GenerateKeyMapValue(NO_1024, priKeyHash, prefixEntries,
+                                                                                 i * NO_10000);
         // 写入上个文件选择需要删除的key
         for (auto &deletedKey : deletedKeys) {
             Value deletedValue = GenerateDeleteValue();

@@ -30,18 +30,18 @@ using TombstoneFileManagerSnapshotRef = std::shared_ptr<TombstoneFileManagerSnap
 class BlobStoreSnapshotCoordinator {
 public:
     BlobStoreSnapshotCoordinator(MemManagerRef &memManager, std::vector<TombstoneServiceRef> &tombstoneLevel0,
-                                 uint64_t blobStoreVersion, uint64_t seqId,
-                                 BlobFileManagerRef &blobFileManager, TombstoneFileManagerRef &tombstoneFileManager,
+                                 uint64_t blobStoreVersion, uint64_t seqId, BlobFileManagerRef &blobFileManager,
+                                 TombstoneFileManagerRef &tombstoneFileManager,
                                  BlobStoreSnapshotOperatorRef &blobStoreSnapshotOperator,
                                  FileCacheManagerRef &fileCacheManager)
         : mMemManager(memManager),
-        mTombstoneLevel0(tombstoneLevel0),
-        mVersion(blobStoreVersion),
-        mSeqId(seqId),
-        mBlobFileManager(blobFileManager),
-        mTombstoneFileManager(tombstoneFileManager),
-        mBlobStoreSnapshotOperator(blobStoreSnapshotOperator),
-        mFileCacheManager(fileCacheManager)
+          mTombstoneLevel0(tombstoneLevel0),
+          mVersion(blobStoreVersion),
+          mSeqId(seqId),
+          mBlobFileManager(blobFileManager),
+          mTombstoneFileManager(tombstoneFileManager),
+          mBlobStoreSnapshotOperator(blobStoreSnapshotOperator),
+          mFileCacheManager(fileCacheManager)
     {
     }
 
@@ -87,4 +87,4 @@ using BlobStoreSnapshotCoordinatorRef = std::shared_ptr<BlobStoreSnapshotCoordin
 }  // namespace bss
 }  // namespace ock
 
-#endif // BLOB_STORE_SNAPSHOT_COORDINATOR_H
+#endif  // BLOB_STORE_SNAPSHOT_COORDINATOR_H

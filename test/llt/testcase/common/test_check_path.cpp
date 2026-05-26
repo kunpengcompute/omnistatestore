@@ -10,6 +10,7 @@
  */
 
 #include "test_check_path.h"
+
 #include "common/path_transform.h"
 #include "jni/kv_helper.h"
 
@@ -82,6 +83,6 @@ TEST_F(TestCheckPath, test_kv_helper_check_path_valid)
     std::string noExistPath2 = "file://" + noExistPath;
     ASSERT_EQ(CheckPathValid(noExistPath2), false);
 }
-}
-}
-}
+}  // namespace test
+}  // namespace bss
+}  // namespace ock

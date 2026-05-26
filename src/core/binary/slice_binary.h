@@ -98,8 +98,7 @@ public:
             RETURN_NOT_OK(buffer->WriteUint32(KeyHashCode(), offset + NO_2));
             RETURN_NOT_OK(buffer->WriteUint32(mPriKey.KeyLen(), offset + NO_6));
             auto pos = offset + NO_10;
-            auto ret = memcpy_s(buffer->Data() + pos, buffer->Capacity() - pos,
-                mPriKey.KeyData(), mPriKey.KeyLen());
+            auto ret = memcpy_s(buffer->Data() + pos, buffer->Capacity() - pos, mPriKey.KeyData(), mPriKey.KeyLen());
             if (UNLIKELY(ret != EOK)) {
                 LOG_ERROR("memcpy_s failed, ret: " << ret);
                 return BSS_INNER_ERR;
@@ -113,8 +112,7 @@ public:
         } else {
             RETURN_NOT_OK(buffer->WriteUint16(StateId(), offset));
             auto pos = offset + NO_2;
-            auto ret = memcpy_s(buffer->Data() + pos, buffer->Capacity() - pos,
-                mPriKey.KeyData(), mPriKey.KeyLen());
+            auto ret = memcpy_s(buffer->Data() + pos, buffer->Capacity() - pos, mPriKey.KeyData(), mPriKey.KeyLen());
             if (UNLIKELY(ret != EOK)) {
                 LOG_ERROR("memcpy_s failed, ret: " << ret);
                 return BSS_INNER_ERR;
@@ -409,7 +407,7 @@ public:
     }
 
     inline int32_t ComparePriKeyStateIdFirst(const ByteBufferRef &buffer, uint32_t bufferOffset, uint32_t bufferLen,
-        uint32_t mixedHashCode, const PriKeyNode &key) const
+                                             uint32_t mixedHashCode, const PriKeyNode &key) const
     {
         const uint8_t *data = buffer->Data() + bufferOffset;
         uint16_t stateId = *reinterpret_cast<const uint16_t *>(data);
@@ -422,7 +420,7 @@ public:
         const uint8_t *priKeyData;
         uint32_t priKeyHashCode;
         if (StateId::HasSecKey(stateId)) {
-            auto priKey = reinterpret_cast<const SlicePriKey*>(data);
+            auto priKey = reinterpret_cast<const SlicePriKey *>(data);
             priKeyLen = priKey->mKeyLen;
             priKeyData = priKey->mKeyData;
             priKeyHashCode = priKey->mKeyHashCode;

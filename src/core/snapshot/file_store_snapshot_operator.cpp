@@ -22,7 +22,7 @@ BResult FileStoreSnapshotOperator::SyncSnapshot(bool isSavepoint)
                 mToSnapshotFileAddress.emplace(entry.first,
                                                std::make_tuple(entry.second.first, entry.second.second, 1));
             } else {
-                std::get<NO_2>(iter->second) += NO_1; // 更新count.
+                std::get<NO_2>(iter->second) += NO_1;  // 更新count.
             }
         }
     }
@@ -39,7 +39,7 @@ SnapshotMetaRef FileStoreSnapshotOperator::OutputMeta(uint64_t snapshotId, const
     // 文件中的元数据内容: prefixName+fileStore的元数据信息.
     SnapshotMetaRef result = std::make_shared<SnapshotMeta>();
     for (const auto &lsmStore : mLsmStores) {
-        mLocalOutputOffsets.push_back(localOutputView->Size()); // 记录文件偏移.
+        mLocalOutputOffsets.push_back(localOutputView->Size());  // 记录文件偏移.
         FileOutputViewRef remoteOutputView = std::make_shared<FileOutputView>();
         SnapshotMetaRef snapshotMeta = lsmStore->WriteMeta(localOutputView, remoteOutputView, GetSnapshotId());
         RETURN_NULLPTR_AS_NULLPTR(snapshotMeta);

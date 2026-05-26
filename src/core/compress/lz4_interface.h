@@ -22,7 +22,7 @@ public:
     ~Lz4Interface() override = default;
 
     uint32_t Compress(void *dst, size_t dstCapacity, const void *src, size_t srcSize,
-        int compressionLevel = 1) override;
+                      int compressionLevel = 1) override;
 
     uint32_t Decompress(void *dst, size_t dstCapacity, const void *src, size_t srcSize) override;
 };

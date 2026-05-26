@@ -12,10 +12,10 @@
 #ifndef BOOST_SS_FILE_META_BASE_H
 #define BOOST_SS_FILE_META_BASE_H
 
+#include <iomanip>
 #include <memory>
 #include <string>
 #include <utility>
-#include <iomanip>
 
 #include "file_address_util.h"
 #include "common/path_transform.h"

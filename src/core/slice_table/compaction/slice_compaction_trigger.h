@@ -20,8 +20,8 @@ namespace ock {
 namespace bss {
 class SliceCompactionTrigger {
 public:
-    BResult Init(const ConfigRef &config, const SliceBucketIndexRef &bucketIndex,
-                 const MemManagerRef &memManager, const StateFilterManagerRef &stateFilterManager)
+    BResult Init(const ConfigRef &config, const SliceBucketIndexRef &bucketIndex, const MemManagerRef &memManager,
+                 const StateFilterManagerRef &stateFilterManager)
     {
         // create compaction helper.
         mSliceCompactor = std::make_shared<SliceCompactor>();

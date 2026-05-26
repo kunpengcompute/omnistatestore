@@ -21,7 +21,6 @@ namespace bss {
 
 class SecondaryLevelInfo {
 public:
-
     virtual BResult GetPair(PrimaryKeyInfo &primaryKeyInfo, const Key &key, Value &value, ByteBufferRef byteBuffer) = 0;
 
     virtual uint16_t GetStateId(const ByteBufferRef &byteBuffer) = 0;
@@ -30,8 +29,7 @@ using SecondaryLevelInfoRef = std::shared_ptr<SecondaryLevelInfo>;
 
 class SingleSecondaryLevelInfo : public SecondaryLevelInfo {
 public:
-    SingleSecondaryLevelInfo(uint32_t secondaryKeyOffset, const MemManagerRef &memManager,
-                             FileProcHolder holder)
+    SingleSecondaryLevelInfo(uint32_t secondaryKeyOffset, const MemManagerRef &memManager, FileProcHolder holder)
         : mSecondaryKeyOffset(secondaryKeyOffset), mMemManager(memManager), mHolder(holder)
     {
     }
@@ -52,9 +50,9 @@ private:
 class MultiSecondaryLevelInfo : public SecondaryLevelInfo,
                                 public std::enable_shared_from_this<MultiSecondaryLevelInfo> {
 public:
-    MultiSecondaryLevelInfo(uint32_t numBytesForSecondaryKeyIndexElement,
-                            uint32_t numSecondaryKeys, uint32_t secondaryKeyIndexOffset,
-                            uint32_t firstSecondaryKeyOffset, const MemManagerRef &memManager, FileProcHolder holder)
+    MultiSecondaryLevelInfo(uint32_t numBytesForSecondaryKeyIndexElement, uint32_t numSecondaryKeys,
+                            uint32_t secondaryKeyIndexOffset, uint32_t firstSecondaryKeyOffset,
+                            const MemManagerRef &memManager, FileProcHolder holder)
         : mNumBytesForSecondaryKeyIndexElement(numBytesForSecondaryKeyIndexElement),
           mNumSecondaryKeys(numSecondaryKeys),
           mSecondaryKeyIndexOffset(secondaryKeyIndexOffset),

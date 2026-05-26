@@ -71,7 +71,7 @@ public:
     }
 
     inline FileInfoRef AllocatePrefixFile(const std::string &prefix, const FileDirectoryRef &fileDirectory,
-                                const std::function<std::string(std::string)> &fileNameGenerator) const
+                                          const std::function<std::string(std::string)> &fileNameGenerator) const
     {
         return mLocalFileManager->AllocatePrefixFile(prefix, fileDirectory, fileNameGenerator);
     }
@@ -80,8 +80,8 @@ public:
     inline void ConfirmAllocationOnFlushOrCompaction(const std::vector<std::shared_ptr<T>> &fileMetaDatas) const
     {
         for (const auto &item : fileMetaDatas) {
-            auto primaryAddress = std::make_shared<PrimaryAddress>(item->GetFileAddress(),
-                item->GetFileSize(), item->GetIdentifier(), FileStatus::LOCAL);
+            auto primaryAddress = std::make_shared<PrimaryAddress>(item->GetFileAddress(), item->GetFileSize(),
+                                                                   item->GetIdentifier(), FileStatus::LOCAL);
             mPrimaryFileManager->AddPrimaryAddressRef(primaryAddress, NO_1);
         }
     }
@@ -91,8 +91,7 @@ public:
         return mLocalFileManager->GetBasePath();
     }
 
-    template <class T>
-    inline void ReleaseFilesForCompaction(const std::vector<std::shared_ptr<T>> &fileMetaList)
+    template <class T> inline void ReleaseFilesForCompaction(const std::vector<std::shared_ptr<T>> &fileMetaList)
     {
         std::lock_guard<std::mutex> lk(mCompactionLock);
         for (auto &metaData : fileMetaList) {
@@ -110,8 +109,7 @@ public:
         mPrimaryFileManager->DecPrimaryAddressRef(fileAddress);
     }
 
-    template <class T>
-    void RegisterFilesForCompaction(std::vector<std::shared_ptr<T>> &fileMetaList)
+    template <class T> void RegisterFilesForCompaction(std::vector<std::shared_ptr<T>> &fileMetaList)
     {
         std::lock_guard<std::mutex> lk(mCompactionLock);
         for (auto &metaData : fileMetaList) {
@@ -192,6 +190,7 @@ public:
     {
         mLazyDownloadStrategy->StartDownload(mFileHolders);
     }
+
 private:
     BResult RestoreFromLocal(const std::string &fileName, const RestoreFileInfo &restoreInfo);
 

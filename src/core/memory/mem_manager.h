@@ -40,13 +40,12 @@ public:
     {
         std::lock_guard<std::mutex> lk(mLock);
         LOG_INFO("Memory info when delete memory manager: [File used:"
-                 << mTypeCurrentSize[GetIndex(MemoryType::FILE_STORE)].load() << ",Fresh used: "
-                 << mTypeCurrentSize[GetIndex(MemoryType::FRESH_TABLE)].load() << ",Slice used: "
-                 << mTypeCurrentSize[GetIndex(MemoryType::SLICE_TABLE)].load() << ",Snap used: "
-                 << mTypeCurrentSize[GetIndex(MemoryType::SNAPSHOT)].load() << ",Heap used: "
-                 << mHeapUsedSize.load() << "]");
-        if (mInitialized && (mAllocatorType == AllocatorType::MEM_MULTI)
-                && mBaseAddr != nullptr) {
+                 << mTypeCurrentSize[GetIndex(MemoryType::FILE_STORE)].load()
+                 << ",Fresh used: " << mTypeCurrentSize[GetIndex(MemoryType::FRESH_TABLE)].load()
+                 << ",Slice used: " << mTypeCurrentSize[GetIndex(MemoryType::SLICE_TABLE)].load()
+                 << ",Snap used: " << mTypeCurrentSize[GetIndex(MemoryType::SNAPSHOT)].load()
+                 << ",Heap used: " << mHeapUsedSize.load() << "]");
+        if (mInitialized && (mAllocatorType == AllocatorType::MEM_MULTI) && mBaseAddr != nullptr) {
             mAllocator->Destroy();
             free(mBaseAddr);
             mBaseAddr = nullptr;
@@ -166,8 +165,8 @@ public:
             LOG_ERROR("Memory leaks detected: " << mAllocated.size() << " blocks");
             for (const auto &addr : mAllocated) {
                 auto head = reinterpret_cast<struct SegmentHeads *>(addr - sizeof(struct SegmentHeads));
-                LOG_ERROR("Leaked:  << std::hex << addr << std::dec << , Size: "
-                    << head->size << ", Type: " << head->type);
+                LOG_ERROR("Leaked:  << std::hex << addr << std::dec << , Size: " << head->size
+                                                                                 << ", Type: " << head->type);
             }
         } else {
             LOG_INFO("No memory leaks detected.");

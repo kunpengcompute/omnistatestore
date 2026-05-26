@@ -28,12 +28,8 @@ namespace bss {
 class FileReaderBase {
 public:
     FileReaderBase(const FileMetaDataRef &fileMetaData, const ConfigRef &config, const PathRef &path,
-                    const BlockCacheRef &blockCache, const MemManagerRef &memManager, FileProcHolder holder)
-        : mFileMetaData(fileMetaData),
-          mPath(path),
-          mBlockCache(blockCache),
-          mConfig(config),
-          mMemManager(memManager)
+                   const BlockCacheRef &blockCache, const MemManagerRef &memManager, FileProcHolder holder)
+        : mFileMetaData(fileMetaData), mPath(path), mBlockCache(blockCache), mConfig(config), mMemManager(memManager)
     {
         RETURN_AS_NULLPTR(config);
         mCacheIndexAndFilter = config->GetCacheIndexAndFilterSwitch();
@@ -74,8 +70,8 @@ public:
 
     virtual KeyValueIteratorRef IteratorAll(FullKeyFilterRef paramInternalKeyFilter, bool shareReader) = 0;
 
-    virtual KeyValueIteratorRef PrefixIterator(FullKeyFilterRef paramInternalKeyFilter,
-                                               const Key &paramLK, bool paramBoolean) = 0;
+    virtual KeyValueIteratorRef PrefixIterator(FullKeyFilterRef paramInternalKeyFilter, const Key &paramLK,
+                                               bool paramBoolean) = 0;
 
     virtual FilterBlockRef GetOrLoadFilterBlock() = 0;
 

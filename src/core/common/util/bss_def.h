@@ -31,7 +31,7 @@ namespace bss {
 #endif
 
 #define KB_UNIT (1024)
-}
-}
+}  // namespace bss
+}  // namespace ock
 
-#endif // BOOSTIO_BIO_DEF_H
+#endif  // BOOSTIO_BIO_DEF_H

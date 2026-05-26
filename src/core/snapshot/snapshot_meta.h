@@ -35,7 +35,7 @@ public:
     {
     }
 
-    inline std::unordered_set<PathRef, PathHash, PathEqual>& GetLocalFilePaths()
+    inline std::unordered_set<PathRef, PathHash, PathEqual> &GetLocalFilePaths()
     {
         return mLocalFilePaths;
     }

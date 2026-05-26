@@ -30,7 +30,7 @@ public:
         mSize = other.GetSize();
     }
 
-    BlockHandle& operator=(const BlockHandle &other)
+    BlockHandle &operator=(const BlockHandle &other)
     {
         if (this != &other) {
             mOffset = other.GetOffset();

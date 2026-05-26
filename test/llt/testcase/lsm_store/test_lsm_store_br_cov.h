@@ -35,7 +35,7 @@ public:
     FileWriterRef GetTableBuilder(ConfigRef config)
     {
         FileInfoRef fileInfo = mLsmStore->mFileCacheManager->AllocateFile(mLsmStore->mFileDirectory,
-            FileName::CreateFileName);
+                                                                          FileName::CreateFileName);
 
         FileProcHolder holder = FileProcHolder::FILE_STORE_FLUSH;
         return mLsmStore->mFileCache->CreateBuilder(fileInfo->GetFilePath(), 0, holder);
@@ -66,17 +66,17 @@ public:
         std::vector<std::pair<SliceKey, Value>> kvPairList;
         auto dataSlice = CreateDataSlice(kvCount, kvPairList, NO_11);
         Ref<FlushingBucketGroupIterator> iterator = MakeRef<FlushingBucketGroupIterator>();
-        std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{{dataSlice}};
+        std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{ { dataSlice } };
         iterator->Initialize(dataSlices);
         mLsmStore->Put(iterator);
         FileMetaDataRef mFileMetaData = mLsmStore->mVersionSet->mCurrent->GetFileMetaDatas()[0];
         FileInfoRef fileInfo = mLsmStore->mFileCacheManager->GetPrimaryFileInfo(mFileMetaData->GetFileAddress());
         uint64_t fileMemLimit = mMemManager->GetMemoryTypeMaxSize(MemoryType::FILE_STORE);
-        BlockCacheRef mBlockCache = BlockCacheManager::Instance()->CreateBlockCache(
-            mLsmStore->mConf->GetTaskSlotFlag(), fileMemLimit, 0.0f);
-        std::shared_ptr<FileReader> tableReader = std::make_shared<FileReader>(mFileMetaData,
-            mLsmStore->mConf, fileInfo->GetFilePath(), mBlockCache, mMemManager,
-            FileProcHolder::FILE_STORE_FLUSH);
+        BlockCacheRef mBlockCache = BlockCacheManager::Instance()->CreateBlockCache(mLsmStore->mConf->GetTaskSlotFlag(),
+                                                                                    fileMemLimit, 0.0f);
+        std::shared_ptr<FileReader> tableReader =
+            std::make_shared<FileReader>(mFileMetaData, mLsmStore->mConf, fileInfo->GetFilePath(), mBlockCache,
+                                         mMemManager, FileProcHolder::FILE_STORE_FLUSH);
         tableReader->mInputView = std::make_shared<FileInputView>();
         tableReader->mInputView->Init(FileSystemType::LOCAL, tableReader->mPath);
         tableReader->mInputView->Seek(0);

@@ -43,7 +43,8 @@ public:
     }
 
     static Value MergeCompactValue(const SliceKey &key, Value &first, Value &second, const MemManagerRef &memManager,
-        const StateFilterManagerRef &stateFilter, TombstoneServiceRef tombstoneService = nullptr)
+                                   const StateFilterManagerRef &stateFilter,
+                                   TombstoneServiceRef tombstoneService = nullptr)
     {
         Value value;
         if (first.IsNull() && first.ValueType() != DELETE) {
@@ -60,8 +61,7 @@ public:
             if (first.ValueLen() + second.ValueLen() > IO_SIZE_4M) {
                 return value;
             }
-            auto allocator =
-                [memManager](uint32_t size) -> ByteBufferRef { return CreateBuffer(memManager, size); };
+            auto allocator = [memManager](uint32_t size) -> ByteBufferRef { return CreateBuffer(memManager, size); };
             auto ret = second.MergeWithOlderValue(first, allocator);
             if (UNLIKELY(ret != BSS_OK)) {
                 return value;
@@ -75,10 +75,9 @@ public:
 
     static BResult MergeDataSlicesForCompaction(
         std::vector<std::pair<SliceKey, Value>> &finalResult, uint32_t &compactionCount,
-        const std::vector<DataSliceRef> &compactionListReverseOrder, const MemManagerRef &memManager,
-        bool forceFilter, const StateFilterManagerRef &stateFilterManager,
-        const std::function<bool(SliceKey)> &indexSlotFilter, bool reserveDeleteMarker,
-        TombstoneServiceRef tombstoneService = nullptr)
+        const std::vector<DataSliceRef> &compactionListReverseOrder, const MemManagerRef &memManager, bool forceFilter,
+        const StateFilterManagerRef &stateFilterManager, const std::function<bool(SliceKey)> &indexSlotFilter,
+        bool reserveDeleteMarker, TombstoneServiceRef tombstoneService = nullptr)
     {
         SliceKVMap newMap;
         uint32_t compactionListSize = compactionListReverseOrder.size();
@@ -87,8 +86,8 @@ public:
             SliceKVMap foreachMap;
             dataSlice->GetSlice()->GetSliceKVMap(foreachMap, false);
             for (auto &entry : foreachMap) {
-                if (forceFilter && (stateFilterManager->Filter(entry.first, entry.second.SeqId()) ||
-                                    indexSlotFilter(entry.first))) {
+                if (forceFilter &&
+                    (stateFilterManager->Filter(entry.first, entry.second.SeqId()) || indexSlotFilter(entry.first))) {
                     continue;
                 }
                 auto newValue = MergeCompactValue(entry.first, newMap[entry.first], entry.second, memManager,
@@ -106,7 +105,7 @@ public:
         for (const auto &entry : newMap) {
             Value value = entry.second;
             if (!reserveDeleteMarker && (value.ValueType() == ValueType::DELETE ||
-                stateFilterManager->StateFilter(entry.first.StateId(), value.SeqId()))) {
+                                         stateFilterManager->StateFilter(entry.first.StateId(), value.SeqId()))) {
                 continue;
             }
             finalResult.emplace_back(entry.first, value);

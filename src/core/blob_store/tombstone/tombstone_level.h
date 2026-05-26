@@ -36,7 +36,7 @@ struct TombstoneFileGroupComparator {
 class TombstoneLevel {
 public:
     TombstoneLevel(const ConfigRef &config, uint32_t levelId, const TombstoneFileManagerRef &tombstoneFileManager,
-        bool isTopLevel, const MemManagerRef &memManager)
+                   bool isTopLevel, const MemManagerRef &memManager)
         : mConfig(config),
           mLevel(levelId),
           mFileManager(tombstoneFileManager),
@@ -122,7 +122,7 @@ public:
     }
 
     TombstoneFileGroupRef MergeWithinLevel(bool force, bool nextLevelTop,
-                                                BlobFileGroupManagerRef blobFileGroupManager = nullptr)
+                                           BlobFileGroupManagerRef blobFileGroupManager = nullptr)
     {
         std::vector<TombstoneFileGroupRef> selectedFileGroup = SelectCompactionGroup(force);
         if (selectedFileGroup.empty()) {
@@ -341,6 +341,7 @@ public:
         }
         return count;
     }
+
 private:
     ConfigRef mConfig;
     uint32_t mLevel;

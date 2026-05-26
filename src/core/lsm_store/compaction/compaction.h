@@ -40,11 +40,18 @@ public:
                uint64_t maxFileOutputSize, const FullKeyRef &smallest, const FullKeyRef &largest,
                const std::vector<FileMetaDataRef> &levelInputs, const std::vector<FileMetaDataRef> &outputLevelInputs,
                const std::vector<FileMetaDataRef> &grandparents)
-        : mInputVersion(inputVersion), mCompactionScore(inputVersion->GetCompactionScore()),
-          mCompactionReason(inputVersion->GetCompactionReason()), mLevelInputs(levelInputs),
-          mOutputLevelInputs(outputLevelInputs), mGrandparents(grandparents), mMaxFileOutputSize(maxFileOutputSize),
-          mInputLevelId(inputLevelId), mNumLevels(inputVersion->GetConf()->GetFileStoreNumLevels()),
-          mGroupRange(groupRange), mSmallest(smallest), mLargest(largest)
+        : mInputVersion(inputVersion),
+          mCompactionScore(inputVersion->GetCompactionScore()),
+          mCompactionReason(inputVersion->GetCompactionReason()),
+          mLevelInputs(levelInputs),
+          mOutputLevelInputs(outputLevelInputs),
+          mGrandparents(grandparents),
+          mMaxFileOutputSize(maxFileOutputSize),
+          mInputLevelId(inputLevelId),
+          mNumLevels(inputVersion->GetConf()->GetFileStoreNumLevels()),
+          mGroupRange(groupRange),
+          mSmallest(smallest),
+          mLargest(largest)
     {
         mEditBuilder = VersionEdit::Builder::NewBuilder();
         mLevelPointers.resize(mNumLevels);
@@ -189,8 +196,8 @@ protected:
     uint32_t mNumLevels = 0;                                // Level数量
     GroupRangeRef mGroupRange = nullptr;                    // 组范围
     VersionEdit::Builder *mEditBuilder = nullptr;           // 版本编辑的构建器
-    FullKeyRef mSmallest = nullptr;                     // 最小的内部键
-    FullKeyRef mLargest = nullptr;                      // 最大的内部键
+    FullKeyRef mSmallest = nullptr;                         // 最小的内部键
+    FullKeyRef mLargest = nullptr;                          // 最大的内部键
     uint32_t mGrandparentIndex = 0;                         // 父的索引
     uint64_t mSeenKey = 0;                                  // 已定位的键
     uint64_t mOverlappedBytes = 0;                          // 重叠的字节数

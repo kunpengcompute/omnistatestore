@@ -61,25 +61,25 @@ public:
         RETURN_NULLPTR_AS_NULLPTR(inputView);
         int32_t startGroup;
         auto ret = inputView->Read(startGroup);
-        if UNLIKELY(ret != BSS_OK) {
+        if (UNLIKELY(ret != BSS_OK)) {
             LOG_ERROR("Read start group failed form input view.");
             return nullptr;
         }
         int32_t endGroup;
         ret = inputView->Read(endGroup);
-        if UNLIKELY(ret != BSS_OK) {
+        if (UNLIKELY(ret != BSS_OK)) {
             LOG_ERROR("Read end group failed form input view.");
             return nullptr;
         }
         uint64_t epoch;
         ret = inputView->Read(epoch);
-        if UNLIKELY(ret != BSS_OK) {
+        if (UNLIKELY(ret != BSS_OK)) {
             LOG_ERROR("Read epoch failed form input view.");
             return nullptr;
         }
         int32_t internalIndex;
         ret = inputView->Read(internalIndex);
-        if UNLIKELY(ret != BSS_OK) {
+        if (UNLIKELY(ret != BSS_OK)) {
             LOG_ERROR("Read internal index failed form input view.");
             return nullptr;
         }

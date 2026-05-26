@@ -10,6 +10,7 @@
  */
 
 #include "compressor_utils.h"
+
 #include "lz4_interface.h"
 
 namespace ock {
@@ -30,5 +31,5 @@ CompressorRef CompressorUtils::InitCompressor(CompressAlgo &codec)
     }
     return nullptr;
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

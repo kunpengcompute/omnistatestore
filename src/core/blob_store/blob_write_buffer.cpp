@@ -10,13 +10,15 @@
  */
 
 #include "blob_write_buffer.h"
+
 #include <bss_types.h>
+
 #include "flush_blob_data_block_runable.h"
 
 namespace ock {
 namespace bss {
-BResult BlobWriteBuffer::Init(const BlobFileManagerRef& blobFileManager, const MemManagerRef& memManager,
-    ExecutorServicePtr blobFlushExecutor)
+BResult BlobWriteBuffer::Init(const BlobFileManagerRef &blobFileManager, const MemManagerRef &memManager,
+                              ExecutorServicePtr blobFlushExecutor)
 {
     mSeqGenerator = std::make_shared<SeqGenerator>();
     mBlobFlushExecutor = blobFlushExecutor;
@@ -26,7 +28,7 @@ BResult BlobWriteBuffer::Init(const BlobFileManagerRef& blobFileManager, const M
 }
 
 BResult BlobWriteBuffer::Write(const uint8_t *value, uint32_t length, uint64_t expireTime, uint32_t keyGroup,
-    uint64_t &blobId)
+                               uint64_t &blobId)
 {
     uint32_t realValueSize = length + BLOB_INDEX_ENTRY_STRUCT_SIZE + BLOB_DATA_BLOCK_HEADER_SIZE;
     if (UNLIKELY(UINT32_MAX - BLOB_INDEX_ENTRY_STRUCT_SIZE - BLOB_DATA_BLOCK_HEADER_SIZE < length)) {
@@ -152,5 +154,5 @@ BResult BlobWriteBuffer::FlushCurrentWriteBuffer(uint64_t snapshotId)
     ForceEvictFlushQueue();
     return BSS_OK;
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

@@ -161,4 +161,4 @@ using TombstoneFileIteratorRef = std::shared_ptr<TombstoneFileIterator>;
 }  // namespace bss
 }  // namespace ock
 
-#endif // BOOST_SS_TOMBSTONE_FILE_ITERATOR_H
+#endif  // BOOST_SS_TOMBSTONE_FILE_ITERATOR_H

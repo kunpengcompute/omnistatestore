@@ -41,19 +41,20 @@ public:
         };
         std::vector<OutputViewRef> outputViews = { primaryOutputView };
         int32_t magicNumber = MAGIC_NUMBER;
-        RETURN_NULLPTR_AS_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&magicNumber),
-            sizeof(magicNumber)));
+        RETURN_NULLPTR_AS_NOT_OK(
+            WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&magicNumber), sizeof(magicNumber)));
 
         uint32_t primaryFileStatusVersion = PRIMARY_FILE_STATUS_VERSION;
         RETURN_NULLPTR_AS_NOT_OK(WriteFunc(outputViews, function,
-            reinterpret_cast<uint8_t *>(&primaryFileStatusVersion), sizeof(primaryFileStatusVersion)));
+                                           reinterpret_cast<uint8_t *>(&primaryFileStatusVersion),
+                                           sizeof(primaryFileStatusVersion)));
 
-        RETURN_NULLPTR_AS_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileSeqId),
-            sizeof(fileSeqId)));
+        RETURN_NULLPTR_AS_NOT_OK(
+            WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileSeqId), sizeof(fileSeqId)));
 
         auto factoryType = static_cast<uint8_t>(fileFactory->GetFileFactoryType());
-        RETURN_NULLPTR_AS_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&factoryType),
-            sizeof(factoryType)));
+        RETURN_NULLPTR_AS_NOT_OK(
+            WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&factoryType), sizeof(factoryType)));
 
         SerializeGroupRange(version->GetGroupRange(), outputViews, function);
 
@@ -63,7 +64,8 @@ public:
     }
 
     static BResult WriteFunc(std::vector<OutputViewRef> &outputViews,
-        const std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> &func, uint8_t *data, uint32_t len)
+                             const std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> &func, uint8_t *data,
+                             uint32_t len)
     {
         BResult ret = BSS_OK;
         for (auto &outputView : outputViews) {
@@ -77,7 +79,7 @@ public:
     }
 
     static BResult SerializeGroupRange(GroupRangeRef groupRange, std::vector<OutputViewRef> &outputViews,
-                                    std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function)
+                                       std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function)
     {
         int64_t epoch = groupRange->GetEpoch();
         int32_t startGroup = groupRange->GetStartGroup();
@@ -89,8 +91,8 @@ public:
     }
 
     static BResult WriteLevel(std::vector<Level> levels, std::vector<OutputViewRef> &outputViews,
-                           std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function,
-                           std::vector<uint32_t> &localFiles, uint64_t &localFullSize)
+                              std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function,
+                              std::vector<uint32_t> &localFiles, uint64_t &localFullSize)
     {
         uint32_t numLevels = levels.size();
         RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&numLevels), sizeof(numLevels)));
@@ -105,17 +107,17 @@ public:
     }
 
     static BResult WriteFileMetaGroup(std::vector<FileMetaDataGroupRef> fileMetaGroups,
-                                   std::vector<OutputViewRef> &outputViews,
-                                   std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function,
-                                   std::vector<uint32_t> &localFiles, uint64_t &localFullSize)
+                                      std::vector<OutputViewRef> &outputViews,
+                                      std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function,
+                                      std::vector<uint32_t> &localFiles, uint64_t &localFullSize)
     {
         uint32_t fileMetaSize = fileMetaGroups.size();
-        RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileMetaSize),
-            sizeof(fileMetaSize)));
+        RETURN_NOT_OK(
+            WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileMetaSize), sizeof(fileMetaSize)));
         for (auto &fileMetaGroup : fileMetaGroups) {
             bool isOverlapping = fileMetaGroup->IsOverlapping();
-            RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&isOverlapping),
-                sizeof(isOverlapping)));
+            RETURN_NOT_OK(
+                WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&isOverlapping), sizeof(isOverlapping)));
 
             RETURN_NOT_OK(SerializeGroupRange(fileMetaGroup->GetGroupRange(), outputViews, function));
             std::vector<FileMetaDataRef> fileMetaData = fileMetaGroup->GetFiles();
@@ -125,12 +127,12 @@ public:
     }
 
     static BResult WriteFileMetaData(std::vector<FileMetaDataRef> fileMetaData, std::vector<OutputViewRef> &outputViews,
-                                  std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function,
-                                  std::vector<uint32_t> &localFiles, uint64_t &localFullSize)
+                                     std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function,
+                                     std::vector<uint32_t> &localFiles, uint64_t &localFullSize)
     {
         uint32_t fileMetaDataSize = fileMetaData.size();
-        RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileMetaDataSize),
-            sizeof(fileMetaDataSize)));
+        RETURN_NOT_OK(
+            WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileMetaDataSize), sizeof(fileMetaDataSize)));
         for (auto &fileMeta : fileMetaData) {
             uint64_t fileAddress = fileMeta->GetFileAddress();
 
@@ -139,11 +141,11 @@ public:
             if (fileStatus == FileStatus::LOCAL) {
                 localFiles.push_back(FileAddressUtil::GetFileId(fileAddress));
             }
-            RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileAddress),
-                sizeof(fileAddress)));
+            RETURN_NOT_OK(
+                WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileAddress), sizeof(fileAddress)));
 
-            RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileStatus),
-                sizeof(fileStatus)));
+            RETURN_NOT_OK(
+                WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&fileStatus), sizeof(fileStatus)));
 
             uint64_t seqId = static_cast<uint64_t>(fileMeta->GetSeqId());
             RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&seqId), sizeof(seqId)));
@@ -163,7 +165,7 @@ public:
 
             auto stateIdInterval = fileMeta->GetStateIdInterval();
             RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&stateIdInterval),
-                sizeof(stateIdInterval)));
+                                    sizeof(stateIdInterval)));
         }
         return BSS_OK;
     }
@@ -185,22 +187,22 @@ public:
     }
 
     static BResult SerializeOrderRange(HashCodeOrderRangeRef orderRange, std::vector<OutputViewRef> &outputViews,
-                                    std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function)
+                                       std::function<BResult(OutputViewRef &, uint8_t *, uint32_t)> function)
     {
         auto orderRangeType = static_cast<uint8_t>(orderRange->GetType());
-        RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&orderRangeType),
-            sizeof(orderRangeType)));
+        RETURN_NOT_OK(
+            WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&orderRangeType), sizeof(orderRangeType)));
 
         uint32_t startHashCode = orderRange->GetStartHashCode();
-        RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&startHashCode),
-            sizeof(startHashCode)));
+        RETURN_NOT_OK(
+            WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&startHashCode), sizeof(startHashCode)));
 
         uint32_t endHashCode = orderRange->GetEndHashCode();
         RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&endHashCode), sizeof(endHashCode)));
 
         uint8_t hasRedundantData = orderRange->HasRedundantData() ? 1 : 0;
-        RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&hasRedundantData),
-            sizeof(hasRedundantData)));
+        RETURN_NOT_OK(
+            WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&hasRedundantData), sizeof(hasRedundantData)));
         return BSS_OK;
     }
 
@@ -237,7 +239,7 @@ public:
         GroupRangeRef curGroupRange = DeserializeGroupRange(inputView);
         VersionBuilderRef builder = VersionBuilder::NewBuilder(versionSet.get());
         DeserializeLevel(builder, fileMapping, inputView, memManager, lazyPathMapping, restorePathFileIdMap, basePath,
-            isLazyDownload);
+                         isLazyDownload);
         builder->SetCurGroupRange(curGroupRange)->SetCurOrderRange(hashCodeOrderRange);
         version = builder->Build();
         return BSS_OK;
@@ -255,11 +257,11 @@ public:
     }
 
     static BResult DeserializeLevel(VersionBuilderRef &builder,
-                                 std::unordered_map<std::string, RestoreFileInfo> &fileMapping,
-                                 const FileInputViewRef &inputView, const MemManagerRef &memManager,
-                                 const std::unordered_map<std::string, std::string> &lazyPathMapping,
-                                 std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, PathRef &basePath,
-                                 bool isLazyDownload)
+                                    std::unordered_map<std::string, RestoreFileInfo> &fileMapping,
+                                    const FileInputViewRef &inputView, const MemManagerRef &memManager,
+                                    const std::unordered_map<std::string, std::string> &lazyPathMapping,
+                                    std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, PathRef &basePath,
+                                    bool isLazyDownload)
     {
         uint32_t levelSize = 0;
         RETURN_NOT_OK(inputView->Read(levelSize));
@@ -268,18 +270,18 @@ public:
             RETURN_NOT_OK(inputView->Read(levelId));
             auto levelBuilder = LevelBuilder::NewBuilder(levelId);
             RETURN_NOT_OK(DeserializeFileMetaGroup(levelBuilder, fileMapping, inputView, memManager, lazyPathMapping,
-                restorePathFileIdMap, basePath, isLazyDownload));
+                                                   restorePathFileIdMap, basePath, isLazyDownload));
             builder->AddLevel(levelId, levelBuilder->Build());
         }
         return BSS_OK;
     }
 
     static BResult DeserializeFileMetaGroup(const LevelBuilderRef &builder,
-                                         std::unordered_map<std::string, RestoreFileInfo> &fileMapping,
-                                         const FileInputViewRef &inputView, const MemManagerRef &memManager,
-                                         const std::unordered_map<std::string, std::string> &lazyPathMapping,
-                                         std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,
-                                         PathRef &basePath, bool isLazyDownload)
+                                            std::unordered_map<std::string, RestoreFileInfo> &fileMapping,
+                                            const FileInputViewRef &inputView, const MemManagerRef &memManager,
+                                            const std::unordered_map<std::string, std::string> &lazyPathMapping,
+                                            std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,
+                                            PathRef &basePath, bool isLazyDownload)
     {
         uint32_t fileMetaDataGroupSize = 0;
         RETURN_NOT_OK(inputView->Read(fileMetaDataGroupSize));
@@ -291,7 +293,7 @@ public:
             fileMetaGroupBuilder->SetGroupRange(groupRange);
             fileMetaGroupBuilder->SetOverlapping(isOverlapping);
             RETURN_NOT_OK(DeserializeFile(fileMetaGroupBuilder, fileMapping, inputView, groupRange, memManager,
-                lazyPathMapping, restorePathFileIdMap, basePath, isLazyDownload));
+                                          lazyPathMapping, restorePathFileIdMap, basePath, isLazyDownload));
             FileMetaDataGroupRef fileMetaDataGroup = fileMetaGroupBuilder->Build();
             builder->AddFileMetaDataGroup(fileMetaDataGroup);
         }
@@ -299,12 +301,12 @@ public:
     }
 
     static BResult DeserializeFile(FileDataGroupBuilderRef &builder,
-                                std::unordered_map<std::string, RestoreFileInfo> &fileMapping,
-                                const FileInputViewRef &inputView, GroupRangeRef groupRange,
-                                const MemManagerRef &memManager,
-                                const std::unordered_map<std::string, std::string> &lazyPathMapping,
-                                std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, PathRef &basePath,
-                                bool isLazyDownload)
+                                   std::unordered_map<std::string, RestoreFileInfo> &fileMapping,
+                                   const FileInputViewRef &inputView, GroupRangeRef groupRange,
+                                   const MemManagerRef &memManager,
+                                   const std::unordered_map<std::string, std::string> &lazyPathMapping,
+                                   std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, PathRef &basePath,
+                                   bool isLazyDownload)
     {
         uint32_t fileCount = 0;
         RETURN_NOT_OK(inputView->Read(fileCount));
@@ -329,7 +331,7 @@ public:
             StateIdInterval stateIdInterval;
             RETURN_NOT_OK(inputView->Read(stateIdInterval));
             auto restoreFilePath = FindFileMapping(fileName, lazyPathMapping, static_cast<FileStatus>(fileStatus),
-                isLazyDownload);
+                                                   isLazyDownload);
             auto it = restorePathFileIdMap.find(PathTransform::ExtractFileName(fileName));
             if (it == restorePathFileIdMap.end()) {
                 LOG_ERROR("Deserialize file from meta not find in restore path fileId path.");
@@ -348,8 +350,7 @@ public:
             fileAddress = FileAddressUtil::GetFileAddressWithZeroOffset(fileId);
             FileMetaDataRef fileMetaData =
                 std::make_shared<FileMetaData>(fileAddress, seqId, fileSize, smallest, largest, groupRange, orderRange,
-                                               restoreFilePath.remotePath, stateIdInterval,
-                                               restoreFilePath.fileStatus);
+                                               restoreFilePath.remotePath, stateIdInterval, restoreFilePath.fileStatus);
             builder->AddFileMeta(fileMetaData);
             RestoreFileInfo restoreFileInfo = {
                 fileName, fileAddress, restoreFilePath.fileStatus, fileSize,

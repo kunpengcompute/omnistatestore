@@ -53,6 +53,7 @@ public:
         }
         return mCurFileVec[valueIndex];
     }
+
 private:
     BlobFileGroupManagerRef mGroupManager = nullptr;
     std::vector<uint32_t> mIndexVec;
@@ -60,7 +61,7 @@ private:
     std::vector<BlobImmutableFileRef> mCurFileVec;
 };
 using BlobFileGroupIteratorRef = std::shared_ptr<BlobFileGroupIterator>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

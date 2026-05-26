@@ -29,7 +29,7 @@ using BlockBuilderFunc = std::function<BlockRef(ByteBufferRef &byteBuffer)>;
 class BlobFileReader {
 public:
     BResult Init(const BlobFileMetaRef &fileMetaData, const ConfigRef &config, const PathRef &path,
-        const BlockCacheRef &blockCache, const MemManagerRef &memManager)
+                 const BlockCacheRef &blockCache, const MemManagerRef &memManager)
     {
         mFileMetaData = fileMetaData;
         mConfig = config;
@@ -61,7 +61,7 @@ public:
     uint64_t GetBlockId(const BlockHandle &blockHandle) const
     {
         return static_cast<uint64_t>(FileAddressUtil::GetFileId(mFileMetaData->GetFileAddress())) << NO_32 |
-            (mInitOffset + blockHandle.GetOffset());
+               (mInitOffset + blockHandle.GetOffset());
     }
 
     uint32_t GetBlockHandleOffset(const BlockHandle &blockHandle) const
@@ -93,7 +93,7 @@ private:
     std::atomic<bool> mInit{ false };
 };
 using BlobFileReaderRef = std::shared_ptr<BlobFileReader>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

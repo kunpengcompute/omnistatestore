@@ -198,7 +198,7 @@ BResult SliceTable::GetValueFromBlobStore(uint64_t blobId, uint32_t keyHashCode,
     BResult result = mBlobStore->GetBlobValue(blobId, keyGroup, value);
     if (UNLIKELY(result != BSS_OK)) {
         LOG_ERROR("Get blob value failed, blobId: " << blobId << ", keyGroup: " << keyGroup
-            << ", keyHashCode: " << keyHashCode << ", result: " << result);
+                                                    << ", keyHashCode: " << keyHashCode << ", result: " << result);
     }
     value.SetSeqId(seqId);
     return result;
@@ -280,7 +280,7 @@ void SliceTable::Exit()
     if (mCompactManager != nullptr) {
         mCompactManager->Exit();
     }
-    
+
     if (mEvictManager != nullptr) {
         mEvictManager->Exit();
         mEvictManager = nullptr;  // 置空避免循环引用.
@@ -476,7 +476,7 @@ bool SliceTable::GetFromSlice(const Key &key, std::stack<Value> &mergingValues, 
 }
 
 KeyValueIteratorRef SliceTable::EntryIterator(const KeyFilter &keyFilter, uint16_t stateId,
-    BlobValueTransformFunc &blobValueTransformFunc)
+                                              BlobValueTransformFunc &blobValueTransformFunc)
 {
     // get value from blob store
     auto self = shared_from_this();
@@ -671,7 +671,7 @@ void SliceTablePrefixIterator::SetSliceIter()
 {
     size_t sliceSize = static_cast<uint32_t>(mSliceAddressAndDataSlices.size());
     for (mCurrentSliceTableKvIterator = nullptr; mCurrentSliceTableKvIterator == nullptr && mCurIndex < sliceSize;
-        ++mCurIndex) {
+         ++mCurIndex) {
         const SliceAddressRef &sliceAddress = mSliceAddressAndDataSlices[mCurIndex].first;
         const DataSliceRef &dataSlice = mSliceAddressAndDataSlices[mCurIndex].second;
         if (sliceAddress->IsEvicted()) {

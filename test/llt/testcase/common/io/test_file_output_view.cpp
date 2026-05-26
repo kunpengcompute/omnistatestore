@@ -9,7 +9,6 @@
  * See the Mulan PSL v2 for more details.
  */
 #include "test_utils.h"
-
 #include "common/io/file_output_view.h"
 #include "common/io/file_input_view.h"
 
@@ -29,8 +28,12 @@ public:
 
     TestFileOutputView() = default;
 
-    void SetUp() override {}
-    void TearDown() override {}
+    void SetUp() override
+    {
+    }
+    void TearDown() override
+    {
+    }
 
     static MemManagerRef mDirectMemManager;
 };

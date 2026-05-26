@@ -15,7 +15,7 @@ namespace ock {
 namespace bss {
 
 SelectedSliceContextRef SliceCompactionPolicy::SelectCompactionSlice(SliceIndexContextRef &sliceIndexContext,
-    uint32_t curChainIndex, uint32_t minLength)
+                                                                     uint32_t curChainIndex, uint32_t minLength)
 {
     LogicalSliceChainRef logicalSliceChain = sliceIndexContext->GetLogicalSliceChain();
     if (UNLIKELY(logicalSliceChain == nullptr)) {
@@ -47,8 +47,7 @@ SelectedSliceContextRef SliceCompactionPolicy::SelectCompactionSlice(SliceIndexC
             break;
         }
 
-        if (!choiceBuild.IsReachMemoryLimit() &&
-            choiceBuild.Size() >= NO_2 &&
+        if (!choiceBuild.IsReachMemoryLimit() && choiceBuild.Size() >= NO_2 &&
             (choiceBuild.GetSliceSize() + dataSlice->GetSize()) > mConfig->GetEvictMinSize()) {
             choiceBuild.SetReachMemoryLimit();
             break;
@@ -58,16 +57,16 @@ SelectedSliceContextRef SliceCompactionPolicy::SelectCompactionSlice(SliceIndexC
         }
         choiceBuild.Add(sliceAddress, dataSlice);
         choiceBuild.SetChainIndex(static_cast<int32_t>(startCompactionIndex));
-        if (startCompactionIndex == 0) { // 防止uint32_t翻转
+        if (startCompactionIndex == 0) {  // 防止uint32_t翻转
             break;
         }
         startCompactionIndex--;
     }
 
-    if (choiceBuild.Size() < minLength) { // 如果选择的slice个数小于compaction阀值, 则返回nullptr.
+    if (choiceBuild.Size() < minLength) {  // 如果选择的slice个数小于compaction阀值, 则返回nullptr.
         return nullptr;
     }
     return choiceBuild.Build();
 }
 }  // namespace bss
-}
+}  // namespace ock

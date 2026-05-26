@@ -47,11 +47,11 @@ public:
             return ERROR_CASE_DIV_BY_ZERO;
         }
         // 1. 判断是扩容还是缩容, 得到oldBucketGroup扩缩容后的范围. mTotalBucket当前固定为1024
-        if (mTotalBucket >= other->mTotalBucket) { // 缩容.
+        if (mTotalBucket >= other->mTotalBucket) {  // 缩容.
             uint32_t shrink = mTotalBucket / other->mTotalBucket;
             mappingStartBucket = mStartBucket / shrink;
             mappingEndBucket = mEndBucket / shrink;
-        } else { // 扩容.
+        } else {  // 扩容.
             uint32_t expand = other->mTotalBucket / mTotalBucket;
             mappingStartBucket = mStartBucket * expand;
             mappingEndBucket = (mEndBucket + 1) * expand - 1;
@@ -124,15 +124,16 @@ public:
         std::ostringstream oss;
         oss << "totalBucket:" << mTotalBucket << ", bucketGroupRangeSize:" << mSliceSegments.size() << ", info[";
         for (uint32_t idx = 0; idx < mSliceSegments.size(); idx++) {
-            oss << "idx:" << idx << "id:" << mSliceSegments[idx]->GetBucketGroupId() << " start:" <<
-                mSliceSegments[idx]->GetStartBucket() << " end:" << mSliceSegments[idx]->GetEndBucket() << ", ";
+            oss << "idx:" << idx << "id:" << mSliceSegments[idx]->GetBucketGroupId()
+                << " start:" << mSliceSegments[idx]->GetStartBucket() << " end:" << mSliceSegments[idx]->GetEndBucket()
+                << ", ";
         }
         oss << "], bucketIndex info[";
         for (uint32_t idx = 0; idx < mSliceBucketIndex->GetSliceChainMappingSize(); idx++) {
             auto chain = mSliceBucketIndex->GetLogicChainedSlice(idx);
-            oss << "idx:" << idx << " status:" << static_cast<uint32_t>(chain->GetSliceStatus()) << " end:" <<
-                chain->GetSliceChainTailIndex() << " base:" << chain->GetBaseSliceIndex() << " size:" <<
-                chain->GetSliceSize() << " fileSize:" << chain->GetFilePageSize() << " ";
+            oss << "idx:" << idx << " status:" << static_cast<uint32_t>(chain->GetSliceStatus())
+                << " end:" << chain->GetSliceChainTailIndex() << " base:" << chain->GetBaseSliceIndex()
+                << " size:" << chain->GetSliceSize() << " fileSize:" << chain->GetFilePageSize() << " ";
         }
         oss << "]";
         return oss.str();

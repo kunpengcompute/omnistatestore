@@ -10,6 +10,7 @@
  */
 
 #include "snapshot_manager.h"
+
 #include "sorted_key_value_merging_iterator.h"
 #include "savepoint_data_view.h"
 
@@ -43,7 +44,7 @@ IteratorRef<BinaryKeyValueItemRef> SavepointDataView::SavepointIterator()
 }
 
 KeyValueIteratorRef SavepointDataView::CreateSortedKeyValueIterator(
-    const std::pair<SliceTableSnapshotOperatorRef, FileStoreSnapshotOperatorRef>& tuple)
+    const std::pair<SliceTableSnapshotOperatorRef, FileStoreSnapshotOperatorRef> &tuple)
 {
     if (tuple.first == nullptr || tuple.second == nullptr) {
         LOG_ERROR("FileStore is nullptr");
@@ -52,7 +53,7 @@ KeyValueIteratorRef SavepointDataView::CreateSortedKeyValueIterator(
     auto sliceTableIterator = tuple.first->SnapshotIterator();
 
     KeyValueIteratorRef multipleFileStoreIterator = std::make_shared<MultipleFileStoreIterator>(this, tuple.second,
-        false);
+                                                                                                false);
     auto result = std::make_shared<SortedKeyValueMergingIterator>();
     result->Init(sliceTableIterator, multipleFileStoreIterator, mMemManager, true,
                  FileProcHolder::FILE_STORE_SAVEPOINT);
@@ -63,8 +64,8 @@ KeyValueIteratorRef SavepointDataView::BuildFileStoreSnapshotIterator(const LsmS
 {
     VersionPtr version = lsmStore->GetVersionForSnapshot(mSnapshotId);
     if (version == nullptr) {
-        LOG_ERROR("Can't find version for savepoint:" << mSnapshotId << ", lsmStore:"
-                                                      << lsmStore->GetFileStoreId()->ToString());
+        LOG_ERROR("Can't find version for savepoint:" << mSnapshotId
+                                                      << ", lsmStore:" << lsmStore->GetFileStoreId()->ToString());
         return {};
     }
     return lsmStore->IteratorForSavepoint(version, isPQ);

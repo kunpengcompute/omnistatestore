@@ -32,8 +32,8 @@ extern jfieldID gSizeField;
 extern jfieldID gAddressesField;
 extern jfieldID gLengthsField;
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved);
-JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved);
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved);
 
 bool SubTableEntryInit(JNIEnv *env);
 

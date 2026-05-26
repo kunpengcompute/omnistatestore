@@ -10,6 +10,7 @@
  */
 
 #include "full_key_util.h"
+
 #include "common/util/var_encoding_util.h"
 
 namespace ock {
@@ -28,8 +29,7 @@ uint32_t FullKeyUtil::MinNumBytesToRepresentValue(uint32_t value)
     return NO_4;
 }
 
-FullKeyRef FullKeyUtil::ToFullKey(const KeyValueRef &keyValue, const MemManagerRef &memManager,
-    FileProcHolder holder)
+FullKeyRef FullKeyUtil::ToFullKey(const KeyValueRef &keyValue, const MemManagerRef &memManager, FileProcHolder holder)
 {
     auto &key = keyValue->key;
     auto &value = keyValue->value;
@@ -89,7 +89,7 @@ uint32_t FullKeyUtil::ComputeRawInternalKeyLen(const ByteBufferRef &byteBuffer, 
 }
 
 FullKeyRef FullKeyUtil::ReadInternalKey(const FileInputViewRef &inputView, const MemManagerRef &memManager,
-    FileProcHolder holder)
+                                        FileProcHolder holder)
 {
     PriKeyNode priKey;
     ByteBufferRef priBuffer;
@@ -107,14 +107,14 @@ FullKeyRef FullKeyUtil::ReadInternalKey(const FileInputViewRef &inputView, const
     if (secBuffer == nullptr) {
         fullKey->Init(priKey, secKey, seqId, static_cast<ValueType>(valueType), priBuffer);
     } else {
-        BufferRef buffer =  MakeRef<CompositeBuffer>(priBuffer, secBuffer);
+        BufferRef buffer = MakeRef<CompositeBuffer>(priBuffer, secBuffer);
         fullKey->Init(priKey, secKey, seqId, static_cast<ValueType>(valueType), buffer);
     }
     return fullKey;
 }
 
-FullKeyRef FullKeyUtil::CopyInternalKey(const FullKeyRef &fullKey,
-    const MemManagerRef &memManager, FileProcHolder holder)
+FullKeyRef FullKeyUtil::CopyInternalKey(const FullKeyRef &fullKey, const MemManagerRef &memManager,
+                                        FileProcHolder holder)
 {
     RETURN_NULLPTR_AS_NULLPTR(fullKey);
 
@@ -153,8 +153,8 @@ int32_t FullKeyUtil::CompareKeyWithInternalKey(const Key &key, const FullKeyRef 
         return 1;
     }
     int cmp = ComparePrimaryKey(key.PriKey().KeyData(), 0, key.PriKey().KeyLen(), key.PriKey().KeyHashCode(),
-                                const_cast<uint8_t *>(fullKey->PriKey().KeyData()), 0,
-                                fullKey->PriKey().KeyLen(), fullKey->KeyHashCode());
+                                const_cast<uint8_t *>(fullKey->PriKey().KeyData()), 0, fullKey->PriKey().KeyLen(),
+                                fullKey->KeyHashCode());
     if (cmp != 0) {
         return cmp;
     }
@@ -176,13 +176,13 @@ int32_t FullKeyUtil::CompareKeyWithInternalKey(const Key &key, const FullKeyRef 
         return -1;
     }
 
-    return CompareSecondaryKey(!IsSortedState(key.StateId()), key.SecKey().KeyData(),
-                               0, key.SecKey().KeyLen(), key.SecKey().HashCode(), fullKey->SecKey().KeyData(),
-                               0, fullKey->SecKey().KeyLen(), fullKey->SecKey().HashCode());
+    return CompareSecondaryKey(!IsSortedState(key.StateId()), key.SecKey().KeyData(), 0, key.SecKey().KeyLen(),
+                               key.SecKey().HashCode(), fullKey->SecKey().KeyData(), 0, fullKey->SecKey().KeyLen(),
+                               fullKey->SecKey().HashCode());
 }
 
-void FullKeyUtil::ReadPrimary(PriKeyNode &priKey, const FileInputViewRef &inputView,
-    const MemManagerRef &memManager, FileProcHolder holder, ByteBufferRef &priBuffer)
+void FullKeyUtil::ReadPrimary(PriKeyNode &priKey, const FileInputViewRef &inputView, const MemManagerRef &memManager,
+                              FileProcHolder holder, ByteBufferRef &priBuffer)
 {
     if (UNLIKELY(inputView == nullptr)) {
         LOG_ERROR("File input view is nullptr.");
@@ -213,7 +213,7 @@ void FullKeyUtil::ReadPrimary(PriKeyNode &priKey, const FileInputViewRef &inputV
 }
 
 void FullKeyUtil::ReadSecondaryKey(SecKeyNode &secKey, const FileInputViewRef &inputView,
-    const MemManagerRef &memManager, FileProcHolder holder, ByteBufferRef &secBuffer)
+                                   const MemManagerRef &memManager, FileProcHolder holder, ByteBufferRef &secBuffer)
 {
     if (UNLIKELY(inputView == nullptr)) {
         LOG_ERROR("Input view is nullptr.");
@@ -242,14 +242,13 @@ void FullKeyUtil::ReadSecondaryKey(SecKeyNode &secKey, const FileInputViewRef &i
 }
 
 BResult FullKeyUtil::BuildValue(Value &value, const ByteBufferRef &buffer, uint32_t secondaryKeyOffset,
-    uint32_t secondaryKeyLen)
+                                uint32_t secondaryKeyLen)
 {
     uint64_t seqId = 0;
     buffer->ReadUint64(seqId, secondaryKeyOffset + secondaryKeyLen);
     uint8_t valueType = INVALID_U8;
     buffer->ReadUint8(valueType, secondaryKeyOffset + secondaryKeyLen + NO_8);
-    uint32_t valueOffset =
-        secondaryKeyOffset + secondaryKeyLen + FullKeyUtil::ComputeSeqIdAndValueTypeLen();
+    uint32_t valueOffset = secondaryKeyOffset + secondaryKeyLen + FullKeyUtil::ComputeSeqIdAndValueTypeLen();
     uint64_t decodedResult = VarEncodingUtil::DecodeUnsignedInt(buffer, valueOffset);
     uint32_t encodedSize = VarEncodingUtil::GetNumberOfEncodedBytes(decodedResult);
     uint32_t valueLen = VarEncodingUtil::GetDecodedValue(decodedResult);

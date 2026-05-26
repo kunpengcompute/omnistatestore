@@ -15,4 +15,4 @@ namespace ock {
 namespace bss {
 thread_local TombstoneStoreRef TombstoneService::mTombStoneStore = nullptr;
 }
-}
+}  // namespace ock

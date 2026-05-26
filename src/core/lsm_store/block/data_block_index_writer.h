@@ -36,8 +36,8 @@ public:
         uint32_t numBitsForPrimaryKeyIndex = FullKeyUtil::MinNumBitsToRepresentValue(mMaxPrimaryKeyIndex);
         uint32_t numBitsForSecondaryKeyIndex = FullKeyUtil::MinNumBitsToRepresentValue(mMaxSecondKeyIndex);
         uint32_t numBytesForPointer = (numBitsForSecondaryKeyIndex + numBitsForPrimaryKeyIndex + NO_8 - NO_1) / NO_8;
-        return FullKeyUtil::MinNumBytesToRepresentValue(numEntries) * numBuckets +
-               numEntries * numBytesForPointer + NO_12;
+        return FullKeyUtil::MinNumBytesToRepresentValue(numEntries) * numBuckets + numEntries * numBytesForPointer +
+               NO_12;
     }
 
     inline void Add(uint32_t primaryKeyIndex, uint32_t secondKeyIndex, uint32_t hash)
@@ -48,7 +48,7 @@ public:
         mMaxSecondKeyIndex = std::max(secondKeyIndex, mMaxSecondKeyIndex);
     }
 
-    BResult Finish(const OutputViewRef& outputView);
+    BResult Finish(const OutputViewRef &outputView);
 
     inline void Reset()
     {
@@ -117,8 +117,8 @@ public:
         }
         if (UNLIKELY(UINT32_MAX - mPointerIndexOffset < mNumBuckets * mNumBytesForBucketElement)) {
             LOG_ERROR("Read error num, mNumBytesForBucketElement:" << mNumBytesForBucketElement
-                                                                  << ", mNumBuckets:" << mNumBuckets
-                                                                  << ", mPointerIndexOffset:" << mPointerIndexOffset);
+                                                                   << ", mNumBuckets:" << mNumBuckets
+                                                                   << ", mPointerIndexOffset:" << mPointerIndexOffset);
             return BSS_ERR;
         }
         mBucketIndexOffset = mPointerIndexOffset - mNumBuckets * mNumBytesForBucketElement;

@@ -27,9 +27,12 @@ public:
     SliceTableRestoreOperation() = default;
 
     SliceTableRestoreOperation(const ConfigRef &config, const SliceTableManagerRef &sliceTable)
-        : mConfig(config), mSliceTable(sliceTable), mSliceBucketIndex(sliceTable->GetSliceBucketIndex()),
+        : mConfig(config),
+          mSliceTable(sliceTable),
+          mSliceBucketIndex(sliceTable->GetSliceBucketIndex()),
           mCurTotalBucketNum(sliceTable->GetSliceBucketIndex()->GetIndexCapacity()),
-          mBucketGroupManager(sliceTable->GetBucketGroupManager()), mMemManager(sliceTable->GetMemManager())
+          mBucketGroupManager(sliceTable->GetBucketGroupManager()),
+          mMemManager(sliceTable->GetMemManager())
     {
         mSliceCompactionPolicy = std::make_shared<SliceCompactionPolicy>();
         mSliceCompactionPolicy->Init(config, mSliceBucketIndex);
@@ -47,8 +50,7 @@ public:
     }
 
     BResult RestoreSliceBucketIndex(const FileInputViewRef &reader, uint32_t snapshotVersion,
-                                    SliceBucketGroupRangeGroupRef &oldSliceSegmentGroup,
-                                    uint64_t snapshotId);
+                                    SliceBucketGroupRangeGroupRef &oldSliceSegmentGroup, uint64_t snapshotId);
 
     BResult RestoreBlobStore(std::vector<SliceTableRestoreMetaRef> &metaList,
                              std::unordered_map<std::string, uint32_t> &restorePathFileIdMap);
@@ -57,13 +59,14 @@ public:
 
     BResult LoadSlicesIntoSliceTable(uint32_t snapshotVersion, bool isFailOver);
     BResult LoadSlicesIntoLogicalSliceChain(const LogicalSliceChainRef &sliceChain, uint32_t snapshotVersion);
-    BResult TryLoadCompositeLogicalSliceChain(const LogicalSliceChainRef& sliceChain, uint32_t snapshotVersion);
+    BResult TryLoadCompositeLogicalSliceChain(const LogicalSliceChainRef &sliceChain, uint32_t snapshotVersion);
 
     void SyncUpdateChain(const LogicalSliceChainRef &oldLogicalSliceChain,
                          const LogicalSliceChainRef &newLogicalSliceChain, uint32_t sliceIndexSlot);
 
     BResult ReplaceCompositeLogicalSlice(LogicalSliceChainRef &logicalSliceChain, uint32_t sliceIndexSlot,
-        const DataSliceRef &compactedDataSLice, std::vector<SliceAddressRef> &invalidSliceAddressList);
+                                         const DataSliceRef &compactedDataSLice,
+                                         std::vector<SliceAddressRef> &invalidSliceAddressList);
     BResult DoCompactCompositeSlice(const std::vector<DataSliceRef> &canCompactSliceListReversed,
                                     DataSliceRef &compactedDataSlice, bool forceFilter, uint32_t bucketIndex);
     BResult DoCompositeCompaction(const SliceIndexContextRef &sliceIndexContext);
@@ -73,6 +76,7 @@ public:
     {
         return mBucketGroupManager->GetBucketGroupVector()[0];
     }
+
 private:
     ConfigRef mConfig = nullptr;
     SliceTableManagerRef mSliceTable = nullptr;

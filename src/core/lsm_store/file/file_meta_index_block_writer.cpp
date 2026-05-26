@@ -10,6 +10,7 @@
  */
 
 #include "file_meta_index_block_writer.h"
+
 #include "file_structure.h"
 
 namespace ock {

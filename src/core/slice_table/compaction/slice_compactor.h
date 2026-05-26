@@ -26,14 +26,15 @@ public:
         LOG_INFO("Delete SliceCompactor success");
     }
     BResult Init(const ConfigRef &config, const SliceBucketIndexRef &bucketIndex, const MemManagerRef &memManager,
-        const StateFilterManagerRef &stateFilterManager);
+                 const StateFilterManagerRef &stateFilterManager);
     void TryCompaction(uint32_t bucketIndex, const CompactCompletedNotify &compactCompletedNotify,
                        BoostNativeMetricPtr metricPtr);
     BResult DoCompaction(const SliceIndexContextRef &sliceIndexContext,
                          const SelectedSliceContextRef &selectedSliceContext,
                          const CompactCompletedNotify &compactCompletedNotify, BoostNativeMetricPtr metricPtr);
     BResult DoCompactSlice(const std::vector<DataSliceRef> &canCompactSliceListReversed,
-        DataSliceRef &compactedDataSlice, bool forceFilter, uint32_t bucketIndex, bool reserveDeleteMarker);
+                           DataSliceRef &compactedDataSlice, bool forceFilter, uint32_t bucketIndex,
+                           bool reserveDeleteMarker);
 
     void RegisterTombstoneService(const TombstoneServiceRef &tombstoneService)
     {

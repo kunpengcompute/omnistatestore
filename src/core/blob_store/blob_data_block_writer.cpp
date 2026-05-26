@@ -14,7 +14,7 @@
 namespace ock {
 namespace bss {
 BResult BlobDataBlockWriter::Write(uint64_t blobId, const uint8_t *data, uint32_t length, uint64_t expireTime,
-    uint32_t keyGroup)
+                                   uint32_t keyGroup)
 {
     uint32_t metaSize = BLOB_INDEX_ENTRY_STRUCT_SIZE + BLOB_DATA_BLOCK_HEADER_SIZE;
     RETURN_NOT_OK_AS_FALSE(UINT32_MAX - length < metaSize, BSS_ERR);
@@ -41,7 +41,7 @@ BResult BlobDataBlockWriter::Write(uint64_t blobId, const uint8_t *data, uint32_
 BResult BlobDataBlockWriter::Write(uint64_t blobId, const uint8_t *data, uint32_t length, uint64_t seqId)
 {
     RETURN_NOT_OK_AS_FALSE(!CheckBlobSize(length + BLOB_INDEX_ENTRY_STRUCT_SIZE + BLOB_DATA_BLOCK_HEADER_SIZE),
-        BSS_ERR);
+                           BSS_ERR);
     RETURN_INVALID_PARAM_AS_NULLPTR(mBuffer);
     RETURN_NOT_OK(mBuffer->Write(data, length));
     BlobIndexEntry entry(blobId, seqId, mPosition);
@@ -77,16 +77,16 @@ BlobDataBlockRef BlobDataBlockWriter::WriteBlobDataBlock()
     RETURN_NULLPTR_AS_NOT_OK(mBuffer->Write(reinterpret_cast<const uint8_t *>(&mPosition), sizeof(mPosition)));
     RETURN_NULLPTR_AS_NULLPTR(mBlobDataBlockMeta);
     RETURN_NULLPTR_AS_NOT_OK(mBuffer->Write(reinterpret_cast<const uint8_t *>(&mBlobDataBlockMeta->mBlobBlockNum),
-        sizeof(mBlobDataBlockMeta->mBlobBlockNum)));
-    if (UNLIKELY(UINT32_MAX - mPosition - BLOB_DATA_BLOCK_HEADER_SIZE < 
-        indexEntryList.size() * BLOB_INDEX_ENTRY_STRUCT_SIZE)) {
+                                            sizeof(mBlobDataBlockMeta->mBlobBlockNum)));
+    if (UNLIKELY(UINT32_MAX - mPosition - BLOB_DATA_BLOCK_HEADER_SIZE <
+                 indexEntryList.size() * BLOB_INDEX_ENTRY_STRUCT_SIZE)) {
         LOG_ERROR("The value crosses the boundary and exceeds the UINT32_MAX maximum, mPosition: "
-            << mPosition << ", index vec size: " << indexEntryList.size()
-            << ", blob block header size: " << BLOB_DATA_BLOCK_HEADER_SIZE);
+                  << mPosition << ", index vec size: " << indexEntryList.size()
+                  << ", blob block header size: " << BLOB_DATA_BLOCK_HEADER_SIZE);
         return nullptr;
     }
     uint32_t realBufferLen = mPosition + indexEntryList.size() * BLOB_INDEX_ENTRY_STRUCT_SIZE +
-        BLOB_DATA_BLOCK_HEADER_SIZE;
+                             BLOB_DATA_BLOCK_HEADER_SIZE;
     BlobDataBlockRef blobDataBlock = std::make_shared<BlobDataBlock>(mBuffer);
     BResult result = blobDataBlock->Init(mBlobDataBlockMeta, mPosition, realBufferLen);
     RETURN_NULLPTR_AS_NOT_OK(result);
@@ -159,5 +159,5 @@ BResult BlobDataBlockWriter::SelectBlobValue(uint64_t blobId, BufferAllocator al
     }
     return BSS_INNER_ERR;
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

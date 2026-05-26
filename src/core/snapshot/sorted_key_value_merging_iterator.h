@@ -30,16 +30,16 @@ public:
     KeyValueRef Next() override
     {
         if (mCurrentEntry != nullptr && mNextEntry != nullptr) {
-            auto next = mCurrentEntry ;
+            auto next = mCurrentEntry;
             mCurrentEntry = nullptr;
             return next;
         } else if (mCurrentEntry == nullptr && mNextEntry != nullptr) {
-            auto next = mNextEntry ;
+            auto next = mNextEntry;
             mNextEntry = nullptr;
             Advance();
             return next;
         } else {
-            auto next = mCurrentEntry ;
+            auto next = mCurrentEntry;
             Advance();
             return next;
         }

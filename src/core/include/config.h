@@ -534,9 +534,9 @@ public:
     uint32_t mMaxParallelism = 0;
     uint32_t mEvictMinSize = IO_SIZE_32M;
 
-    uint32_t mSliceStandardSizePerBucket = IO_SIZE_64K; // 默认bucket大小为64KB
-    float mTotalMemHighMarkRatio = 0.8;  // slice淘汰水位
-    float mFileMemoryRatio = 0.2;        // file内存占总内存比例
+    uint32_t mSliceStandardSizePerBucket = IO_SIZE_64K;  // 默认bucket大小为64KB
+    float mTotalMemHighMarkRatio = 0.8;                  // slice淘汰水位
+    float mFileMemoryRatio = 0.2;                        // file内存占总内存比例
     std::string mLocalPath;
     std::string mRemotePath;
     std::string mBackendUID;
@@ -556,7 +556,7 @@ public:
     uint64_t mMaxBaseLevelBytes = IO_SIZE_256M;
     uint32_t mFileStoreMultiple = NO_10;
     uint32_t mFileStoreL0NumTrigger = NO_8;
-    std::vector<CompressAlgo> mCompressionLevelPolicy = {CompressAlgo::NONE, CompressAlgo::NONE, CompressAlgo::LZ4};
+    std::vector<CompressAlgo> mCompressionLevelPolicy = { CompressAlgo::NONE, CompressAlgo::NONE, CompressAlgo::LZ4 };
     CompressAlgo mLsmStoreCompressionPolicy = CompressAlgo::LZ4;
     uint32_t mMaxBlobNumInMemCache = TOMBSTONE_MEMTABLE_SIZE;
     uint32_t mTombstoneDataBlockSize = IO_SIZE_64K;
@@ -568,7 +568,7 @@ public:
     bool mEnableTombstone = true;
 };
 using ConfigRef = std::shared_ptr<Config>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

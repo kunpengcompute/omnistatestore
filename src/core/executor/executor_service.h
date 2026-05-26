@@ -167,6 +167,7 @@ private:
     void RunInThread();
     BResult DoRunnable(bool &flag);
     void FreeThread();
+
 private:
     RunnableQueue mRunnableQueue;
     uint16_t mThreadNum;

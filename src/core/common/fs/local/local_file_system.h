@@ -12,12 +12,13 @@
 #ifndef BOOST_SS_LOCAL_FILE_SYSTEM_H
 #define BOOST_SS_LOCAL_FILE_SYSTEM_H
 
-#include <memory>
-#include <string>
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+#include <memory>
+#include <string>
 
 #include "common/path.h"
 #include "common/fs/file_system.h"
@@ -49,8 +50,8 @@ public:
     {
         RETURN_INVALID_PARAM_AS_NULLPTR(buffer);
         if (UNLIKELY(mFd < 0)) {
-            LOG_ERROR("Read failed, file:" << mFilePath->ExtractFileName()
-                                           << ", offset:" << offset << ", count:" << count);
+            LOG_ERROR("Read failed, file:" << mFilePath->ExtractFileName() << ", offset:" << offset
+                                           << ", count:" << count);
             return BSS_ERR;
         }
         ssize_t result = pread(mFd, buffer, count, offset);
@@ -82,8 +83,8 @@ public:
     {
         RETURN_INVALID_PARAM_AS_NULLPTR(buffer);
         if (UNLIKELY(mFd < 0)) {
-            LOG_ERROR("Write failed, file:" << mFilePath->ExtractFileName()
-                                            << ", offset:" << offset << ", count:" << count);
+            LOG_ERROR("Write failed, file:" << mFilePath->ExtractFileName() << ", offset:" << offset
+                                            << ", count:" << count);
             return BSS_ERR;
         }
         ssize_t result = pwrite(mFd, buffer, count, offset);

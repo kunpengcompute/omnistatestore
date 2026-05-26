@@ -25,8 +25,8 @@ public:
     SliceKVIterator(const IteratorRef<std::vector<DataSliceRef>> &dataSliceVectorIterator,
                     const MemManagerRef &memManager, TombstoneServiceRef tombstoneService = nullptr)
         : mDataSliceVectorIterator(dataSliceVectorIterator),
-		  mMemManager(memManager),
-		  mTombstoneService(tombstoneService)
+          mMemManager(memManager),
+          mTombstoneService(tombstoneService)
     {
         mCurrentKV = mCurrentKVList.end();
         mStart = mMemManager->GetConfig()->mStartGroup;

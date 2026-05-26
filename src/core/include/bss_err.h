@@ -41,7 +41,7 @@ enum Error : int32_t {
 
     BSS_MAX,
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

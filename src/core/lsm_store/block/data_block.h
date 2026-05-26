@@ -60,7 +60,8 @@ public:
     inline uint32_t GetKeyIndexElement(uint32_t indexOffset, uint32_t numBytesForElement, uint32_t index) override
     {
         return static_cast<uint32_t>(FullKeyUtil::ReadValueWithNumberOfBytes(mBuffer,
-            indexOffset + numBytesForElement * index, numBytesForElement));
+                                                                             indexOffset + numBytesForElement * index,
+                                                                             numBytesForElement));
     }
 
     inline uint32_t GetKeyIndexElement(uint32_t index)

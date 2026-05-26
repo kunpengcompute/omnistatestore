@@ -102,7 +102,7 @@ public:
         }
     }
 
-    inline std::atomic<bool>& GetIsReleased()
+    inline std::atomic<bool> &GetIsReleased()
     {
         return mIsReleased;
     }

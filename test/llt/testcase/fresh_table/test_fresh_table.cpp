@@ -10,6 +10,7 @@
  */
 
 #include "test_fresh_table.h"
+
 #include "boost_state_db_impl.h"
 #include "boost_state_dbgroup.h"
 
@@ -22,10 +23,9 @@ void TestFreshTable::SetUp()
     mDB = BoostStateDBFactory::Create();
     mDB->Open(config);
     mFreshTable = dynamic_cast<BoostStateDBImpl *>(mDB)->GetFreshTable();
-    auto tblDesc = std::make_shared<TableDescription>(
-            StateType::VALUE, "kVTable", 0, TableSerializer{}, mDB->GetConfig());
-    kVTable = std::dynamic_pointer_cast<KVTable>(
-        dynamic_cast<BoostStateDBImpl *>(mDB)->GetTableOrCreate(tblDesc));
+    auto tblDesc = std::make_shared<TableDescription>(StateType::VALUE, "kVTable", 0, TableSerializer{},
+                                                      mDB->GetConfig());
+    kVTable = std::dynamic_pointer_cast<KVTable>(dynamic_cast<BoostStateDBImpl *>(mDB)->GetTableOrCreate(tblDesc));
 }
 
 void TestFreshTable::TearDown()
@@ -40,7 +40,7 @@ TEST_F(TestFreshTable, test_write_big_value_and_get_ok)
 {
     std::string key = "test_key";
     BinaryData priKey(reinterpret_cast<const uint8_t *>(key.c_str()), key.size());
-    char* data = static_cast<char*>(malloc(IO_SIZE_16M));
+    char *data = static_cast<char *>(malloc(IO_SIZE_16M));
     ASSERT_TRUE(data != nullptr);
     memset_s(data, IO_SIZE_16M, 0xFF, IO_SIZE_16M);
     uint16_t stateId = VALUE << NO_13;
@@ -70,7 +70,7 @@ TEST_F(TestFreshTable, test_add)
     BinaryData priKey(reinterpret_cast<const uint8_t *>(key.c_str()), key.size());
     std::string key1 = "test_key1";
     BinaryData secKey(reinterpret_cast<const uint8_t *>(key1.c_str()), key1.size());
-    char* data = static_cast<char*>(malloc(IO_SIZE_16M));
+    char *data = static_cast<char *>(malloc(IO_SIZE_16M));
     ASSERT_TRUE(data != nullptr);
     memset_s(data, IO_SIZE_16M, 0xFF, IO_SIZE_16M);
     uint16_t stateId = MAP << NO_13;

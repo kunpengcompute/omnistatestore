@@ -25,7 +25,7 @@ namespace bss {
 class FileAccess {
 public:
     explicit FileAccess(const FileMetaDataRef &fileMetaData, const FileFactoryRef &fileFactory,
-                         const FileCacheManagerRef &fileCache, const MemManagerRef &memManager)
+                        const FileCacheManagerRef &fileCache, const MemManagerRef &memManager)
         : mFileMetaData(fileMetaData), mFileFactory(fileFactory), mFileCache(fileCache), mMemManager(memManager)
     {
         LOG_DEBUG("create FileAccess for file:" << fileMetaData->GetFileAddress());
@@ -44,7 +44,7 @@ public:
 
     inline FileReaderBaseRef GetFileReader(FileProcHolder holder, BoostNativeMetricPtr boostNativeMetric)
     {
-        auto holderIndex = FileMemAllocator::IsForceType(holder) ?  NO_1 : NO_0;
+        auto holderIndex = FileMemAllocator::IsForceType(holder) ? NO_1 : NO_0;
         std::lock_guard<std::mutex> lock(mMutex);
         if (UNLIKELY(mFileReader[holderIndex] == nullptr)) {
             mFileReader[holderIndex] = CreateFileReader(holder, boostNativeMetric);

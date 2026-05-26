@@ -26,7 +26,7 @@ BResult FreshTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
 
     if (!mPqTables.empty()) {
         for (const auto &item : mPqTables) {
-            RETURN_NOT_OK(item->TriggerSegmentFlush(true)); // pq表数据先刷到文件里。
+            RETURN_NOT_OK(item->TriggerSegmentFlush(true));  // pq表数据先刷到文件里。
         }
     }
 
@@ -36,7 +36,8 @@ BResult FreshTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
         return mFreshTable->ForceFlushToSlice();
     }
 
-    // 2. Checkpoint流程首先确保处于待淘汰队列的MemorySegment Flush完成, 然后拷贝activeSegment到内存中, async checkpoint写入文件.
+    // 2. Checkpoint流程首先确保处于待淘汰队列的MemorySegment Flush完成, 然后拷贝activeSegment到内存中, async
+    // checkpoint写入文件.
     uint32_t times = NO_1;
     auto start = std::chrono::high_resolution_clock::now();
     while (!mFreshTable->IsSnapshotQueueEmpty()) {
@@ -46,7 +47,7 @@ BResult FreshTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
             double elapsed = duration.count() / 1e3;  // 转换为ms
             LOG_WARN("Fresh table check snapshot queue cost time:" << elapsed << "ms.");
         }
-        usleep(NO_100000); // 100ms
+        usleep(NO_100000);  // 100ms
     }
     auto activeSegment = mFreshTable->GetActiveSegment();
     RETURN_ERROR_AS_NULLPTR(activeSegment);
@@ -66,13 +67,14 @@ BResult FreshTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
     }
     mToUpload = newSegment;
     mByteLength = origin->GetCurPos();
-    ret = origin->CopyTo(newSegment); // 复制到新的MemorySegment
+    ret = origin->CopyTo(newSegment);  // 复制到新的MemorySegment
     if (UNLIKELY(ret != BSS_OK)) {
         return ret;
     }
 
-    LOG_DEBUG("Fresh table sync checkpoint end, active memory data size:" << activeSegment->GetBinaryData()->Size() <<
-              ", bucketCount:" << activeSegment->GetBinaryData()->BucketCount());
+    LOG_DEBUG("Fresh table sync checkpoint end, active memory data size:"
+              << activeSegment->GetBinaryData()->Size()
+              << ", bucketCount:" << activeSegment->GetBinaryData()->BucketCount());
     return BSS_OK;
 }
 
@@ -110,7 +112,7 @@ BResult FreshTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
 
     // 3. 将copyMemorySegment中的数据写入到snapshot文件中.
     uint32_t uploadingLength = mByteLength;
-    mCompressLength = mByteLength; // 默认freshTable不使用压缩算法.
+    mCompressLength = mByteLength;  // 默认freshTable不使用压缩算法.
     ret = fileOutputView->WriteBuffer(mToUpload->GetSegment(), 0, mToUpload->GetCurPos());
     fileOutputView->Close();
     if (UNLIKELY(ret != BSS_OK)) {
@@ -124,8 +126,9 @@ BResult FreshTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
     mSnapshotMeta->AddLocalFilePath(freshTableFile);
     mSnapshotMeta->AddLocalIncrementalSize(uploadingLength);
     mSnapshotMeta->AddLocalFullSize(uploadingLength);
-    LOG_DEBUG("FreshTable write snapshot meta success, checkpointId:" << snapshotId << ", fileAddress:" <<
-              freshTableFile->ExtractFileName() << ", dataSize:" << uploadingLength);
+    LOG_DEBUG("FreshTable write snapshot meta success, checkpointId:" << snapshotId << ", fileAddress:"
+                                                                      << freshTableFile->ExtractFileName()
+                                                                      << ", dataSize:" << uploadingLength);
     mToUpload = nullptr;
     return BSS_OK;
 }
@@ -140,7 +143,7 @@ SnapshotMetaRef FreshTableSnapshotOperator::OutputMeta(uint64_t snapshotId, cons
     // 文件中的元数据内容: 文件名+数据长度+压缩标记+压缩长度.
     RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUTF(mLocalAddress));
     RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUint32(mByteLength));
-    RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUint8(CompressAlgo::NONE)); // 默认不压缩
+    RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUint8(CompressAlgo::NONE));  // 默认不压缩
     RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUint32(mCompressLength));
     return mSnapshotMeta;
 }

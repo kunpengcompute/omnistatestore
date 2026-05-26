@@ -50,7 +50,7 @@ private:
     static const CompressAlgo mDefaultCodec;
     static const std::set<CompressAlgo> mSupportCodec;
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

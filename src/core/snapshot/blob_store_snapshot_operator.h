@@ -100,4 +100,4 @@ using BlobStoreSnapshotOperatorRef = std::shared_ptr<BlobStoreSnapshotOperator>;
 
 }  // namespace bss
 }  // namespace ock
-#endif // BOOST_SS_BLOB_STORE_SNAPSHOT_OPERATOR_H
+#endif  // BOOST_SS_BLOB_STORE_SNAPSHOT_OPERATOR_H

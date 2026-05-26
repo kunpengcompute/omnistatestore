@@ -43,8 +43,8 @@ inline std::vector<uint8_t> GetRandomData()
 
 TableRef CreateFromDB(StateType keyedStateType, std::string tableName, BoostStateDB *db)
 {
-    auto tblDesc = std::make_shared<TableDescription>(
-        keyedStateType, tableName, -1, TableSerializer{}, db->GetConfig());
+    auto tblDesc = std::make_shared<TableDescription>(keyedStateType, tableName, -1, TableSerializer{},
+                                                      db->GetConfig());
     return db->GetTableOrCreate(tblDesc);
 }
 

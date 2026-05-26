@@ -59,6 +59,7 @@ public:
     {
         return mUsedMemory.load(std::memory_order_seq_cst) - mMemHighMark;
     }
+
 private:
     int64_t mMemHighMark = 0;
     std::atomic<int64_t> mEvictingMemory{ 0 };

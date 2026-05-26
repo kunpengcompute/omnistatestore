@@ -10,6 +10,7 @@
  */
 
 #include "data_block_writer.h"
+
 #include "common/util/var_encoding_util.h"
 #include "data_block.h"
 #include "lsm_store/key/full_key_util.h"
@@ -41,8 +42,7 @@ uint32_t DataBlockWriter::CurrentEstimateSize()
         if (mSecondaryOffset.empty()) {
             uint32_t valueSize = NO_1 + FullKeyUtil::ComputeStateIdEncodedSize() +
                                  FullKeyUtil::ComputeSecondaryKeyLen(mLastKeyValue->key.SecKey().KeyLen()) +
-                                 FullKeyUtil::ComputeSeqIdAndValueTypeLen() + NO_4 +
-                                 mLastKeyValue->value.ValueLen();
+                                 FullKeyUtil::ComputeSeqIdAndValueTypeLen() + NO_4 + mLastKeyValue->value.ValueLen();
             primaryDataSize += valueSize;
         } else {
             uint32_t numSecondaryKeys = mSecondaryOffset.size();
@@ -104,7 +104,7 @@ BResult DataBlockWriter::Finish(ByteBufferRef &byteBuffer)
     uint32_t primaryIndexOffset = finalOutputView->GetOffset();
     for (uint32_t i = 0; i < numPrimaryKeys; i++) {
         ret = FullKeyUtil::WriteValueWithNumberOfBytes(primaryKeyBaseOffset + mPrimaryOffset.at(i), numBytes,
-            finalOutputView);
+                                                       finalOutputView);
         RETURN_NOT_OK_NO_LOG(ret);
     }
 
@@ -157,8 +157,8 @@ BResult DataBlockWriter::WritePrimaryValue(const KeyValueRef &keyValue)
         ret = VarEncodingUtil::EncodeUnsignedInt(minSecondaryKeyOffset, mPrimaryOutputView);
         RETURN_NOT_OK_NO_LOG(ret);
         for (uint32_t i = 0; i < numSecondaryKeys; i++) {
-            ret = FullKeyUtil::WriteValueWithNumberOfBytes(mSecondaryOffset.at(i) - minSecondaryKeyOffset,
-                numBytes, mPrimaryOutputView);
+            ret = FullKeyUtil::WriteValueWithNumberOfBytes(mSecondaryOffset.at(i) - minSecondaryKeyOffset, numBytes,
+                                                           mPrimaryOutputView);
             RETURN_NOT_OK_NO_LOG(ret);
         }
     }

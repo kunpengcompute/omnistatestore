@@ -181,7 +181,7 @@ public:
     }
 };
 using TableRef = std::shared_ptr<Table>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

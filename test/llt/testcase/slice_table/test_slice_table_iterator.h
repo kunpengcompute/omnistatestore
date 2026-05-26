@@ -15,7 +15,6 @@
 #include <random>
 
 #include "gtest/gtest.h"
-
 #include "boost_state_db_impl.h"
 #include "common/bss_log.h"
 #include "include/boost_state_db.h"

@@ -64,5 +64,5 @@ BlobDataBlockMetaRef BlobIndexBlock::GetDataBlockMeta(uint32_t index)
     BlockHandle blockHandle = { offset, size };
     return std::make_shared<BlobDataBlockMeta>(minBlobId, maxBlobId, blockHandle);
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

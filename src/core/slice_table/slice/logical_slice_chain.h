@@ -122,17 +122,17 @@ public:
 
     virtual BResult Init(SliceStatus status, uint32_t defaultChainLen) = 0;
 
-    virtual BResult Initialize(const std::shared_ptr<LogicalSliceChain> &logicalSliceChain,
-        int32_t startIndex, int32_t endIndex,
+    virtual BResult Initialize(
+        const std::shared_ptr<LogicalSliceChain> &logicalSliceChain, int32_t startIndex, int32_t endIndex,
         std::unordered_map<SliceAddressRef, DataSliceRef, SliceAddressHash, SliceAddressEqual> &copiedDataSlice,
         bool deepCopySliceAddress, bool hasFilePage) = 0;
 
     virtual IOResult Get(const Key &key, Value &value, BlobValueTransformFunc func,
-        BoostNativeMetricPtr &metricPtr) = 0;
+                         BoostNativeMetricPtr &metricPtr) = 0;
 
     virtual uint32_t GetSliceSize() = 0;
 
-    virtual std::vector<SliceAddressRef>& GetSliceAddresses() = 0;
+    virtual std::vector<SliceAddressRef> &GetSliceAddresses() = 0;
 
     virtual void ClearSliceAddresses() = 0;
 
@@ -245,8 +245,8 @@ public:
 
     BResult Init(SliceStatus status, uint32_t defaultChainLen) override;
 
-    BResult Initialize(const std::shared_ptr<LogicalSliceChain> &logicalSliceChain,
-        int32_t startIndex, int32_t endIndex,
+    BResult Initialize(
+        const std::shared_ptr<LogicalSliceChain> &logicalSliceChain, int32_t startIndex, int32_t endIndex,
         std::unordered_map<SliceAddressRef, DataSliceRef, SliceAddressHash, SliceAddressEqual> &copiedDataSlice,
         bool deepCopySliceAddress, bool hasFilePage) override;
 
@@ -257,7 +257,7 @@ public:
         return mSliceSize;
     }
 
-    std::vector<SliceAddressRef>& GetSliceAddresses() override
+    std::vector<SliceAddressRef> &GetSliceAddresses() override
     {
         return mSliceAddresses;
     }
@@ -277,9 +277,10 @@ public:
         ReadLocker<ReadWriteLock> lk(&mRwLock);
         auto size = mSliceAddresses.size();
         if (UNLIKELY(bucketIndex < 0 || bucketIndex > mChainEndIndex.load())) {
-            LOG_WARN("Logic slice overflow, bucketIndex:" << bucketIndex << ", baseIndex:" << mBaseSliceIndex.load() <<
-                     ", endIndex:" << mChainEndIndex.load() << ", status:" <<
-                     static_cast<uint32_t>(mSliceStatus.load()) << ", sliceSize:" << mSliceSize.load());
+            LOG_WARN("Logic slice overflow, bucketIndex:" << bucketIndex << ", baseIndex:" << mBaseSliceIndex.load()
+                                                          << ", endIndex:" << mChainEndIndex.load()
+                                                          << ", status:" << static_cast<uint32_t>(mSliceStatus.load())
+                                                          << ", sliceSize:" << mSliceSize.load());
             return nullptr;
         }
         if (UNLIKELY(size < INT32_MAX && bucketIndex >= static_cast<int32_t>(size))) {
@@ -293,8 +294,9 @@ public:
     {
         ReadLocker<ReadWriteLock> lk(&mRwLock);
         if (UNLIKELY(bucketIndex < 0 || bucketIndex > mChainEndIndex.load())) {
-            LOG_WARN("Logic slice overflow, bucketIndex:" << bucketIndex << ", endIndex:" << mChainEndIndex.load() <<
-                     ", status:" << static_cast<uint32_t>(mSliceStatus.load()) << ", sliceSize:" << mSliceSize.load());
+            LOG_WARN("Logic slice overflow, bucketIndex:" << bucketIndex << ", endIndex:" << mChainEndIndex.load()
+                                                          << ", status:" << static_cast<uint32_t>(mSliceStatus.load())
+                                                          << ", sliceSize:" << mSliceSize.load());
             return;
         }
         mSliceAddresses[bucketIndex] = addr;
@@ -430,9 +432,9 @@ public:
     {
         std::ostringstream oss;
         oss << "Info[";
-        oss << "status:" << static_cast<uint32_t>(mSliceStatus.load()) << " end:" << mChainEndIndex.load() <<
-            " base:" << mBaseSliceIndex.load() << " size:" << mSliceSize.load() << " filePage:" << mFilePage.size() <<
-            "]";
+        oss << "status:" << static_cast<uint32_t>(mSliceStatus.load()) << " end:" << mChainEndIndex.load()
+            << " base:" << mBaseSliceIndex.load() << " size:" << mSliceSize.load() << " filePage:" << mFilePage.size()
+            << "]";
         oss << ", Slice address status [";
         for (int32_t idx = 0; idx <= mChainEndIndex; idx++) {
             auto sliceAddress = mSliceAddresses[idx];
@@ -483,8 +485,8 @@ public:
         return BSS_ERR;
     }
 
-    BResult Initialize(const LogicalSliceChainRef &logicalSliceChain,
-        int32_t startIndex, int32_t endIndex,
+    BResult Initialize(
+        const LogicalSliceChainRef &logicalSliceChain, int32_t startIndex, int32_t endIndex,
         std::unordered_map<SliceAddressRef, DataSliceRef, SliceAddressHash, SliceAddressEqual> &copiedDataSlice,
         bool deepCopySliceAddress, bool hasFilePage) override
     {
@@ -523,7 +525,7 @@ public:
         LOG_ERROR("Unsupported operation exception.");
     }
 
-    std::vector<SliceAddressRef>& GetSliceAddresses() override
+    std::vector<SliceAddressRef> &GetSliceAddresses() override
     {
         LOG_ERROR("Unsupported operation exception.");
         static std::vector<SliceAddressRef> emptyVec;
@@ -591,7 +593,7 @@ public:
         if (mSliceChains.empty()) {
             return nullptr;
         }
-        for (const auto& chain : mSliceChains) {
+        for (const auto &chain : mSliceChains) {
             return chain->SliceIterator();
         }
         return nullptr;
@@ -640,7 +642,7 @@ public:
 
     void RestoreFilePage(LsmStoreRef lsmStore) override
     {
-        for (const auto& chain : mSliceChains) {
+        for (const auto &chain : mSliceChains) {
             chain->RestoreFilePage(lsmStore);
         }
     }

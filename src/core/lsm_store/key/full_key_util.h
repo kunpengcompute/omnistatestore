@@ -93,8 +93,7 @@ public:
         return value;
     }
 
-    static FullKeyRef ToFullKey(const KeyValueRef &keyValue, const MemManagerRef &memManager,
-                                        FileProcHolder holder);
+    static FullKeyRef ToFullKey(const KeyValueRef &keyValue, const MemManagerRef &memManager, FileProcHolder holder);
 
     inline static BResult WriteInternalKey(const FullKeyRef &fullKey, const OutputViewRef &outputView)
     {
@@ -186,9 +185,9 @@ public:
         return StateTypeUtil::HasSecKey(stateType);
     }
 
-    inline static uint64_t ParseSecondaryKeyLen(const ByteBufferRef& buffer, uint32_t offset)
+    inline static uint64_t ParseSecondaryKeyLen(const ByteBufferRef &buffer, uint32_t offset)
     {
-        uint64_t decodeResult = VarEncodingUtil::DecodeUnsignedInt(buffer, offset + NO_4); // 其中NO_4 = sizeof(hash)
+        uint64_t decodeResult = VarEncodingUtil::DecodeUnsignedInt(buffer, offset + NO_4);  // 其中NO_4 = sizeof(hash)
         uint32_t userKeyLen = VarEncodingUtil::GetDecodedValue(decodeResult);
         uint32_t encodedLen = VarEncodingUtil::GetNumberOfEncodedBytes(decodeResult);
         return BuildSecondaryKeyLenInfo(userKeyLen, NO_4 + encodedLen + userKeyLen);
@@ -233,8 +232,8 @@ public:
         uint32_t secondaryUserKeyLen = GetSecondaryUserKeyLen(secondaryKeyLenInfo);
         uint32_t secondaryUserKeyHash = 0;
         secondaryByteBuffer->ReadUint32(secondaryUserKeyHash, secondaryKeyOffset);
-        return CompareSecondaryKey(!IsSortedState(key.StateId()), key.SecKey().KeyData(),
-                                   0, key.SecKey().KeyLen(), key.SecKey().HashCode(), secondaryByteBuffer->Data(),
+        return CompareSecondaryKey(!IsSortedState(key.StateId()), key.SecKey().KeyData(), 0, key.SecKey().KeyLen(),
+                                   key.SecKey().HashCode(), secondaryByteBuffer->Data(),
                                    secondaryKeyOffset + secondaryKeyLen - secondaryUserKeyLen, secondaryUserKeyLen,
                                    secondaryUserKeyHash);
     }
@@ -246,7 +245,7 @@ public:
 
     inline static bool IsSortedState(uint16_t stateId)
     {
-        return false; // don't support sorted state.
+        return false;  // don't support sorted state.
     }
 
     inline static int32_t CompareSecondaryKey(bool compareHash, const uint8_t *keyData1, uint32_t userKeyOffset1,
@@ -269,7 +268,7 @@ public:
     static uint32_t ComputeRawInternalKeyLen(const ByteBufferRef &byteBuffer, uint32_t offset);
 
     static FullKeyRef ReadInternalKey(const FileInputViewRef &inputView, const MemManagerRef &memManager,
-                                          FileProcHolder holder);
+                                      FileProcHolder holder);
 
     inline static int32_t CompareStateId(uint16_t stateId1, uint16_t stateId2)
     {
@@ -277,12 +276,12 @@ public:
     }
 
     static FullKeyRef CopyInternalKey(const FullKeyRef &fullKey, const MemManagerRef &memManager,
-                                          FileProcHolder holder);
+                                      FileProcHolder holder);
 
     static int32_t CompareKeyWithInternalKey(const Key &key, const FullKeyRef &fullKey);
 
-    static void ReadPrimary(PriKeyNode &priKey, const FileInputViewRef &inputView,
-                            const MemManagerRef &memManager, FileProcHolder holder, ByteBufferRef &priBuffer);
+    static void ReadPrimary(PriKeyNode &priKey, const FileInputViewRef &inputView, const MemManagerRef &memManager,
+                            FileProcHolder holder, ByteBufferRef &priBuffer);
 
     inline static uint16_t ReadStateId(const FileInputViewRef &inputView)
     {
@@ -295,8 +294,8 @@ public:
         return stateId;
     }
 
-    static void ReadSecondaryKey(SecKeyNode &secKey, const FileInputViewRef &inputView,
-                                 const MemManagerRef &memManager, FileProcHolder holder, ByteBufferRef &secBuffer);
+    static void ReadSecondaryKey(SecKeyNode &secKey, const FileInputViewRef &inputView, const MemManagerRef &memManager,
+                                 FileProcHolder holder, ByteBufferRef &secBuffer);
 
     static BResult BuildValue(Value &value, const ByteBufferRef &buffer, uint32_t secondaryKeyOffset,
                               uint32_t secondaryKeyLen);

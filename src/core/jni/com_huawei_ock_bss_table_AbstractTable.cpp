@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "include/boost_state_db.h"
+
 #include <memory>
 
-#include "include/boost_state_db.h"
 #include "common/scope_guard.h"
 #include "kv_helper.h"
 #include "com_huawei_ock_bss_table_AbstractTable.h"
@@ -20,7 +21,8 @@ using namespace ock::bss;
 
 namespace {
 
-std::string GetClassName(JNIEnv *env, jobject jObj, jclass objClass) {
+std::string GetClassName(JNIEnv *env, jobject jObj, jclass objClass)
+{
     auto getClassMethod = env->GetMethodID(objClass, "getClass", "()Ljava/lang/Class;");
     auto jClassObj = env->CallObjectMethod(jObj, getClassMethod);
     auto jClassCls = env->GetObjectClass(jClassObj);
@@ -31,17 +33,18 @@ std::string GetClassName(JNIEnv *env, jobject jObj, jclass objClass) {
     return className;
 }
 
-void GetTypeSerializer(JNIEnv *env, jobject jTypeSerializer, TypeSerializer &typeSerializer) {
-    static const std::string ROW_DATA_SERIALIZER{"org.apache.flink.table.runtime.typeutils.RowDataSerializer"};
-    static const std::string BIG_INT_TYPE{"org.apache.flink.table.types.logical.BigIntType"};
-    static const std::string TIMESTAMP_TYPE{"org.apache.flink.table.types.logical.TimestampType"};
+void GetTypeSerializer(JNIEnv *env, jobject jTypeSerializer, TypeSerializer &typeSerializer)
+{
+    static const std::string ROW_DATA_SERIALIZER{ "org.apache.flink.table.runtime.typeutils.RowDataSerializer" };
+    static const std::string BIG_INT_TYPE{ "org.apache.flink.table.types.logical.BigIntType" };
+    static const std::string TIMESTAMP_TYPE{ "org.apache.flink.table.types.logical.TimestampType" };
 
     auto typeSerializerClass = env->GetObjectClass(jTypeSerializer);
     auto className = GetClassName(env, jTypeSerializer, typeSerializerClass);
     if (ROW_DATA_SERIALIZER == className) {
         typeSerializer.mSerType = SerializerType::BINARY_ROW_DATA_SERIALIZER;
-        auto typesFieldId = env->GetFieldID(
-            typeSerializerClass, "types", "[Lorg/apache/flink/table/types/logical/LogicalType;");
+        auto typesFieldId = env->GetFieldID(typeSerializerClass, "types",
+                                            "[Lorg/apache/flink/table/types/logical/LogicalType;");
         auto jTypes = reinterpret_cast<jobjectArray>(env->GetObjectField(jTypeSerializer, typesFieldId));
         for (int i = 0; i < env->GetArrayLength(jTypes); i++) {
             auto jElemType = env->GetObjectArrayElement(jTypes, i);
@@ -51,11 +54,11 @@ void GetTypeSerializer(JNIEnv *env, jobject jTypeSerializer, TypeSerializer &typ
             }
             auto typeClassName = GetClassName(env, jElemType, env->GetObjectClass(jElemType));
             if (BIG_INT_TYPE == typeClassName) {
-                typeSerializer.mFields.push_back({NO_8, true});
+                typeSerializer.mFields.push_back({ NO_8, true });
             } else if (TIMESTAMP_TYPE == typeClassName) {
-                typeSerializer.mFields.push_back({NO_8, true});
+                typeSerializer.mFields.push_back({ NO_8, true });
             } else {
-                typeSerializer.mFields.push_back({0, false});
+                typeSerializer.mFields.push_back({ 0, false });
             }
         }
     } else {
@@ -63,9 +66,10 @@ void GetTypeSerializer(JNIEnv *env, jobject jTypeSerializer, TypeSerializer &typ
     }
 }
 
-BResult GetTableSerializer(JNIEnv *env, jobject jTableDesc, jclass tableDescClass, TableSerializer &out) {
-    auto getTableSerializerMethod = env->GetMethodID(
-        tableDescClass, "getTableSerializer", "()Lcom/huawei/ock/bss/common/serialize/TableSerializer;");
+BResult GetTableSerializer(JNIEnv *env, jobject jTableDesc, jclass tableDescClass, TableSerializer &out)
+{
+    auto getTableSerializerMethod = env->GetMethodID(tableDescClass, "getTableSerializer",
+                                                     "()Lcom/huawei/ock/bss/common/serialize/TableSerializer;");
     if (!getTableSerializerMethod) {
         return BSS_ERR;
     }
@@ -73,14 +77,14 @@ BResult GetTableSerializer(JNIEnv *env, jobject jTableDesc, jclass tableDescClas
     auto tblSerializerClass = env->GetObjectClass(jTblSerializer);
 
     // 生成key serializer
-    auto getKeySerializerMethod = env->GetMethodID(
-        tblSerializerClass, "getKeySerializer", "()Lorg/apache/flink/api/common/typeutils/TypeSerializer;");
+    auto getKeySerializerMethod = env->GetMethodID(tblSerializerClass, "getKeySerializer",
+                                                   "()Lorg/apache/flink/api/common/typeutils/TypeSerializer;");
     auto jKeyTypeSerializer = env->CallObjectMethod(jTblSerializer, getKeySerializerMethod);
     GetTypeSerializer(env, jKeyTypeSerializer, out.mKeySerializer);
 
     // 生成key2 serializer
-    auto getKey2SerializerMethod = env->GetMethodID(
-        tblSerializerClass, "getKey2Serializer", "()Lorg/apache/flink/api/common/typeutils/TypeSerializer;");
+    auto getKey2SerializerMethod = env->GetMethodID(tblSerializerClass, "getKey2Serializer",
+                                                    "()Lorg/apache/flink/api/common/typeutils/TypeSerializer;");
     // 如果是KMap类型，tblSerializerClass实际上是SubTableSerializer
     if (getKey2SerializerMethod) {
         auto jKey2TypeSerializer = env->CallObjectMethod(jTblSerializer, getKey2SerializerMethod);
@@ -91,7 +95,8 @@ BResult GetTableSerializer(JNIEnv *env, jobject jTableDesc, jclass tableDescClas
     return BSS_OK;
 }
 
-TableDescriptionRef GetTableDes(JNIEnv *env, StateType type, const Config &config, jobject jTableDesc) {
+TableDescriptionRef GetTableDes(JNIEnv *env, StateType type, const Config &config, jobject jTableDesc)
+{
     if (config.mStartGroup > config.mEndGroup) {
         return nullptr;
     }
@@ -118,7 +123,7 @@ TableDescriptionRef GetTableDes(JNIEnv *env, StateType type, const Config &confi
     return std::make_shared<TableDescription>(type, tableName, tableTTL, tblSerializer, config);
 }
 
-}
+}  // namespace
 
 JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_table_AbstractTable_open(JNIEnv *env, jclass, jlong jDBPath,
                                                                          jstring jTableType, jobject jTableDesc)

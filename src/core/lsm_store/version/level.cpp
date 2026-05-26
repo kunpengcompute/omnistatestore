@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "include/bss_types.h"
+
 #include <unordered_map>
 
-#include "include/bss_types.h"
 #include "binary/key/full_key.h"
 #include "binary/key/key.h"
 #include "key/full_key_util.h"
@@ -126,7 +127,6 @@ std::vector<FileMetaDataRef> Level::GetFilesContainingStateId(uint32_t stateId)
     }
     return result;
 }
-
 
 bool Level::IsPrefixKeyWithinFile(const FileMetaDataRef &fileMetaData, const Key &prefixKey)
 {

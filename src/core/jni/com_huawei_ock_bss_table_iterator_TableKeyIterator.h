@@ -38,7 +38,7 @@ JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_iterator_TableKeyIterat
  * Signature: (JLjava/lang/Object;)Ljava/lang/Object;
  */
 JNIEXPORT jobject JNICALL Java_com_huawei_ock_bss_table_iterator_TableKeyIterator_next(JNIEnv *, jclass, jlong,
-    jobject);
+                                                                                       jobject);
 
 JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_iterator_TableKeyIterator_close(JNIEnv *, jclass, jlong);
 

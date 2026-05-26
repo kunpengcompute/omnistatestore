@@ -62,7 +62,7 @@ public:
     }
 
     // 去除取文件名后缀 (/data/local/tmp.txt → /data/local)
-    static  std::string ExtractDirectory(const std::string &fullPath)
+    static std::string ExtractDirectory(const std::string &fullPath)
     {
         if (fullPath.empty()) {
             return fullPath;

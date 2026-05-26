@@ -69,12 +69,14 @@ public:
         while (static_cast<uint64_t>(avgDbSliceSize) < mEvictMinSize) {
             mEvictMinSize = mEvictMinSize >> NO_1;
         }
-        LOG_INFO("Update slice table evict water mark, highWaterMark: " << mEvictHighWaterMark << ", lowWaterMark: "
-            << mEvictLowWaterMark << ", min evict size: " << mEvictMinSize);
+        LOG_INFO("Update slice table evict water mark, highWaterMark: " << mEvictHighWaterMark
+                                                                        << ", lowWaterMark: " << mEvictLowWaterMark
+                                                                        << ", min evict size: " << mEvictMinSize);
     }
+
 private:
     BResult GetEvictFlushInfo(int64_t &useTotal, int64_t &flushingTotal);
-    void SelectEvictBoostDb(uint32_t fileSize, BoostStateDB* &boostDb, BucketGroupRef &minGroup);
+    void SelectEvictBoostDb(uint32_t fileSize, BoostStateDB *&boostDb, BucketGroupRef &minGroup);
 
 private:
     uint32_t mDbGroupId;
@@ -87,7 +89,7 @@ private:
     int64_t mEvictLowWaterMark = 0;
     std::atomic<bool> mIsEvicting{ false };
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif  // BOOST_STATE_DBGROUP_IMPL_H
