@@ -12,6 +12,8 @@
 #ifndef BOOST_SS_PRIMARY_ADDRESS_H
 #define BOOST_SS_PRIMARY_ADDRESS_H
 
+#include <cstdint>
+#include <memory>
 #include <string>
 
 #include "lsm_store/file/file_cache_type.h"
