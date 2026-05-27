@@ -9,12 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "test_utils.h"
-
+#include <map>
 #include <unistd.h>
 
-#include <map>
-
+#include "test_utils.h"
 #include "test_slice_table_iterator.h"
 
 using namespace ock::bss;

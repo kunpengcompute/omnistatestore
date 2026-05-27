@@ -9,12 +9,11 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "include/bss_err.h"
-
 #include <iostream>
 #include <random>
 #include <vector>
 
+#include "include/bss_err.h"
 #include "include/bss_types.h"
 #include "binary/query_binary.h"
 #include "generator.h"
@@ -120,7 +119,7 @@ TEST_F(TestSlice, TestSlicePut)
     uint64_t v = 852741;
     memorySegment->PutUint64_t(NO_32, v);
     FreshValueNodePtr valueNodePtr = FreshValueNode::FromBuffer(memorySegment->Data() + NO_18);
-    rawDataSlice->AddBinaryData({ binaryKey, valueNodePtr });
+    rawDataSlice->AddBinaryData({binaryKey, valueNodePtr});
     rawDataSlice->PutMixHashCode(binaryKey.mMixedHashCode);
     rawDataSlice->PutIndexVec();
     SliceCreateMeta meta = { 0L, 1L, 0L };
@@ -185,7 +184,7 @@ TEST_F(TestSlice, TestSliceGetLong)
         memorySegment->PutUint64_t(pos + NO_14, v);
         FreshValueNodePtr valueNodePtr = FreshValueNode::FromBuffer(memorySegment->Data() + pos);
         pos += NO_22;
-        rawDataSlice->AddBinaryData({ binaryKey, valueNodePtr });
+        rawDataSlice->AddBinaryData({binaryKey, valueNodePtr});
         rawDataSlice->PutMixHashCode(binaryKey.mMixedHashCode);
         rawDataSlice->PutIndexVec();
     }
@@ -194,7 +193,7 @@ TEST_F(TestSlice, TestSliceGetLong)
     slice->Initialize(*rawDataSlice, meta, mMemManager, force, nullptr);
     for (auto &item : keys) {
         uint32_t hashCode = item.mKeyHashCode;
-        BinaryData prikey(item.mPrimaryKey.mKeyData, item.mPrimaryKey.mKeyDataLength);
+        BinaryData prikey(item.mPrimaryKey.mKeyData,  item.mPrimaryKey.mKeyDataLength);
         stateId = item.mPrimaryKey.mStateId;
         QueryKey queryKey(stateId, hashCode, prikey);
         Value value;
@@ -252,7 +251,7 @@ TEST_F(TestSlice, TestSliceGetShort)
         memorySegment->PutUint64_t(pos + NO_14, v);
         FreshValueNodePtr valueNodePtr = FreshValueNode::FromBuffer(memorySegment->Data() + pos);
         pos += NO_22;
-        rawDataSlice->AddBinaryData({ binaryKey, valueNodePtr });
+        rawDataSlice->AddBinaryData({binaryKey, valueNodePtr});
         rawDataSlice->PutMixHashCode(binaryKey.mMixedHashCode);
         rawDataSlice->PutIndexVec();
     }
@@ -261,7 +260,7 @@ TEST_F(TestSlice, TestSliceGetShort)
     slice->Initialize(*rawDataSlice, meta, mMemManager, force, nullptr);
     for (auto &item : keys) {
         uint32_t hashCode = item.mKeyHashCode;
-        BinaryData prikey(item.mPrimaryKey.mKeyData, item.mPrimaryKey.mKeyDataLength);
+        BinaryData prikey(item.mPrimaryKey.mKeyData,  item.mPrimaryKey.mKeyDataLength);
         stateId = item.mPrimaryKey.mStateId;
         QueryKey queryKey(stateId, hashCode, prikey);
         Value value;
@@ -294,7 +293,7 @@ TEST_F(TestSlice, test_find_started_index_slot_return_right_index)
         std::string secKey = std::to_string(i + 0xFFFF);
         SliceKey key = mGenerator->GenerateDualKey(priKey.data(), priKey.length(), secKey.data(), secKey.length());
         Value value = mGenerator->GenerateValue(10);
-        kvPairList.push_back({ key, value });
+        kvPairList.push_back({key, value});
     }
 
     // shuffle kv pair list
@@ -414,6 +413,7 @@ TEST_F(TestSlice, test_slice_space_return_ok)
     }
 }
 
+
 TEST_F(TestSlice, test_slice_hash_conflict_return_ok)
 {
     // prepare key and values.
@@ -439,12 +439,11 @@ TEST_F(TestSlice, test_slice_hash_conflict_return_ok)
     for (uint32_t i = 0; i < NO_3; i++) {
         std::string priKey = std::to_string(i + kvCount + 0xFFFFFFFF);
         std::string secKey = std::to_string(i + kvCount + 0xFFFF);
-        SliceKey key =
-            mGenerator->GenerateHashCollisionDualKey(reinterpret_cast<uint8_t *>(const_cast<char *>(priKey.data())),
-                                                     priKey.length(),
-                                                     reinterpret_cast<uint8_t *>(const_cast<char *>(secKey.data())),
-                                                     secKey.length(), kvPairList[0].first, NO_1024);
-        Value value = mGenerator->GenerateValue(10);
+        SliceKey key = mGenerator->GenerateHashCollisionDualKey(
+            reinterpret_cast<uint8_t *>(const_cast<char *>(priKey.data())), priKey.length(),
+            reinterpret_cast<uint8_t *>(const_cast<char *>(secKey.data())), secKey.length(),
+            kvPairList[0].first, NO_1024);
+        Value value =  mGenerator->GenerateValue(10);
         kvPairList.push_back(KVPair(key, value));
         uint8_t *priData = new uint8_t[priKey.length()];
         uint8_t *secData = new uint8_t[secKey.length()];
@@ -453,8 +452,10 @@ TEST_F(TestSlice, test_slice_hash_conflict_return_ok)
         BinaryData priKey1(priData, priKey.length());
         BinaryData secKey1(secData, secKey.length());
         QueryKey queryKey(stateId, key.KeyHashCode(), priKey1, secKey1);
-        ASSERT_EQ(memcmp(queryKey.PriKey().KeyData(), key.PriKey().KeyData(), queryKey.PriKey().KeyLen()), 0);
-        ASSERT_EQ(memcmp(queryKey.SecKey().KeyData(), key.SecKey().KeyData(), queryKey.SecKey().KeyLen()), 0);
+        ASSERT_EQ(memcmp(queryKey.PriKey().KeyData(), key.PriKey().KeyData(),
+            queryKey.PriKey().KeyLen()), 0);
+        ASSERT_EQ(memcmp(queryKey.SecKey().KeyData(), key.SecKey().KeyData(),
+            queryKey.SecKey().KeyLen()), 0);
         keys.emplace_back(queryKey);
         values.emplace_back(value);
     }
@@ -462,12 +463,11 @@ TEST_F(TestSlice, test_slice_hash_conflict_return_ok)
     // 构造hash冲突数量小于3的key
     std::string priKey = std::to_string(kvCount + 0xFFFFFFFF);
     std::string secKey = std::to_string(kvCount + 0xFFFF);
-    SliceKey key =
-        mGenerator->GenerateHashCollisionDualKey(reinterpret_cast<uint8_t *>(const_cast<char *>(priKey.data())),
-                                                 priKey.length(),
-                                                 reinterpret_cast<uint8_t *>(const_cast<char *>(secKey.data())),
-                                                 secKey.length(), kvPairList[NO_6].first, NO_1024);
-    Value value = mGenerator->GenerateValue(10);
+    SliceKey key = mGenerator->GenerateHashCollisionDualKey(
+        reinterpret_cast<uint8_t *>(const_cast<char *>(priKey.data())), priKey.length(),
+        reinterpret_cast<uint8_t *>(const_cast<char *>(secKey.data())), secKey.length(),
+        kvPairList[NO_6].first, NO_1024);
+    Value value =  mGenerator->GenerateValue(10);
     kvPairList.push_back(KVPair(key, value));
     uint8_t *priData = new uint8_t[priKey.length()];
     uint8_t *secData = new uint8_t[secKey.length()];

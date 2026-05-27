@@ -9,10 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "common/util/file_address_utils.h"
-
 #include <unordered_map>
 
+#include "common/util/file_address_utils.h"
 #include "file_cache_type.h"
 #include "lazy/lazy_download_strategy.h"
 #include "lazy/snapshot_downloader.h"
@@ -48,7 +47,7 @@ BResult FileCacheManager::RestoreFromLocal(const std::string &fileName, const Re
 {
     auto fileId = FileAddressUtils::GetFileId(restoreInfo.fileAddress);
     LOG_INFO("Restore from local:" << PathTransform::ExtractFileName(fileName) << ", fileId:" << fileId
-                                   << ", fileStatus:" << static_cast<uint32_t>(restoreInfo.fileStatus));
+                                    << ", fileStatus:" << static_cast<uint32_t>(restoreInfo.fileStatus));
     auto it = mRestoredFileIdentifierMapping.find(fileName);
     if (it == mRestoredFileIdentifierMapping.end()) {
         mLocalFileManager->IncDbRef(fileId, restoreInfo.fileLength);  // 增加引用计数.

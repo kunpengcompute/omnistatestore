@@ -9,9 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "index_block_hash_index_writer.h"
-
 #include <cmath>
+
+#include "index_block_hash_index_writer.h"
 
 namespace ock {
 namespace bss {

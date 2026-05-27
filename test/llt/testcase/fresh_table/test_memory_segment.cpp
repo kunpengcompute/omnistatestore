@@ -9,9 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "test_memory_segment.h"
-
 #include <random>
+
+#include "test_memory_segment.h"
 
 using namespace ock::bss;
 MemManagerRef TestMemorySegment::mMemManager = nullptr;

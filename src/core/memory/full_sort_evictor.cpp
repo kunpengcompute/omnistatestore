@@ -9,11 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "slice_table/bucket_group_flush_task.h"
-
 #include <algorithm>
 #include <limits>
 
+#include "slice_table/bucket_group_flush_task.h"
 #include "full_sort_evictor.h"
 
 namespace ock {
@@ -45,7 +44,8 @@ void FullSortEvictor::ForceEvict()
 }
 
 BResult FullSortEvictor::Initialize(uint32_t evictMinSize, const BucketGroupManagerRef &bucketGroupManager,
-                                    const SliceEvictManagerRef &waterMarkManager, const AccessRecorderRef &accessRecord)
+                                    const SliceEvictManagerRef &waterMarkManager,
+                                    const AccessRecorderRef &accessRecord)
 {
     if (bucketGroupManager == nullptr) {
         LOG_ERROR("bucketGroupManager is nullptr");
@@ -119,8 +119,8 @@ void FullSortEvictor::FlushedSuccessCallBack()
             break;
         }
         if (!sliceAddress->SetStatus(SliceEvent::EVICT)) {
-            LOG_WARN("Flush success set slice address status failed, slice address status:"
-                     << static_cast<uint32_t>(sliceAddress->GetSliceStatus()));
+            LOG_WARN("Flush success set slice address status failed, slice address status:" <<
+                      static_cast<uint32_t>(sliceAddress->GetSliceStatus()));
         }
         auto sliceBucketIndex = mBucketGroupManager->GetSliceBucketIndex();
         auto bucketIndex = entry.mQueue;
@@ -134,7 +134,7 @@ void FullSortEvictor::FlushedSuccessCallBack()
  * 选择要淘汰的slice候选
  */
 std::vector<SliceScore> FullSortEvictor::SelectEvictSlices(uint32_t fileSize, BucketGroupRef &minGroup,
-                                                           uint32_t chainCount)
+    uint32_t chainCount)
 {
     std::vector<uint32_t> chainIndexArray(chainCount);
     std::vector<std::shared_ptr<LogicalSliceChain>> chainArray(chainCount);
@@ -150,7 +150,7 @@ std::vector<SliceScore> FullSortEvictor::SelectEvictSlices(uint32_t fileSize, Bu
         }
         LogicalSliceChainRef sliceChain = indexContext->GetLogicalSliceChain();
         LOG_DEBUG("Current logic slice chain is " << sliceChain->ToString());
-        if (UNLIKELY(!sliceChain->IsSimpleSliceChain())) {  // 复合的sliceChain不参与淘汰.
+        if (UNLIKELY(!sliceChain->IsSimpleSliceChain())) { // 复合的sliceChain不参与淘汰.
             continue;
         }
 
@@ -167,7 +167,7 @@ std::vector<SliceScore> FullSortEvictor::SelectEvictSlices(uint32_t fileSize, Bu
             if (sliceAddress->GetSliceStatus() == SliceStatus::COMPACTING) {
                 break;
             }
-            if (sliceAddress->GetSliceStatus() == SliceStatus::NORMAL) {  // 选择sliceAddress状态为normal的Slice加到PQ.
+            if (sliceAddress->GetSliceStatus() == SliceStatus::NORMAL) { // 选择sliceAddress状态为normal的Slice加到PQ.
                 SliceScore scoreEntry(sliceAddress, i, indexContext, mAccessRecord->AccessCount());
                 priorityQueue.emplace(scoreEntry);
                 sliceIndex++;
@@ -189,21 +189,21 @@ std::vector<SliceScore> FullSortEvictor::SelectEvictSlices(uint32_t fileSize, Bu
         }
         priorityQueue.pop();
 
-        if (!entry.mSliceAddress->SetStatus(SliceEvent::FLUSH)) {  // set flush flag.
+        if (!entry.mSliceAddress->SetStatus(SliceEvent::FLUSH)) { // set flush flag.
             continue;
         }
 
         candidates.push_back(entry);
         uint32_t sliceDataLen = entry.mSliceAddress->GetDataLen();
         pickedSize += sliceDataLen;
-        mWaterMarkManager->AddEvictingMemory(sliceDataLen);  // add evicting memory
+        mWaterMarkManager->AddEvictingMemory(sliceDataLen); // add evicting memory
 
         uint32_t queue = entry.mQueue;
         auto &sliceChain = chainArray[queue];
         uint32_t &sliceIndex = chainIndexArray[queue];
         mBucketGroupManager->MarkLogicalSliceChainFlushed(sliceChain, minGroup);
         if (sliceChain->GetBaseSliceIndex() < sliceIndex) {
-            sliceChain->SetBaseSliceIndex(sliceIndex);  // 更新slice的baseIndex.
+            sliceChain->SetBaseSliceIndex(sliceIndex); // 更新slice的baseIndex.
         }
 
         // pick one new slice, add to priority queue.
@@ -256,7 +256,7 @@ void FullSortEvictor::SelectMinScoreGroup(uint32_t fileSize, BucketGroupRef &min
                 LOG_ERROR("chain is nullptr!");
                 return;
             }
-            if (UNLIKELY(!chain->IsSimpleSliceChain())) {  // 复合的sliceChain不参与算分.
+            if (UNLIKELY(!chain->IsSimpleSliceChain())) { // 复合的sliceChain不参与算分.
                 continue;
             }
             CalculateScore(chain, score, size, baseSize);
@@ -274,7 +274,7 @@ void FullSortEvictor::SelectMinScoreGroup(uint32_t fileSize, BucketGroupRef &min
 }
 
 void FullSortEvictor::CalculateScore(LogicalSliceChainRef &chain, float &score, uint64_t &size,
-                                     uint64_t &baseSize) const
+    uint64_t &baseSize) const
 {
     bool baseSlice = true;
     for (uint32_t k = 0; k < chain->GetCurrentSliceChainLen(); ++k) {
@@ -372,7 +372,8 @@ BResult FullSortEvictor::FlushQueueForBucketGroup::Initialize(const FullSortEvic
 }
 
 bool FullSortEvictor::FlushQueueForBucketGroup::SubmitJob(std::vector<SliceScore> &entryList,
-                                                          const FullSortEvictorRef &fullSortEvictor, bool isSync)
+                                                          const FullSortEvictorRef &fullSortEvictor,
+                                                          bool isSync)
 {
     BoostNativeMetricPtr metricPtr = mMetricPtrAddr == nullptr ? nullptr : *mMetricPtrAddr;
     RunnablePtr bucketGroupFlushTask =

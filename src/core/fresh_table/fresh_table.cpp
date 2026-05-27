@@ -8,13 +8,13 @@
  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  * See the Mulan PSL v2 for more details.
  */
-#include "fresh_table.h"
-
 #include <algorithm>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <utility>
+
+#include "fresh_table.h"
 
 namespace ock {
 namespace bss {
@@ -284,7 +284,7 @@ BResult FreshTable::Restore(const std::vector<RestoredDbMetaRef> &restoredDbMeta
 {
     auto memorySegmentSize = mConfig->GetMemorySegmentSize();
     std::vector<RestoredDbMetaRef> usefulMetas;
-    for (const auto &dbMeta : restoredDbMetas) {  // 过滤掉不属于该KeyGroup的dbMeta.
+    for (const auto &dbMeta : restoredDbMetas) { // 过滤掉不属于该KeyGroup的dbMeta.
         CONTINUE_LOOP_AS_NULLPTR(dbMeta);
         if (dbMeta->GetStartKeyGroup() <= mConfig->GetEndGroup() &&
             dbMeta->GetEndKeyGroup() >= mConfig->GetStartGroup()) {
@@ -292,11 +292,11 @@ BResult FreshTable::Restore(const std::vector<RestoredDbMetaRef> &restoredDbMeta
         }
     }
     uint64_t totalDataSize = 0;
-    bool fastBulkLoad = (usefulMetas.size() == 1);  // 该字段表示是否满足快速批量加载的条件.
+    bool fastBulkLoad = (usefulMetas.size() == 1); // 该字段表示是否满足快速批量加载的条件.
     for (const auto &dbMeta : usefulMetas) {
         auto currentMetaKeyGroup = std::make_shared<GroupRange>(dbMeta->GetStartKeyGroup(), dbMeta->GetEndKeyGroup());
         auto validKeyGroups = std::make_shared<GroupRange>(mConfig->GetStartGroup(), mConfig->GetEndGroup())
-                                  ->Intersection(currentMetaKeyGroup);
+            ->Intersection(currentMetaKeyGroup);
         if (fastBulkLoad) {
             fastBulkLoad = currentMetaKeyGroup->Equals(std::make_shared<GroupRange>(validKeyGroups));
         }
@@ -308,38 +308,38 @@ BResult FreshTable::Restore(const std::vector<RestoredDbMetaRef> &restoredDbMeta
             if (opType == SnapshotOperatorType::FRESH_TABLE) {
                 metaFileInputView->Seek(opInfo->GetSnapshotOperatorMetaOffset());
                 std::string address;
-                RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->ReadUTF(address));  // 读取文件地址.
+                RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->ReadUTF(address)); // 读取文件地址.
                 uint32_t length = NO_0;
-                RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->Read(length));  // 读取MemorySegment的数据长度.
+                RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->Read(length)); // 读取MemorySegment的数据长度.
                 CompressAlgo compressAlgo = NONE;
-                RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->Read(compressAlgo));  // 读取压缩标记.
+                RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->Read(compressAlgo)); // 读取压缩标记.
                 uint32_t compressLength = NO_0;
-                RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->Read(compressLength));  // 读取压缩后长度.
+                RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->Read(compressLength)); // 读取压缩后长度.
                 if (UNLIKELY(length == 0)) {
                     continue;
                 }
 
-                RETURN_NOT_OK(RestoreOpen());  // 申请activeSegment.
+                RETURN_NOT_OK(RestoreOpen()); // 申请activeSegment.
                 if (fastBulkLoad) {
                     fastBulkLoad = (memorySegmentSize >= length);
                 }
                 FileInputViewRef fileInputView = std::make_shared<FileInputView>();
                 RETURN_NOT_OK(fileInputView->Init(FileSystemType::LOCAL, std::make_shared<Path>(Uri(address))));
-                if (fastBulkLoad) {  // 执行快速批量加载.
+                if (fastBulkLoad) { // 执行快速批量加载.
                     MemorySegmentRef memorySegment = mActive->GetMemorySegment();
                     auto ret = fileInputView->ReadMemorySegment(0, memorySegment, 0, length);
                     if (UNLIKELY(ret != BSS_OK)) {
-                        LOG_ERROR("Restore memory segment failed from snapshot file, ret:"
-                                  << ret << ", file path:" << fileInputView->GetFilePath()->ExtractFileName());
+                        LOG_ERROR("Restore memory segment failed from snapshot file, ret:" << ret << ", file path:" <<
+                                  fileInputView->GetFilePath()->ExtractFileName());
                         return BSS_ERR;
                     }
                     memorySegment->UpdatePosition(length);
                     totalDataSize += length;
                     uint32_t indexNodeSize = mActive->GetBinaryData()->Size();
                     uint32_t bucketCount = mActive->GetBinaryData()->BucketCount();
-                    LOG_INFO("Restore fresh table fast bulk load, length:"
-                             << length << ", indexNodeSize:" << indexNodeSize << ", bucketCount:" << bucketCount
-                             << ", file address:" << PathTransform::ExtractFileName(address));
+                    LOG_INFO("Restore fresh table fast bulk load, length:" << length << ", indexNodeSize:" <<
+                             indexNodeSize << ", bucketCount:" << bucketCount << ", file address:" <<
+                             PathTransform::ExtractFileName(address));
                     break;
                 } else {
                     uintptr_t addr = 0;
@@ -359,16 +359,15 @@ BResult FreshTable::Restore(const std::vector<RestoredDbMetaRef> &restoredDbMeta
 
                     auto ret = fileInputView->ReadMemorySegment(0, boostSegment->GetMemorySegment(), 0, length);
                     if (UNLIKELY(ret != BSS_OK)) {
-                        LOG_ERROR("Restore memory segment failed from snapshot file, ret:"
-                                  << ret << ", file path:" << fileInputView->GetFilePath()->ExtractFileName());
+                        LOG_ERROR("Restore memory segment failed from snapshot file, ret:" << ret << ", file path:" <<
+                                  fileInputView->GetFilePath()->ExtractFileName());
                         return BSS_ERR;
                     }
                     totalDataSize += length;
                     RETURN_NOT_OK(FillDataByMemorySegment(boostSegment, validKeyGroups));
-                    LOG_INFO("Restore fresh table slow load, length:"
-                             << length << ", keyGroupsStart:" << validKeyGroups.GetStartGroup()
-                             << ", keyGroupsEnd:" << validKeyGroups.GetEndGroup()
-                             << ", file address:" << PathTransform::ExtractFileName(address));
+                    LOG_INFO("Restore fresh table slow load, length:" << length << ", keyGroupsStart:" <<
+                             validKeyGroups.GetStartGroup() << ", keyGroupsEnd:" << validKeyGroups.GetEndGroup() <<
+                             ", file address:" << PathTransform::ExtractFileName(address));
                 }
             }
         }
@@ -435,19 +434,19 @@ BResult FreshTable::FillDataByMemorySegment(const BoostSegmentRef &boostSegment,
         FreshValueNodePtr value = kvPair.second;
         RETURN_ALLOC_FAIL_AS_NULLPTR(value);
         PriKey primaryKey;
-        primaryKey.Parse(key);  // 构建primaryKey获取stateId和stateType.
+        primaryKey.Parse(key); // 构建primaryKey获取stateId和stateType.
         uint16_t stateId = primaryKey.mStateId;
         StateType stateType = StateId::GetStateType(stateId);
 
         BinaryKey binaryKey;
-        binaryKey.Parse(primaryKey, stateType == VALUE);  // 构建binaryKey获取keyGroup.
+        binaryKey.Parse(primaryKey, stateType == VALUE); // 构建binaryKey获取keyGroup.
         auto curGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(binaryKey.mKeyHashCode);
-        if (!validKeyGroups.ContainsGroup(static_cast<int32_t>(curGroup))) {  // 过滤掉不属于该KeyGroup的kv数据.
+        if (!validKeyGroups.ContainsGroup(static_cast<int32_t>(curGroup))) { // 过滤掉不属于该KeyGroup的kv数据.
             continue;
         }
 
         // 3. 根据不同的类型调用不同的write接口.
-        if (StateTypeUtil::HasSecKey(stateType)) {  // 3.1 KMap类型.
+        if (StateTypeUtil::HasSecKey(stateType)) { // 3.1 KMap类型.
             BoostHashMapRef hashMap = MakeRef<BoostHashMap>();
             uint32_t offset = value->MapData() - boostSegment->GetMemorySegment()->GetSegment();
             RETURN_NOT_OK(hashMap->Init(boostSegment->GetMemorySegment(), offset, false));
@@ -471,7 +470,7 @@ BResult FreshTable::FillDataByMemorySegment(const BoostSegmentRef &boostSegment,
             ValueType valType = value->ValueType();
             // 3.2 KList类型.
             if (valType == ValueType::APPEND) {
-                value->VisitAsList(*(boostSegment->GetMemorySegment()), [&](FreshValueNode &curVal) -> BResult {
+                value->VisitAsList(*(boostSegment->GetMemorySegment()), [&](FreshValueNode &curVal) ->BResult {
                     BinaryData priKey(binaryKey.mPrimaryKey.mKeyData, binaryKey.mPrimaryKey.mKeyDataLength);
                     QueryKey putKey(stateId, binaryKey.mKeyHashCode, priKey);
                     Value addVal;

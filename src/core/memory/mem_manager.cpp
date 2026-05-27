@@ -9,9 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "mem_manager.h"
-
 #include <unistd.h>
+
+#include "mem_manager.h"
 
 namespace ock {
 namespace bss {
@@ -84,8 +84,8 @@ BResult MemManager::GetMemory(MemoryType type, uint64_t size, uintptr_t &mrAddre
             break;
         }
 
-        Revoke(type, size);  // 通知各个模块准备释放内存.
-        usleep(NO_100);      // 当前设置延迟100us进行重试.
+        Revoke(type, size);    // 通知各个模块准备释放内存.
+        usleep(NO_100);  // 当前设置延迟100us进行重试.
         // 非强制申请内存判断是否达到重试时间.
         auto endTime = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
@@ -113,11 +113,10 @@ BResult MemManager::GetMemoryDirect(MemoryType type, uint64_t size, uintptr_t &m
                  (type != MemoryType::FILE_STORE || mHeapUsedSize.load() + realSize > mHeapAvailableSize.load()))) {
         LOG_LIMIT_WARN("memPool[" << type << "] exceed limit! [used:" << currentSize << ",alloc:" << realSize
                                   << ",capacity:" << mTypeMaxSize[index] << ", Current memory info: [File used:"
-                                  << mTypeCurrentSize[GetIndex(MemoryType::FILE_STORE)].load()
-                                  << ",Fresh used:" << mTypeCurrentSize[GetIndex(MemoryType::FRESH_TABLE)].load()
-                                  << ",Slice used:" << mTypeCurrentSize[GetIndex(MemoryType::SLICE_TABLE)].load()
-                                  << ", mHeapTotalSize: " << mHeapAvailableSize.load()
-                                  << " ,mHeapUsedSize: " << mHeapUsedSize.load() << "]");
+                                  << mTypeCurrentSize[GetIndex(MemoryType::FILE_STORE)].load() << ",Fresh used:"
+                                  << mTypeCurrentSize[GetIndex(MemoryType::FRESH_TABLE)].load() << ",Slice used:"
+                                  << mTypeCurrentSize[GetIndex(MemoryType::SLICE_TABLE)].load() << ", mHeapTotalSize: "
+                                  << mHeapAvailableSize.load() << " ,mHeapUsedSize: " << mHeapUsedSize.load() << "]");
         return BSS_ALLOC_FAIL;
     }
 
@@ -245,9 +244,9 @@ std::string MemManager::ToString()
 void MemManager::PrintUsage()
 {
     LOG_WARN("ID:" << this << " [File used:" << mTypeCurrentSize[NO_0].load()
-                   << ",Fresh used:" << mTypeCurrentSize[NO_1].load() << ",Slice used:" << mTypeCurrentSize[NO_2].load()
-                   << ",Heap Used:" << mHeapUsedSize.load() << "]"
-                   << " Slot:" << mTaskSlotFlag);
+                   << ",Fresh used:" << mTypeCurrentSize[NO_1].load()
+                   << ",Slice used:" << mTypeCurrentSize[NO_2].load()
+                   << ",Heap Used:" << mHeapUsedSize.load() << "]" << " Slot:" << mTaskSlotFlag);
 }
 
 BResult MemManager::AddDbRefCount()

@@ -9,11 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "boost_state_dbgroup.h"
-
 #include <atomic>
 #include <iostream>
 
+#include "boost_state_dbgroup.h"
 #include "common/bss_log.h"
 #include "snapshot/snapshot_manager.h"
 #include "kv_table/kv_table_factory.h"
@@ -230,8 +229,8 @@ PQTableRef BoostStateDBImpl::CreatePQTable(const std::string &str)
             return nullptr;
         }
         auto lsmStore = bucketGroupManager->GetBucketGroupVector()[0]->GetLsmStore();
-        table = std::make_shared<PQTable>(mMemManager, mFreshTransformer->GetTransformExecutor(), lsmStore, str,
-                                          mStateIdProvider, des);
+        table = std::make_shared<PQTable>(mMemManager, mFreshTransformer->GetTransformExecutor(),
+            lsmStore, str, mStateIdProvider, des);
         auto ret = table->Initialize();
         if (ret != BSS_OK) {
             return nullptr;
@@ -265,8 +264,8 @@ SnapshotOperatorCoordinator *BoostStateDBImpl::CreateSyncCheckpoint(const std::s
 {
     auto start = std::chrono::high_resolution_clock::now();
     PathRef snapshotPath = std::make_shared<Path>(Uri(checkpointPath));
-    LOG_INFO("Create sync checkpoint start, checkpointId:" << checkpointId
-                                                           << ", snapshotPath:" << snapshotPath->ExtractFileName());
+    LOG_INFO("Create sync checkpoint start, checkpointId:" << checkpointId << ", snapshotPath:" <<
+             snapshotPath->ExtractFileName());
     std::vector<PQTableRef> pqTables;
     for (const auto &item : mPQTable) {
         pqTables.emplace_back(item.second);
@@ -334,8 +333,8 @@ BResult BoostStateDBImpl::CreateAsyncCheckpoint(uint64_t checkpointId, bool isIn
 }
 
 BResult BoostStateDBImpl::Restore(std::vector<std::string> &restorePath,
-                                  std::unordered_map<std::string, std::string> &lazyPathMapping, bool isLazyDownload,
-                                  bool isNewJob)
+                                  std::unordered_map<std::string, std::string> &lazyPathMapping,
+                                  bool isLazyDownload, bool isNewJob)
 {
     mConfig->SetIsNewJob(isNewJob);
     std::vector<PathRef> restoredMetaPaths;
@@ -347,9 +346,10 @@ BResult BoostStateDBImpl::Restore(std::vector<std::string> &restorePath,
         LOG_INFO("Start restore from path:" << PathTransform::ExtractFileName(path));
         restoredMetaPaths.push_back(std::make_shared<Path>(path + "/metadata"));
     }
-    auto restoreOperator = std::make_shared<RestoreOperator>(mConfig, mLocalFileManager, mRemoteFileManager,
-                                                             mSliceTable, mFreshTable, mStateIdProvider, mTables,
-                                                             mFileCacheFactory, mSnapshotManager, mPQTable);
+    auto restoreOperator = std::make_shared<RestoreOperator>(mConfig, mLocalFileManager,
+                                                             mRemoteFileManager, mSliceTable, mFreshTable,
+                                                             mStateIdProvider, mTables, mFileCacheFactory,
+                                                             mSnapshotManager, mPQTable);
     uint64_t seqId = 0;
     BResult ret = restoreOperator->Restore(restoredMetaPaths, lazyPathMapping, seqId, isLazyDownload);
     mSeqGenerator->Restore(seqId);
@@ -372,8 +372,7 @@ SavepointDataView *BoostStateDBImpl::TriggerSavepoint()
         pqTables.emplace_back(item.second);
     }
     auto pendingSavepoint = MakeRef<PendingSavepointCoordinator>(mSnapshotManager, mFreshTable, mSliceTable,
-                                                                 mSnapshotManager->AllocateSavepointId(),
-                                                                 stateIdProviderSnapshot, mMemManager, pqTables);
+        mSnapshotManager->AllocateSavepointId(), stateIdProviderSnapshot, mMemManager, pqTables);
     auto ret = mSnapshotManager->RegisterPendingSavepoint(pendingSavepoint);
     if (UNLIKELY(ret != BSS_OK)) {
         LOG_ERROR("Failed to register savepoint, ret:" << ret);
@@ -386,8 +385,8 @@ SavepointDataView *BoostStateDBImpl::TriggerSavepoint()
         return nullptr;
     }
 
-    return new (std::nothrow)
-        SavepointDataView(mSnapshotManager, pendingSavepoint, mConfig->GetMaxParallelism(), mMemManager);
+    return new (std::nothrow) SavepointDataView(mSnapshotManager, pendingSavepoint, mConfig->GetMaxParallelism(),
+                                                mMemManager);
 }
 
 void BoostStateDBImpl::NotifyDBSnapshotAbort(uint64_t checkpointId)

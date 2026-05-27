@@ -11,10 +11,9 @@
 
 #ifndef BLOB_FILE_GROUP_MANAGER_H
 #define BLOB_FILE_GROUP_MANAGER_H
-#include <binary/value/value.h>
-
 #include <vector>
 
+#include "binary/value/value.h"
 #include "blob_file_group.h"
 
 namespace ock {
@@ -29,7 +28,7 @@ public:
         std::vector<BlobFileGroupRef>().swap(mBlobFileGroups);
     }
 
-    explicit BlobFileGroupManager(const GroupRangeRef &range)
+    explicit BlobFileGroupManager(const GroupRangeRef& range)
     {
         mBlobFileGroups.emplace_back(std::make_shared<BlobFileGroup>(range));
     }
@@ -95,7 +94,7 @@ public:
     uint64_t GetFileSize()
     {
         uint64_t size = 0;
-        for (const auto &fileGroup : mBlobFileGroups) {
+        for (const auto& fileGroup : mBlobFileGroups) {
             CONTINUE_LOOP_AS_NULLPTR(fileGroup);
             size += fileGroup->GetFileSize();
         }
@@ -105,7 +104,7 @@ public:
 private:
     std::vector<BlobFileGroupRef> mBlobFileGroups;
 };
-}  // namespace bss
-}  // namespace ock
+}
+}
 
 #endif

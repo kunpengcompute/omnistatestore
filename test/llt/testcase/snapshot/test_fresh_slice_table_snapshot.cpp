@@ -9,9 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "test_fresh_slice_table_snapshot.h"
-
 #include <map>
+
+#include "test_fresh_slice_table_snapshot.h"
 
 using namespace ock::bss;
 

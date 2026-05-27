@@ -9,10 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "include/compress_algo.h"
-
 #include <functional>
 
+#include "include/compress_algo.h"
 #include "compressor_utils.h"
 #include "file_structure.h"
 #include "lsm_store/block/index_block_writer.h"
@@ -134,14 +133,14 @@ BResult FileWriter::CompressBlock(ByteBufferRef &buffer, uint32_t &bufferSize, b
         return BSS_ALLOC_FAIL;
     }
     ByteBufferRef outputBuffer = MakeRef<ByteBuffer>(reinterpret_cast<uint8_t *>(addr), maxCompressedLength,
-                                                     mMemManager);
+                                                  mMemManager);
     if (UNLIKELY(outputBuffer == nullptr)) {
         mMemManager->ReleaseMemory(addr);
         LOG_ERROR("Make new buffer failed, because of out of memory.");
         return BSS_ALLOC_FAIL;
     }
-    uint32_t outputSize = compressor->Compress(outputBuffer->Data(), maxCompressedLength, buffer->Data(),
-                                               buffer->Capacity(), NO_4);
+    uint32_t outputSize = compressor->Compress(outputBuffer->Data(), maxCompressedLength,
+                                               buffer->Data(), buffer->Capacity(), NO_4);
     // 假如数据已无法压缩，即不压缩，主动失败
     if (UNLIKELY(outputSize == 0 || outputSize > bufferSize)) {
         return BSS_INNER_ERR;
@@ -181,8 +180,8 @@ BResult FileWriter::Finish(FileBlockMetaRef &fileMeta)
         RETURN_NOT_OK_NO_LOG(retVal);
     }
     fileMeta = std::make_shared<FileBlockMeta>(mFilePath, mDataBlockStat, mIndexBlockStat,
-                                               (mFilterBlockHandle == nullptr) ? 0 : mFilterBlockHandle->GetSize(),
-                                               mFilterBlockRawSize, mFileOutputSize, mStateIdInterval);
+                                            (mFilterBlockHandle == nullptr) ? 0 : mFilterBlockHandle->GetSize(),
+                                            mFilterBlockRawSize, mFileOutputSize, mStateIdInterval);
     return BSS_OK;
 }
 
@@ -262,7 +261,8 @@ BResult FileWriter::BuildFooter()
 
     FooterStructure footer = { GetMagicNumber(), mMetaIndexBlockHandle->GetOffset(), mMetaIndexBlockHandle->GetSize() };
     auto ret = mFileOutputView->WriteBuffer(reinterpret_cast<uint8_t *>(&footer),
-                                            static_cast<int64_t>(mFileOutputView->Size()), sizeof(FooterStructure));
+                                            static_cast<int64_t>(mFileOutputView->Size()),
+                                            sizeof(FooterStructure));
     if (LIKELY(ret == BSS_OK)) {
         mFileOutputSize += sizeof(FooterStructure);
     }

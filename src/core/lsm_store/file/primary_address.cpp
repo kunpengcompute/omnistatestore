@@ -9,10 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "primary_address.h"
-
 #include <cstdint>
 #include <memory>
+
+#include "primary_address.h"
 
 namespace ock {
 namespace bss {
