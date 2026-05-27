@@ -12,14 +12,14 @@
 #ifndef BOOST_SS_BOOST_STATE_DB_IMPL_H
 #define BOOST_SS_BOOST_STATE_DB_IMPL_H
 
-#include "include/boost_state_db.h"
+#include "common/bss_metric.h"
 #include "fresh_table/fresh_table.h"
+#include "include/boost_state_db.h"
 #include "lsm_store/file/file_cache_factory.h"
+#include "pq_table.h"
 #include "slice_table/slice_table.h"
 #include "snapshot/savepoint_data_view.h"
 #include "transform/fresh_transformer.h"
-#include "common/bss_metric.h"
-#include "pq_table.h"
 
 namespace ock {
 namespace bss {

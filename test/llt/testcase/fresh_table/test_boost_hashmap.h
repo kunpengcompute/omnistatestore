@@ -12,8 +12,8 @@
 #ifndef BINARY_HASHMAP_TEST_H
 #define BINARY_HASHMAP_TEST_H
 
-#include "gtest/gtest.h"
 #include "fresh_table/boost/boost_hash_map.h"
+#include "gtest/gtest.h"
 
 using namespace ock::bss;
 class TestBoostHashMap : public testing::Test {

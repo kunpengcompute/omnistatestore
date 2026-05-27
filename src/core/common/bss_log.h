@@ -19,10 +19,10 @@
 #include <sstream>
 #include <utility>
 
-#include "spdlog/common.h"
-#include "spdlog/spdlog.h"
 #include "common/bss_def.h"
 #include "common/util/timestamp_util.h"
+#include "spdlog/common.h"
+#include "spdlog/spdlog.h"
 
 namespace ock {
 namespace bss {

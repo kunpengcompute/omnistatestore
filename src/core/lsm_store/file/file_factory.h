@@ -12,13 +12,13 @@
 #ifndef FILE_FACTORY_H
 #define FILE_FACTORY_H
 
-#include "include/compress_algo.h"
-#include "include/config.h"
 #include "common/block.h"
 #include "data_slice_flush_iterator.h"
 #include "file_info.h"
 #include "file_reader.h"
 #include "file_writer.h"
+#include "include/compress_algo.h"
+#include "include/config.h"
 #include "slice_table/slice/data_slice.h"
 
 namespace ock {

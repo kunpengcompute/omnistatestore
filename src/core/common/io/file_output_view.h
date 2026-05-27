@@ -20,10 +20,10 @@
 #include <cstdio>
 #include <mutex>
 
-#include "include/config.h"
 #include "common/bss_log.h"
 #include "common/fs/file_system.h"
 #include "common/path.h"
+#include "include/config.h"
 #include "slice_table/binary/byte_buffer.h"
 
 namespace ock {

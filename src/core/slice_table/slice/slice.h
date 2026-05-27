@@ -17,11 +17,11 @@
 #include <utility>
 #include <vector>
 
-#include "include/bss_err.h"
 #include "binary/byte_buffer.h"
 #include "binary/fresh_binary.h"
 #include "binary/key/key.h"
 #include "binary/slice_binary.h"
+#include "include/bss_err.h"
 #include "serialized_data.h"
 #include "slice_table/binary_map/binary_key.h"
 #include "slice_table/slice/raw_data_slice.h"

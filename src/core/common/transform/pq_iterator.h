@@ -16,8 +16,8 @@
 
 #include "binary/key_value.h"
 #include "binary/query_binary.h"
-#include "include/binary_data.h"
 #include "fresh_table/memory/skiplist.h"
+#include "include/binary_data.h"
 
 namespace ock {
 namespace bss {

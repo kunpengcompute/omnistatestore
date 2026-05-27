@@ -14,9 +14,9 @@
 
 #include <vector>
 
+#include "hash_code_range.h"
 #include "include/bss_err.h"
 #include "include/config.h"
-#include "hash_code_range.h"
 #include "slice_index_context.h"
 #include "slice_table/slice/logical_slice_chain.h"
 

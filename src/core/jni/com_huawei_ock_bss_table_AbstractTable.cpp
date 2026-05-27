@@ -9,13 +9,13 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "include/boost_state_db.h"
+#include "com_huawei_ock_bss_table_AbstractTable.h"
 
 #include <memory>
 
 #include "common/scope_guard.h"
+#include "include/boost_state_db.h"
 #include "kv_helper.h"
-#include "com_huawei_ock_bss_table_AbstractTable.h"
 
 using namespace ock::bss;
 

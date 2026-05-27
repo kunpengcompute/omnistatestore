@@ -15,8 +15,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "common/path.h"
 #include "blob_store/blob_file_meta.h"
+#include "common/path.h"
 
 namespace ock {
 namespace bss {

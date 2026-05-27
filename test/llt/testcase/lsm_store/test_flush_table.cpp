@@ -9,11 +9,11 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "flushing_bucket_group.h"
+#include "test_flush_table.h"
 
+#include "flushing_bucket_group.h"
 #include "generator.h"
 #include "slice/data_slice.h"
-#include "test_flush_table.h"
 
 using namespace ock::bss;
 

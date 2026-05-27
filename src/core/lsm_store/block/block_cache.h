@@ -14,8 +14,8 @@
 
 #include <memory>
 
-#include "common/util/lru_cache.h"
 #include "common/block.h"
+#include "common/util/lru_cache.h"
 
 namespace ock {
 namespace bss {

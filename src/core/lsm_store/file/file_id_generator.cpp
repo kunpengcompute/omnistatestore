@@ -9,9 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "common/bss_log.h"
-
 #include "file_id_generator.h"
+
+#include "common/bss_log.h"
 
 namespace ock {
 namespace bss {

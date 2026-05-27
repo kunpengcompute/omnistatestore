@@ -14,13 +14,13 @@
 
 #include <map>
 
-#include "include/config.h"
 #include "common/util/bss_lock.h"
 #include "common/util/string_util.h"
 #include "compressor_utils.h"
 #include "file_cache_manager.h"
 #include "file_factory.h"
 #include "file_writer.h"
+#include "include/config.h"
 #include "lsm_store/block/file_access.h"
 #include "lsm_store/key/full_key_filter.h"
 #include "lsm_store/version/version.h"

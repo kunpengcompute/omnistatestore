@@ -11,8 +11,8 @@
 #include <dirent.h>
 #include <ftw.h>
 
-#include "gtest/gtest.h"
 #include "common/bss_log.h"
+#include "gtest/gtest.h"
 #include "include/boost_state_db.h"
 #include "include/boost_state_table.h"
 #include "kv_table/kv_table_iterator.h"

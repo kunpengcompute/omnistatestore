@@ -9,9 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "input_level_compaction.h"
-
 #include "compaction_picker.h"
+
+#include "input_level_compaction.h"
 
 namespace ock {
 namespace bss {

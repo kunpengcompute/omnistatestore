@@ -21,13 +21,13 @@
 #include <random>
 #include <string>
 
-#include "gtest/gtest.h"
 #include "common/bss_log.h"
 #include "fresh_table/fresh_table.h"
+#include "gtest/gtest.h"
+#include "include/boost_state_db.h"
 #include "slice_table/slice_table.h"
 #include "slice_table/test_slice_table_manager.h"
 #include "test_utils.h"
-#include "include/boost_state_db.h"
 
 using namespace ock::bss;
 class TestFreshSliceTableSnapshot : public testing::Test {

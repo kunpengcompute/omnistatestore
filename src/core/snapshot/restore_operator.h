@@ -14,8 +14,8 @@
 
 #include <vector>
 
-#include "include/config.h"
 #include "include/boost_state_table.h"
+#include "include/config.h"
 #include "lsm_store/file/file_cache_factory.h"
 #include "snapshot_manager.h"
 #include "snapshot_restore_utils.h"

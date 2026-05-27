@@ -14,8 +14,8 @@
 
 #include <utility>
 
-#include "include/config.h"
 #include "compaction.h"
+#include "include/config.h"
 #include "lsm_store/file/file_meta_data.h"
 #include "lsm_store/file/group_range.h"
 #include "version/version.h"

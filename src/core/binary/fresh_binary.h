@@ -14,9 +14,9 @@
 
 #include <iostream>
 
-#include "boost/node_type.h"
 #include "binary/key/key.h"
 #include "binary/value/value.h"
+#include "boost/node_type.h"
 #include "common/bss_def.h"
 #include "value/value_type.h"
 namespace ock {

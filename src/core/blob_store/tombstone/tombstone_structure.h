@@ -14,8 +14,8 @@
 
 #include <cstdint>
 
-#include "tombstone.h"
 #include "bss_log.h"
+#include "tombstone.h"
 
 namespace ock {
 namespace bss {

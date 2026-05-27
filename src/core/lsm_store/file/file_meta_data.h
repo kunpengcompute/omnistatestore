@@ -21,11 +21,11 @@
 #include "file_address_util.h"
 #include "file_cache_type.h"
 #include "file_meta.h"
+#include "file_meta_base.h"
 #include "group_range.h"
 #include "include/bss_types.h"
 #include "order_range.h"
 #include "path_transform.h"
-#include "file_meta_base.h"
 
 namespace ock {
 namespace bss {

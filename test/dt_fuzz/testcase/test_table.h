@@ -19,14 +19,14 @@
 #include <filesystem>
 #include <iostream>
 
-#include "gtest/gtest.h"
+#include "../fuzz_main.h"
 #include "common/bss_log.h"
+#include "gtest/gtest.h"
+#include "hash.h"
 #include "include/boost_state_db.h"
 #include "include/boost_state_table.h"
 #include "slice_table/slice_table.h"
-#include "../fuzz_main.h"
 #include "test_utils.h"
-#include "hash.h"
 
 namespace ock {
 namespace bss {

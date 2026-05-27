@@ -9,13 +9,13 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "include/table_description.h"
+#include "include/boost_state_table.h"
 
 #include "common/util/seq_generator.h"
 #include "fresh_table/fresh_table.h"
+#include "include/table_description.h"
 #include "kv_table_iterator.h"
 #include "slice_table/slice_table.h"
-#include "include/boost_state_table.h"
 
 namespace ock {
 namespace bss {

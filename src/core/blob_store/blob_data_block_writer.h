@@ -15,9 +15,9 @@
 #include <cstdint>
 #include <vector>
 
-#include "buffer.h"
 #include "blob_data_block.h"
 #include "blob_data_block_meta.h"
+#include "buffer.h"
 #include "util/bss_lock.h"
 
 namespace ock {
@@ -39,8 +39,7 @@ struct BlobIndexEntry {
 class BlobDataBlockWriter {
 public:
     ~BlobDataBlockWriter() = default;
-    explicit BlobDataBlockWriter(const ByteBufferRef &buffer)
-        : mBuffer(buffer)
+    explicit BlobDataBlockWriter(const ByteBufferRef &buffer) : mBuffer(buffer)
     {
         mCapacity = buffer->Capacity();
         mBlobDataBlockMeta = std::make_shared<BlobDataBlockMeta>();
@@ -55,9 +54,9 @@ public:
     {
         ReadLocker<ReadWriteLock> lk(&mRwLock);
         if (UNLIKELY(UINT32_MAX - mPosition - size < mIndexEntryList.size() * BLOB_INDEX_ENTRY_STRUCT_SIZE)) {
-            LOG_ERROR("The value crosses the boundary and exceeds the UINT32_MAX maximum, mPosition: " << mPosition
-            << ", size: " << size << ", index vec size: " <<mIndexEntryList.size()
-            << ", blob block header size: " << BLOB_DATA_BLOCK_HEADER_SIZE);
+            LOG_ERROR("The value crosses the boundary and exceeds the UINT32_MAX maximum, mPosition: "
+                      << mPosition << ", size: " << size << ", index vec size: " << mIndexEntryList.size()
+                      << ", blob block header size: " << BLOB_DATA_BLOCK_HEADER_SIZE);
             return false;
         }
         auto curSize = mPosition + size + mIndexEntryList.size() * BLOB_INDEX_ENTRY_STRUCT_SIZE;
@@ -87,9 +86,9 @@ public:
         return mIndexEntryList;
     }
 
-    BResult Write(uint64_t blobId, const uint8_t* data, uint32_t length, uint64_t expireTime, uint32_t keyGroup);
+    BResult Write(uint64_t blobId, const uint8_t *data, uint32_t length, uint64_t expireTime, uint32_t keyGroup);
 
-    BResult Write(uint64_t blobId, const uint8_t* data, uint32_t length, uint64_t seqId);
+    BResult Write(uint64_t blobId, const uint8_t *data, uint32_t length, uint64_t seqId);
 
     BlobDataBlockRef WriteBlobDataBlock();
 
@@ -98,6 +97,7 @@ public:
     BufferRef CopyNewBufferFromBuffer(BufferAllocator &allocator, uint32_t offset, uint32_t length);
 
     BResult SelectBlobValue(uint64_t blobId, BufferAllocator allocator, Value &value);
+
 private:
     ByteBufferRef mBuffer = nullptr;
     uint32_t mCapacity = 0;
@@ -107,7 +107,7 @@ private:
     BlobDataBlockMetaRef mBlobDataBlockMeta = nullptr;
 };
 using BlobDataBlockWriterRef = std::shared_ptr<BlobDataBlockWriter>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

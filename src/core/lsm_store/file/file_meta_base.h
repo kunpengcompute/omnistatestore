@@ -17,8 +17,8 @@
 #include <string>
 #include <utility>
 
-#include "file_address_util.h"
 #include "common/path_transform.h"
+#include "file_address_util.h"
 
 namespace ock {
 namespace bss {

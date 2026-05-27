@@ -10,9 +10,9 @@
  */
 #include "com_huawei_ock_bss_snapshot_SavepointDBResult.h"
 
+#include "include/boost_state_db.h"
 #include "include/bss_err.h"
 #include "include/config.h"
-#include "include/boost_state_db.h"
 #include "kv_helper.h"
 #include "snapshot/savepoint_data_view.h"
 using namespace ock::bss;

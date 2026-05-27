@@ -14,7 +14,6 @@
 
 #include <memory>
 
-#include "include/config.h"
 #include "common/path.h"
 #include "common/util/iterator.h"
 #include "file_address_util.h"
@@ -22,6 +21,7 @@
 #include "file_meta_data.h"
 #include "file_meta_index_block_writer.h"
 #include "file_reader_base.h"
+#include "include/config.h"
 #include "lsm_store/block/data_block.h"
 #include "lsm_store/block/filter_block_writer.h"
 #include "lsm_store/block/index_reader.h"

@@ -9,10 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "snapshot_manager.h"
-
-#include "sorted_key_value_merging_iterator.h"
 #include "savepoint_data_view.h"
+
+#include "snapshot_manager.h"
+#include "sorted_key_value_merging_iterator.h"
 
 namespace ock {
 namespace bss {

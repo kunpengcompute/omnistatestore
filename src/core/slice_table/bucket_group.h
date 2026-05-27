@@ -14,8 +14,8 @@
 
 #include <cstdint>
 
-#include "include/bss_err.h"
 #include "bucket_group_range.h"
+#include "include/bss_err.h"
 #include "lsm_store/file/file_store_impl.h"
 #include "slice_table/index/slice_bucket_index.h"
 #include "slice_table/index/slice_index_context.h"

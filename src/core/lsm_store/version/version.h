@@ -16,10 +16,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "include/config.h"
 #include "common/bss_def.h"
 #include "common/bss_log.h"
 #include "compaction/compaction_comm.h"
+#include "include/config.h"
 #include "lazy/restore_file_info.h"
 #include "level.h"
 #include "lsm_store/file/file_meta_data_group.h"

@@ -9,10 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "common/bss_log.h"
+#include "bucket_group.h"
 
 #include "bucket_group_range.h"
-#include "bucket_group.h"
+#include "common/bss_log.h"
 
 namespace ock {
 namespace bss {

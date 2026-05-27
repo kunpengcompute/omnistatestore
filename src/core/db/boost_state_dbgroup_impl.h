@@ -14,10 +14,10 @@
 
 #include <vector>
 
+#include "boost_state_dbgroup.h"
 #include "bucket_group.h"
 #include "common/util/bss_lock.h"
 #include "memory/mem_manager.h"
-#include "boost_state_dbgroup.h"
 
 namespace ock {
 namespace bss {

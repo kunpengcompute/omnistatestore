@@ -26,9 +26,9 @@
 #include <sstream>
 #include <string>
 
+#include "common/bss_log.h"
+#include "gtest/gtest.h"
+#include "securec.h"
 #include "spdlog/common.h"
 #include "spdlog/spdlog.h"
-#include "common/bss_log.h"
-#include "securec.h"
-#include "gtest/gtest.h"
 #endif

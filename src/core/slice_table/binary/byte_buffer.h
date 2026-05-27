@@ -15,10 +15,10 @@
 #include <cstdint>
 #include <memory>
 
+#include "binary/binary_reader.h"
 #include "include/bss_err.h"
 #include "include/bss_types.h"
 #include "include/buffer.h"
-#include "binary/binary_reader.h"
 #include "memory/mem_manager.h"
 #include "securec.h"
 #include "util/bss_math.h"

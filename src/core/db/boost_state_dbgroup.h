@@ -14,10 +14,10 @@
 
 #include <unordered_map>
 
-#include "include/bss_err.h"
-#include "include/config.h"
 #include "common/util/bss_lock.h"
 #include "include/boost_state_db.h"
+#include "include/bss_err.h"
+#include "include/config.h"
 #include "mem_manager.h"
 
 namespace ock {

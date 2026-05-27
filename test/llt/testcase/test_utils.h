@@ -23,8 +23,8 @@
 #define private public
 #define protected public
 
-#include "include/bss_types.h"
 #include "../ut_main.h"
+#include "include/bss_types.h"
 
 namespace ock {
 namespace bss {

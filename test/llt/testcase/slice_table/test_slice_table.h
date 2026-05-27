@@ -16,11 +16,11 @@
 #include <memory>
 #include <random>
 
-#include "gtest/gtest.h"
 #include "boost_state_db_impl.h"
 #include "generator.h"
-#include "slice_table.h"
+#include "gtest/gtest.h"
 #include "include/boost_state_db.h"
+#include "slice_table.h"
 
 using namespace ock::bss;
 using KVPair = std::pair<SliceKey, Value>;

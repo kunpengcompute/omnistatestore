@@ -14,18 +14,18 @@
 
 #include <unordered_set>
 
-#include "include/bss_err.h"
-#include "include/config.h"
 #include "compaction/compaction.h"
 #include "compaction/compaction_picker.h"
+#include "include/bss_err.h"
+#include "include/config.h"
 #include "lsm_store/file/file_cache.h"
 #include "lsm_store/file/file_meta_data_group.h"
 #include "lsm_store/file/input_sorted_run.h"
 #include "lsm_store/file/merging_iterator.h"
 #include "lsm_store/file/order_range.h"
+#include "tombstone/tombstone_service.h"
 #include "version.h"
 #include "version_edit.h"
-#include "tombstone/tombstone_service.h"
 
 namespace ock {
 namespace bss {

@@ -14,9 +14,9 @@
 #include <iomanip>
 
 #include "binary/byte_buffer.h"
+#include "common/util/key_group_util.h"
 #include "include/binary_data.h"
 #include "state_id.h"
-#include "common/util/key_group_util.h"
 
 namespace ock {
 namespace bss {

@@ -16,8 +16,8 @@
 #include <mutex>
 #include <vector>
 
-#include "mem_manager.h"
 #include "binary/byte_buffer.h"
+#include "mem_manager.h"
 
 namespace ock {
 namespace bss {

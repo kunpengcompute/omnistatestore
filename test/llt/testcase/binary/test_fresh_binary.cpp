@@ -9,8 +9,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "gtest/gtest.h"
 #include "binary/fresh_binary.h"
+#include "gtest/gtest.h"
 #include "test_utils.h"
 
 using namespace ock::bss;

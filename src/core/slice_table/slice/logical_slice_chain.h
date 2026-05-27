@@ -18,10 +18,10 @@
 #include <stack>
 #include <vector>
 
-#include "include/bss_err.h"
-#include "include/config.h"
 #include "common/util/bss_lock.h"
 #include "data_slice.h"
+#include "include/bss_err.h"
+#include "include/config.h"
 #include "lsm_store/file/file_store_impl.h"
 #include "slice_address.h"
 #include "slice_status.h"

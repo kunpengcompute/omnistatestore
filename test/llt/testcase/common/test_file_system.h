@@ -11,8 +11,8 @@
 
 #ifndef TEST_FILE_SYSTEM_H
 #define TEST_FILE_SYSTEM_H
-#include "gtest/gtest.h"
 #include "fs/file_system.h"
+#include "gtest/gtest.h"
 #include "path.h"
 
 namespace ock {

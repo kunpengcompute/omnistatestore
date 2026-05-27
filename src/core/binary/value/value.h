@@ -13,8 +13,8 @@
 #define BOOST_SS_VALUE_H
 #include <iomanip>
 
-#include "binary/key/key.h"
 #include "binary/byte_buffer.h"
+#include "binary/key/key.h"
 #include "bss_types.h"
 #include "value_type.h"
 

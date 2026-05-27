@@ -16,8 +16,8 @@
 #include <cstdint>
 #include <string>
 
-#include "include/bss_types.h"
 #include "common/io/output_view.h"
+#include "include/bss_types.h"
 
 namespace ock {
 namespace bss {

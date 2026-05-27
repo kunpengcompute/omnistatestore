@@ -10,8 +10,8 @@
  */
 #include "com_huawei_ock_bss_jni_AbstractNativeHandleReference.h"
 
-#include "include/boost_state_db.h"
 #include "common/bss_log.h"
+#include "include/boost_state_db.h"
 using namespace ock::bss;
 
 JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_jni_AbstractNativeHandleReference_close(JNIEnv *env, jclass,

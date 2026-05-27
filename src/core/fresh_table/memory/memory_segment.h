@@ -13,11 +13,11 @@
 #include <cstdint>
 #include <memory>
 
-#include "securec.h"
-#include "include/bss_err.h"
 #include "binary/byte_buffer.h"
 #include "common/bss_log.h"
+#include "include/bss_err.h"
 #include "memory/mem_manager.h"
+#include "securec.h"
 
 namespace ock {
 namespace bss {

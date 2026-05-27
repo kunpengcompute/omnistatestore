@@ -12,10 +12,10 @@
 #ifndef BSS_DEV_FILE_STORE_ID_H
 #define BSS_DEV_FILE_STORE_ID_H
 
-#include "slice_table/index/hash_code_range.h"
-#include "group_range.h"
 #include "common/io/file_input_view.h"
 #include "common/io/file_output_view.h"
+#include "group_range.h"
+#include "slice_table/index/hash_code_range.h"
 
 namespace ock {
 namespace bss {

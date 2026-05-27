@@ -12,6 +12,7 @@
 #ifndef BOOST_SS_HASH_INTERNAL_KEY_UTIL_H
 #define BOOST_SS_HASH_INTERNAL_KEY_UTIL_H
 
+#include "binary/key/full_key.h"
 #include "binary/key/key.h"
 #include "binary/slice_binary.h"
 #include "common/io/output_view.h"
@@ -20,7 +21,6 @@
 #include "include/bss_types.h"
 #include "include/state_type.h"
 #include "kv_table/stateId_provider.h"
-#include "binary/key/full_key.h"
 
 namespace ock {
 namespace bss {

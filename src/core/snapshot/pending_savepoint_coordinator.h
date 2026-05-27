@@ -12,11 +12,11 @@
 #ifndef BOOST_SS_PENDING_SAVEPOINT_COORDINATOR_H
 #define BOOST_SS_PENDING_SAVEPOINT_COORDINATOR_H
 
-#include "fresh_table/fresh_table.h"
-#include "kv_table/stateId_provider.h"
-#include "fresh_table_snapshot_operator.h"
-#include "slice_table_snapshot_operator.h"
 #include "file_store_snapshot_operator.h"
+#include "fresh_table/fresh_table.h"
+#include "fresh_table_snapshot_operator.h"
+#include "kv_table/stateId_provider.h"
+#include "slice_table_snapshot_operator.h"
 
 namespace ock {
 namespace bss {

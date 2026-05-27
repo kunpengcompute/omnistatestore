@@ -18,8 +18,8 @@
 #include <mutex>
 #include <utility>
 
-#include "common/path_transform.h"
 #include "common/path.h"
+#include "common/path_transform.h"
 
 namespace ock {
 namespace bss {

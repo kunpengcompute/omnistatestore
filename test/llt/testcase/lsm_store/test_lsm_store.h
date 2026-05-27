@@ -12,13 +12,13 @@
 #ifndef BOOST_SS_SLICE_FACTORY_H
 #define BOOST_SS_SLICE_FACTORY_H
 
-#include "gtest/gtest.h"
+#include "common/bss_metric.h"
 #include "common/util/seq_generator.h"
 #include "flushing_bucket_group.h"
 #include "generator.h"
+#include "gtest/gtest.h"
 #include "lsm_store/file/file_cache_factory.h"
 #include "slice/slice.h"
-#include "common/bss_metric.h"
 
 using namespace ock::bss;
 using KeyVectorValueMap = std::unordered_map<SliceKey, std::vector<Value>, SliceKeyHash, SliceKeyEqual>;

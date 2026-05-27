@@ -10,9 +10,9 @@
  */
 #include "com_huawei_ock_bss_table_AbstractKMapTable.h"
 
+#include "include/boost_state_table.h"
 #include "jni_common.h"
 #include "kv_table/serialized_data.h"
-#include "include/boost_state_table.h"
 
 using namespace ock::bss;
 

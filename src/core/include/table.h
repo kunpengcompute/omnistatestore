@@ -14,9 +14,9 @@
 
 #include <vector>
 
-#include "bss_err.h"
 #include "auto_closeable.h"
 #include "binary_data.h"
+#include "bss_err.h"
 
 namespace ock {
 namespace bss {

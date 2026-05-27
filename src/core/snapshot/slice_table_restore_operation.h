@@ -15,8 +15,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "include/config.h"
 #include "bucket_group_manager.h"
+#include "include/config.h"
 #include "snapshot_restore_utils.h"
 #include "transform/fresh_transformer.h"
 

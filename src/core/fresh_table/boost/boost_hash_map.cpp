@@ -9,9 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "iostream"
-
 #include "boost_hash_map.h"
+
+#include "iostream"
 
 namespace ock {
 namespace bss {

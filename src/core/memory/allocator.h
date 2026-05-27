@@ -14,11 +14,11 @@
 
 #include <list>
 
-#include "util/bss_lock.h"
-#include "include/bss_types.h"
 #include "common/bss_log.h"
 #include "include/bss_err.h"
+#include "include/bss_types.h"
 #include "include/ref.h"
+#include "util/bss_lock.h"
 
 namespace ock {
 namespace bss {

@@ -14,14 +14,14 @@
 
 #include <functional>
 
-#include "include/compress_algo.h"
-#include "include/config.h"
 #include "binary/slice_binary.h"
 #include "common/io/file_output_view.h"
 #include "data_slice_flush_iterator.h"
 #include "file_block_meta.h"
 #include "file_mem_allocator.h"
 #include "file_meta_index_block_writer.h"
+#include "include/compress_algo.h"
+#include "include/config.h"
 #include "lsm_store/block/block_handle.h"
 #include "lsm_store/block/block_meta.h"
 #include "lsm_store/block/data_block_writer.h"

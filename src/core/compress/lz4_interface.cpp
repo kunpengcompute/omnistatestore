@@ -9,10 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "bss_log.h"
-
-#include "util/bss_def.h"
 #include "lz4_interface.h"
+
+#include "bss_log.h"
+#include "util/bss_def.h"
 
 namespace ock {
 namespace bss {

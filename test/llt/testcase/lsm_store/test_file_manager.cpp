@@ -9,6 +9,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "test_file_manager.h"
+
 #include <iostream>
 #include <random>
 #include <vector>
@@ -19,7 +21,6 @@
 #include "lsm_store/file/file_cache_factory.h"
 #include "lsm_store/file/file_factory.h"
 #include "lsm_store/file/file_name.h"
-#include "test_file_manager.h"
 
 using namespace ock::bss;
 
@@ -30,7 +31,7 @@ TEST_F(TestFileManager, test_allocate_file_return_ok)
     ConfigRef config = std::make_shared<Config>();
     config->mLocalPath = localBasePath;
     config->mBackendUID = fileName;
-    BoostNativeMetricPtr* metric = nullptr;
+    BoostNativeMetricPtr *metric = nullptr;
     FileCacheFactoryRef cacheFactory = std::make_shared<FileCacheFactory>(config, nullptr, metric);
     FileDirectoryRef fileDirectory =
         std::make_shared<FileDirectory>(cacheFactory->GetLocalFileManager()->GetBasePath());

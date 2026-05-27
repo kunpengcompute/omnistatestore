@@ -18,11 +18,11 @@
 #endif
 #endif
 
-#include "include/bss_err.h"
-#include "include/bss_types.h"
 #include "binary/slice_binary.h"
 #include "common/util/bss_math.h"
 #include "compare_slice_key.h"
+#include "include/bss_err.h"
+#include "include/bss_types.h"
 #include "slice_table.h"
 
 namespace ock {

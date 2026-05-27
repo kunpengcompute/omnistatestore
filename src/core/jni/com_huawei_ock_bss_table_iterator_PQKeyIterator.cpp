@@ -11,8 +11,8 @@
 
 #include "com_huawei_ock_bss_table_iterator_PQKeyIterator.h"
 
-#include "kv_table/pq_table.h"
 #include "jni_common.h"
+#include "kv_table/pq_table.h"
 
 using namespace ock::bss;
 

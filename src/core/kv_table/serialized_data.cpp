@@ -9,11 +9,11 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "include/bss_err.h"
+#include "serialized_data.h"
 
+#include "include/bss_err.h"
 #include "include/bss_types.h"
 #include "securec.h"
-#include "serialized_data.h"
 
 namespace ock {
 namespace bss {

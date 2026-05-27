@@ -9,12 +9,12 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "spdlog/sinks/rotating_file_sink.h"
+#include "bss_log.h"
 
 #include <iostream>
 
+#include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_sinks.h"
-#include "bss_log.h"
 
 namespace ock {
 namespace bss {

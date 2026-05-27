@@ -9,10 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "slice_compaction_policy.h"
-
-#include "slice_compaction_utils.h"
 #include "slice_compactor.h"
+
+#include "slice_compaction_policy.h"
+#include "slice_compaction_utils.h"
 
 namespace ock {
 namespace bss {

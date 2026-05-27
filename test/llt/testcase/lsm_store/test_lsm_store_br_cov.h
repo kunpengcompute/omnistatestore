@@ -19,8 +19,8 @@
 #define private public
 #define protected public
 
-#include "test_lsm_store.h"
 #include "generator.h"
+#include "test_lsm_store.h"
 
 #undef private
 #undef protected

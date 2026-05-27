@@ -16,8 +16,8 @@
 #include <set>
 #include <utility>
 
-#include "include/auto_closeable.h"
 #include "common/util/iterator.h"
+#include "include/auto_closeable.h"
 #include "serialized_data.h"
 #include "slice_table/slice_table.h"
 

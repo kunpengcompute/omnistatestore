@@ -11,8 +11,8 @@
 
 #include "file_system.h"
 
-#include "common/fs/local/local_file_system.h"
 #include "common/fs/hdfs/hadoop_file_system.h"
+#include "common/fs/local/local_file_system.h"
 
 namespace ock {
 namespace bss {

@@ -17,10 +17,10 @@
 #include <memory>
 #include <sstream>
 
-#include "value_type.h"
 #include "bss_def.h"
 #include "bss_types.h"
 #include "buffer.h"
+#include "value_type.h"
 
 namespace ock {
 namespace bss {

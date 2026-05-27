@@ -12,10 +12,10 @@
 #ifndef BOOST_SS_LAZY_DOWNLOAD_STRATEGY_H
 #define BOOST_SS_LAZY_DOWNLOAD_STRATEGY_H
 
+#include "common/bss_metric.h"
 #include "file_holder.h"
 #include "lsm_store/file/primary_address_manager.h"
 #include "restore_file_info.h"
-#include "common/bss_metric.h"
 
 namespace ock {
 namespace bss {

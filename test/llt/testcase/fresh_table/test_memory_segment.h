@@ -11,8 +11,8 @@
 #ifndef TEST_MEMORY_SEGMENT_H
 #define TEST_MEMORY_SEGMENT_H
 
-#include "gtest/gtest.h"
 #include "fresh_table/memory/memory_segment.h"
+#include "gtest/gtest.h"
 
 using namespace ock::bss;
 class TestMemorySegment : public testing::Test {

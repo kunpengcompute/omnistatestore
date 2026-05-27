@@ -17,8 +17,8 @@
 #include <vector>
 
 #include "binary/value/value_type.h"
-#include "version/version.h"
 #include "tombstone/tombstone_service.h"
+#include "version/version.h"
 
 namespace ock {
 namespace bss {

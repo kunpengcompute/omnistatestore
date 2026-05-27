@@ -12,11 +12,11 @@
 #ifndef BLOB_FILE_MANAGER_H
 #define BLOB_FILE_MANAGER_H
 
+#include "blob_cleaner.h"
 #include "blob_file_group_manager.h"
 #include "blob_file_writer.h"
 #include "common/util/timestamp_util.h"
 #include "file/file_cache_manager.h"
-#include "blob_cleaner.h"
 
 namespace ock {
 namespace bss {

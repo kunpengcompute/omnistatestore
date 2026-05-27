@@ -14,10 +14,10 @@
 
 #include <random>
 
-#include "include/ref.h"
 #include "binary/query_binary.h"
 #include "binary/slice_binary.h"
 #include "binary/value/value.h"
+#include "include/ref.h"
 #include "test_utils.h"
 
 namespace ock {

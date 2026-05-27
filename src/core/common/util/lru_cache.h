@@ -15,9 +15,9 @@
 #include <memory>
 #include <unordered_map>
 
+#include "common/block.h"
 #include "common/bss_log.h"
 #include "util/bss_lock.h"
-#include "common/block.h"
 
 namespace ock {
 namespace bss {

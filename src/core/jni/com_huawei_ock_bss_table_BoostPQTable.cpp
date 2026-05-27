@@ -14,8 +14,8 @@
 #include "include/boost_state_db.h"
 #include "include/config.h"
 #include "jvm_instance.h"
-#include "scope_guard.h"
 #include "pq_table.h"
+#include "scope_guard.h"
 
 using namespace ock::bss;
 

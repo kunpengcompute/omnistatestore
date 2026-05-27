@@ -35,9 +35,9 @@
 #include "order_range.h"
 #include "sections_read_meta.h"
 #include "snapshot/abstract_snapshot_operator.h"
+#include "tombstone/tombstone_service.h"
 #include "transform/pq_iterator.h"
 #include "version/version_set.h"
-#include "tombstone/tombstone_service.h"
 
 namespace ock {
 namespace bss {

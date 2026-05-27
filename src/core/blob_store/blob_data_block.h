@@ -14,8 +14,8 @@
 
 #include <binary/value/value.h>
 
-#include "blob_structure.h"
 #include "blob_data_block_meta.h"
+#include "blob_structure.h"
 #include "block.h"
 
 namespace ock {

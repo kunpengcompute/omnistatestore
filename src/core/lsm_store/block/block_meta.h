@@ -12,8 +12,8 @@
 #ifndef BOOST_SS_BLOCK_META_H
 #define BOOST_SS_BLOCK_META_H
 
-#include "block_handle.h"
 #include "binary/key/full_key.h"
+#include "block_handle.h"
 
 namespace ock {
 namespace bss {
