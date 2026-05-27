@@ -117,7 +117,7 @@ TEST_F(TestSliceTable, test_kv_add_delete_kv_return_not_exit)
     AddSliceForDeleteKv(kvList);
 
     // delete kv check it not exist.
-    for (auto iter:kvList) {
+    for (auto iter : kvList) {
         ValidateResultForKv(iter, false);
     }
 }

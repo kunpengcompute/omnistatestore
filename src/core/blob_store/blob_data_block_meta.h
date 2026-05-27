@@ -46,6 +46,7 @@ public:
         mMinExpireTime = std::min(expireTime, mMinExpireTime);
         mMaxExpireTime = std::max(expireTime, mMaxExpireTime);
     }
+
 public:
     uint64_t mMinBlobId = UINT64_MAX;
     uint64_t mMaxBlobId = 0;
@@ -55,7 +56,7 @@ public:
     uint32_t mBlobBlockNum = 0;
 };
 using BlobDataBlockMetaRef = std::shared_ptr<BlobDataBlockMeta>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

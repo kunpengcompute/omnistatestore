@@ -36,7 +36,7 @@ public:
         return type > SUB_VALUE;
     }
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

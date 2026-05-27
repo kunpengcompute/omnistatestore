@@ -96,7 +96,7 @@ private:
     MemManagerRef mMemManager = nullptr;
     bool mInit = false;
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

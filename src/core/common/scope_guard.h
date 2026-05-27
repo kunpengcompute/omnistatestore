@@ -13,20 +13,25 @@
 #include <memory>
 #include <utility>
 
-template <typename F>
-class ScopeGuard {
+template <typename F> class ScopeGuard {
 public:
-    constexpr explicit ScopeGuard(F && func) : function(std::move(func)) {}
-    ~ScopeGuard() { std::move(function)(); }
+    constexpr explicit ScopeGuard(F &&func) : function(std::move(func))
+    {
+    }
+    ~ScopeGuard()
+    {
+        std::move(function)();
+    }
 
 private:
     F function;
 };
 
-template <typename F>
-inline ScopeGuard<F> make_scope_guard(F && function_) { return ScopeGuard<F>(std::forward<F>(function_)); }
+template <typename F> inline ScopeGuard<F> make_scope_guard(F &&function_)
+{
+    return ScopeGuard<F>(std::forward<F>(function_));
+}
 
-#define SCOPE_EXIT_CONCAT(n, ...) \
-const auto scope_exit##n = make_scope_guard([&] { __VA_ARGS__; })
+#define SCOPE_EXIT_CONCAT(n, ...) const auto scope_exit##n = make_scope_guard([&] { __VA_ARGS__; })
 #define SCOPE_EXIT_FWD(n, ...) SCOPE_EXIT_CONCAT(n, __VA_ARGS__)
 #define SCOPE_EXIT(...) SCOPE_EXIT_FWD(__LINE__, __VA_ARGS__)

@@ -18,7 +18,7 @@ namespace ock {
 namespace bss {
 
 BResult BlobFileManager::Init(const MemManagerRef &memManager, const FileCacheManagerRef &fileCacheManager,
-    const ConfigRef &config, const BlockCacheRef &blockCache, uint64_t version)
+                              const ConfigRef &config, const BlockCacheRef &blockCache, uint64_t version)
 {
     mFileCacheManager = fileCacheManager;
     mFileDirectory = mFileCacheManager->CreateFileSubDirectory("blobFile");
@@ -81,11 +81,11 @@ BlobFileWriterRef BlobFileManager::NewBlobFileWriter()
 {
     RETURN_NULLPTR_AS_NULLPTR(mFileCacheManager);
     FileInfoRef fileInfo = mFileCacheManager->AllocatePrefixFile(BLOB_FILE_NAME_PREFIX, mFileDirectory,
-        FileName::CreateFileName);
+                                                                 FileName::CreateFileName);
     RETURN_NULLPTR_AS_NULLPTR(fileInfo);
     const auto &blobFileWriter = std::make_shared<BlobFileWriter>();
     RETURN_NULLPTR_AS_NOT_OK(blobFileWriter->Init(fileInfo->GetFilePath(), mConfig, fileInfo->GetFileId(), mMemManager,
-        mBlockCache, mFileCacheManager));
+                                                  mBlockCache, mFileCacheManager));
     RETURN_NULLPTR_AS_NULLPTR(fileInfo->GetFilePath());
     LOG_INFO("New blob file success, file name: " << fileInfo->GetFilePath()->ExtractFileName());
     return blobFileWriter;
@@ -122,8 +122,8 @@ BResult BlobFileManager::Get(uint64_t blobId, uint32_t keyGroup, Value &value)
 }
 
 BResult BlobFileManager::Restore(const std::vector<std::pair<FileInputViewRef, int64_t>> &fileInputViews,
-    uint64_t version, std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,
-    bool rescale)
+                                 uint64_t version, std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,
+                                 bool rescale)
 {
     std::vector<std::pair<FileInputViewRef, uint64_t>> tombstoneFileInputViews;
     for (const auto &item : fileInputViews) {
@@ -161,7 +161,7 @@ BlobFileGroupManagerRef BlobFileManager::CopyBlobFileGroupManager(uint64_t versi
 }
 
 BResult BlobFileManager::RestoreFileGroup(FileInputViewRef &fileInputView,
-    std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale)
+                                          std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale)
 {
     uint32_t groupSize = 0;
     RETURN_NOT_OK(fileInputView->Read(groupSize));
@@ -216,16 +216,16 @@ BResult BlobFileManager::RestoreFileGroup(FileInputViewRef &fileInputView,
 }
 
 BResult BlobFileManager::RestoreFileMeta(FileInputViewRef &fileInputView,
-    std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,
-    BlobFileMetaRef &blobFileMeta, RestoreFileInfo &restoreFileInfo)
+                                         std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,
+                                         BlobFileMetaRef &blobFileMeta, RestoreFileInfo &restoreFileInfo)
 {
     RETURN_NOT_OK(blobFileMeta->Restore(fileInputView, restoreFileInfo, mFileCacheManager->GetPrimaryDataBasePath(),
-        restorePathFileIdMap));
+                                        restorePathFileIdMap));
     return BSS_OK;
 }
 
 void BlobFileManager::FindMaxDeleteRatioFile(double &maxDeleteRatio, BlobFileGroupRef &maxDeleteRatioGroup,
-    BlobImmutableFileRef &maxDeleteRatioFile, uint32_t &selectFileIndex)
+                                             BlobImmutableFileRef &maxDeleteRatioFile, uint32_t &selectFileIndex)
 {
     auto fileGroups = mBlobFileGroupManager->GetFileGroups();
     for (auto &fileGroup : fileGroups) {
@@ -237,8 +237,9 @@ void BlobFileManager::FindMaxDeleteRatioFile(double &maxDeleteRatio, BlobFileGro
             CONTINUE_LOOP_AS_NULLPTR(blobFileMeta);
             double deleteRatio = blobFileMeta->EstimateDeleteRatio();
             if (deleteRatio > maxDeleteRatio) {
-                LOG_DEBUG("Find max delete ratio file, address: " << blobFileMeta->GetFileAddress() << ", deleteRatio: "
-                    << deleteRatio << ", maxDeleteRatio: " << maxDeleteRatio);
+                LOG_DEBUG("Find max delete ratio file, address: " << blobFileMeta->GetFileAddress()
+                                                                  << ", deleteRatio: " << deleteRatio
+                                                                  << ", maxDeleteRatio: " << maxDeleteRatio);
                 maxDeleteRatio = deleteRatio;
                 maxDeleteRatioFile = blobImmutableFile;
                 maxDeleteRatioGroup = fileGroup;
@@ -250,7 +251,7 @@ void BlobFileManager::FindMaxDeleteRatioFile(double &maxDeleteRatio, BlobFileGro
 }
 
 std::vector<BlobImmutableFileRef> BlobFileManager::SelectMaxCompactionRateFiles(uint32_t &startIndex,
-    BlobFileGroupRef &maxDeleteRatioGroup)
+                                                                                BlobFileGroupRef &maxDeleteRatioGroup)
 {
     double maxDeleteRatio = 0;
     BlobImmutableFileRef maxDeleteRatioFile = nullptr;
@@ -260,7 +261,7 @@ std::vector<BlobImmutableFileRef> BlobFileManager::SelectMaxCompactionRateFiles(
         return {};
     }
     return SelectContinuousFilesByMaxDeleteRatioFile(maxDeleteRatio, maxDeleteRatioGroup, maxDeleteRatioFile,
-        selectFileIndex, startIndex);
+                                                     selectFileIndex, startIndex);
 }
 
 std::vector<BlobImmutableFileRef> BlobFileManager::SelectContinuousFilesByMaxDeleteRatioFile(
@@ -331,5 +332,5 @@ void BlobFileManager::ReleaseTombstoneSnapshot(uint64_t snapshotId)
     mBlobCleaner->ReleaseTombstoneSnapshot(snapshotId);
 }
 
-}
-}
+}  // namespace bss
+}  // namespace ock

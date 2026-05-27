@@ -57,7 +57,7 @@ public:
      * @return if success return BSS_OK, else return others.
      */
     BResult Initialize(const ConfigRef &config, const FileCacheManagerRef &fileCache, const MemManagerRef &memManager,
-        const StateFilterManagerRef &stateFilterManager);
+                       const StateFilterManagerRef &stateFilterManager);
 
     /**
      * Exist slice table.
@@ -139,8 +139,10 @@ public:
 
         // get value from slice chain
         auto self = shared_from_this();
-        auto getFromBlobFunc = [self](uint64_t blobId, uint32_t keyHashCode, uint64_t seqId, Value &originalValue)
-            -> BResult { return self->GetValueFromBlobStore(blobId, keyHashCode, seqId, originalValue); };
+        auto getFromBlobFunc = [self](uint64_t blobId, uint32_t keyHashCode, uint64_t seqId,
+                                      Value &originalValue) -> BResult {
+            return self->GetValueFromBlobStore(blobId, keyHashCode, seqId, originalValue);
+        };
         auto ioRes = sliceChain->Get(key, value, getFromBlobFunc, mBoostNativeMetric);
         AddSliceListHitMiss(ioRes);
         return ioRes > 0 ? true : false;
@@ -172,7 +174,7 @@ public:
                      std::vector<std::pair<SliceKey, Value>> &dataList, uint64_t version);
 
     BResult AddSlice(const SliceIndexContextRef &curSliceIndexContext, RawDataSlice &rawDataSlice, uint32_t &addSize,
-        bool &forceEvict);
+                     bool &forceEvict);
 
     BResult WriteValueToBlobStore(FreshValueNodePtr &curVal, uint32_t keyHash, uint16_t stateId, uint64_t &blobId);
 
@@ -186,7 +188,7 @@ public:
      * @return iterator of all kv.
      */
     KeyValueIteratorRef EntryIterator(const KeyFilter &keyFilter, uint16_t stateId,
-        BlobValueTransformFunc &blobValueTransformFunc);
+                                      BlobValueTransformFunc &blobValueTransformFunc);
 
     /**
      * Get iterator for prefix, with kv-separate.
@@ -371,7 +373,7 @@ public:
             newLogicalSliceChain->InsertSlice(logicalSliceChain->GetSliceAddress(i));
         }
         mBucketGroupManager->MarkLogicalSliceChainFlushed(newLogicalSliceChain,
-            mBucketGroupManager->GetBucketGroupVector()[0]);
+                                                          mBucketGroupManager->GetBucketGroupVector()[0]);
         newLogicalSliceChain->SetBaseSliceIndex(logicalSliceChain->GetBaseSliceIndex() - curIndex);
         auto invalidSliceAddress = std::vector<SliceAddressRef>();
         mSliceBucketIndex->UpdateLogicalSliceChain(bucketIndex, logicalSliceChain, newLogicalSliceChain);
@@ -400,7 +402,7 @@ public:
         mBoostNativeMetric->AddSliceMissCount();
     }
 
-    inline void AddSliceListHitMiss(std::stack<Value>& mergingValues, bool &isFound)
+    inline void AddSliceListHitMiss(std::stack<Value> &mergingValues, bool &isFound)
     {
         if (mBoostNativeMetric == nullptr || !mBoostNativeMetric->IsSliceMetricEnabled()) {
             return;
@@ -412,7 +414,7 @@ public:
         }
     }
 
-    inline void AddSliceListHitMiss(IOResult& res)
+    inline void AddSliceListHitMiss(IOResult &res)
     {
         if (mBoostNativeMetric == nullptr || !mBoostNativeMetric->IsSliceMetricEnabled()) {
             return;
@@ -473,9 +475,11 @@ public:
         mIsRunning.store(false);
     }
 
-    bool IsRunning() {
+    bool IsRunning()
+    {
         return mIsRunning;
     }
+
 private:
     static uint32_t ComputeIndexBucketNum(uint64_t totalMem, const ConfigRef &config);
     static uint32_t ComputeBucketGroupNum(uint32_t bucketNum, const ConfigRef &config);
@@ -521,20 +525,17 @@ private:
         return std::make_shared<SliceKVIterator>(dataSliceVectorIterator, mMemManager);
     }
 
-    BResult GetFromFile(const Key &key, LogicalSliceChainRef &logicalSliceChain,
-        Value &finalResult, std::stack<Value> &mergingValues, std::vector<SectionsReadContextRef> &readMetas) const;
+    BResult GetFromFile(const Key &key, LogicalSliceChainRef &logicalSliceChain, Value &finalResult,
+                        std::stack<Value> &mergingValues, std::vector<SectionsReadContextRef> &readMetas) const;
 
-    BResult MergeList(std::deque<Value> &result, Value finalResult,
-                      std::stack<Value> &mergingValues) const;
+    BResult MergeList(std::deque<Value> &result, Value finalResult, std::stack<Value> &mergingValues) const;
 
     BResult InternalGetList(const Key &key, std::deque<Value> &result, std::vector<SectionsReadContextRef> &readMetas);
 
     void GetFromSliceChain(const Key &key, LogicalSliceChainRef &logicalSliceChain, int32_t curIndex,
-                           uint32_t readLength, std::stack<Value> &mergingValues, Value &finalResult,
-                           bool &isFound);
-    bool GetFromSlice(const Key &key, std::stack<Value> &mergingValues,
-                      Value &finalResult, SliceAddressRef &sliceAddress, DataSliceRef &dataSlice,
-                      bool &isFound) const;
+                           uint32_t readLength, std::stack<Value> &mergingValues, Value &finalResult, bool &isFound);
+    bool GetFromSlice(const Key &key, std::stack<Value> &mergingValues, Value &finalResult,
+                      SliceAddressRef &sliceAddress, DataSliceRef &dataSlice, bool &isFound) const;
 
     void RegisterTombstoneService();
 

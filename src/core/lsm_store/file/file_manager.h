@@ -38,8 +38,12 @@ public:
 
     FileManager(const PathRef &workingBasePath, std::string identifier, const FileIdGeneratorRef &fileIdGenerator,
                 const ExecutorServiceRef &executorService, bool snapshotStorage)
-        : mWorkingBasePath(workingBasePath), mBackendUid(identifier), mSnapshotStorage(snapshotStorage),
-          mFileIdGenerator(fileIdGenerator), mIoExecutor(executorService), mRestoreState(RestoreState::NONE)
+        : mWorkingBasePath(workingBasePath),
+          mBackendUid(identifier),
+          mSnapshotStorage(snapshotStorage),
+          mFileIdGenerator(fileIdGenerator),
+          mIoExecutor(executorService),
+          mRestoreState(RestoreState::NONE)
     {
     }
 
@@ -54,7 +58,7 @@ public:
                              const std::function<std::string(std::string)> &fileNameGenerator);
 
     FileInfoRef AllocatePrefixFile(const std::string &prefix, const FileDirectoryRef &fileDirectory,
-                             const std::function<std::string(std::string)> &fileNameGenerator);
+                                   const std::function<std::string(std::string)> &fileNameGenerator);
 
     FileInfoRef AllocateFile(const FileIdRef &fileId, const PathRef &path, bool canDelete);
 
@@ -116,8 +120,10 @@ public:
     }
 
     static std::atomic<uint64_t> mPrefix;
+
 private:
     BResult RestoreFileMapping(const std::vector<SnapshotFileMappingRef> &restoredFileMappings, bool isExcludeSSTFiles);
+
 private:
     PathRef mWorkingBasePath = nullptr;
     std::string mBackendUid;

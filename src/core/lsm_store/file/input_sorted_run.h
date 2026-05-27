@@ -92,8 +92,8 @@ public:
                                                          MemManagerRef &memManager, bool reverseOrder, bool sectionRead,
                                                          FileProcHolder holder)
     {
-        return std::make_shared<InputSortedRunLevel0Iterator>(fileMetaDatas, builder, memManager,
-            reverseOrder, sectionRead, holder);
+        return std::make_shared<InputSortedRunLevel0Iterator>(fileMetaDatas, builder, memManager, reverseOrder,
+                                                              sectionRead, holder);
     }
 
     class InputSortedRunIterator : public Iterator<KeyValueRef> {
@@ -163,7 +163,7 @@ public:
         bool mInitialized = false;
     };
 
-    using BuilderFunc = std::function<KeyValueIteratorRef(const FileMetaDataRef&)>;
+    using BuilderFunc = std::function<KeyValueIteratorRef(const FileMetaDataRef &)>;
     class FileIteratorWriter {
     public:
         inline KeyValueIteratorRef Build(const FileMetaDataRef &fileMetaData) const
@@ -185,7 +185,8 @@ public:
     class InputSortedRunLevel0Iterator : public Iterator<KeyValueRef> {
     public:
         InputSortedRunLevel0Iterator(const std::vector<FileMetaDataRef> &metas, const FileIteratorWriterRef &builder,
-            const MemManagerRef &memManager, bool reverseOrder, bool sectionRead, FileProcHolder holder)
+                                     const MemManagerRef &memManager, bool reverseOrder, bool sectionRead,
+                                     FileProcHolder holder)
             : mBuilder(builder), mMetas(metas), mMemManager(memManager), mReverseOrder(reverseOrder)
         {
             InitFileIterator(sectionRead, holder);
@@ -213,19 +214,19 @@ public:
             auto nextKey = mMergeIter->NextKey();
             auto iter = mMetas.begin();
             if (nextKey == nullptr) {
-                if (iter ==  mMetas.end()) {
+                if (iter == mMetas.end()) {
                     return nullptr;
                 }
                 mMergeIter->AddIter(mBuilder->Build(*iter));
                 mSmallKey = *(*iter)->GetSmallest();
-                iter =  mMetas.erase(iter);
+                iter = mMetas.erase(iter);
             } else {
                 mSmallKey = nextKey->key;
             }
             while (iter != mMetas.end()) {
                 if (mSmallKey.Compare(*(*iter)->GetSmallest()) >= 0) {
                     mMergeIter->AddIter(mBuilder->Build(*iter));
-                    iter =  mMetas.erase(iter);
+                    iter = mMetas.erase(iter);
                     continue;
                 }
                 break;
@@ -244,13 +245,13 @@ public:
             while (iter != mMetas.end()) {
                 if (mSmallKey.Compare(*(*iter)->GetSmallest()) == 0) {
                     iters.emplace_back(mBuilder->Build(*iter));
-                    iter =  mMetas.erase(iter);
+                    iter = mMetas.erase(iter);
                     continue;
                 }
                 break;
             }
-            mMergeIter = std::make_shared<MergingIterator>(iters, mMemManager, nullptr, nullptr,
-                false, holder, sectionRead);
+            mMergeIter = std::make_shared<MergingIterator>(iters, mMemManager, nullptr, nullptr, false, holder,
+                                                           sectionRead);
         }
 
     private:
@@ -263,6 +264,7 @@ public:
         bool mReverseOrder = false;
         bool mInitialized = false;
     };
+
 private:
     inline void AddFileMetaData(const FileMetaDataRef &fileMetaData)
     {

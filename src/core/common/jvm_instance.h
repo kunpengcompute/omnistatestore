@@ -14,8 +14,8 @@
 
 #include <jni.h>
 
-#include "include/bss_err.h"
 #include "bss_log.h"
+#include "include/bss_err.h"
 
 namespace ock {
 namespace bss {

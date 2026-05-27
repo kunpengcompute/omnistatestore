@@ -12,10 +12,10 @@
 #ifndef BOOST_SS_LAZY_DOWNLOAD_STRATEGY_H
 #define BOOST_SS_LAZY_DOWNLOAD_STRATEGY_H
 
+#include "common/bss_metric.h"
 #include "file_holder.h"
 #include "lsm_store/file/primary_address_manager.h"
 #include "restore_file_info.h"
-#include "common/bss_metric.h"
 
 namespace ock {
 namespace bss {
@@ -31,13 +31,21 @@ public:
     {
     }
 
-    virtual void ToWaitingList(const RestoreFileInfo &fileInfo, const PathRef &path) {}
+    virtual void ToWaitingList(const RestoreFileInfo &fileInfo, const PathRef &path)
+    {
+    }
 
-    virtual void StartDownload(const std::vector<FileHolderRef> &fileHolders) {}
+    virtual void StartDownload(const std::vector<FileHolderRef> &fileHolders)
+    {
+    }
 
-    virtual void NotifyRead(uint64_t fileAddress) {}
+    virtual void NotifyRead(uint64_t fileAddress)
+    {
+    }
 
-    virtual void AddAddressRef(uint64_t fileAddress, uint32_t refCount) {}
+    virtual void AddAddressRef(uint64_t fileAddress, uint32_t refCount)
+    {
+    }
 
     FileInfoRef Download(RestoreFileInfo &restoreFileInfo, const PathRef &localPath);
 
@@ -58,7 +66,7 @@ public:
         }
     }
 
-    void RegisterLazyDownloadMetric(BoostNativeMetricPtr* metricPtrAddr)
+    void RegisterLazyDownloadMetric(BoostNativeMetricPtr *metricPtrAddr)
     {
         mMetricPtrAddr = metricPtrAddr;
     }
@@ -70,7 +78,7 @@ protected:
     PrimaryAddressManagerRef mPrimaryAddressManager;
     FileManagerRef mLocalFileManager;
     std::atomic<bool> mStopped{ true };
-    BoostNativeMetricPtr* mMetricPtrAddr = nullptr;
+    BoostNativeMetricPtr *mMetricPtrAddr = nullptr;
 };
 using LazyDownloadStrategyRef = std::shared_ptr<LazyDownloadStrategy>;
 

@@ -14,6 +14,7 @@
 
 #include <cstdint>
 
+#include "blob_store.h"
 #include "bss_metric.h"
 #include "iterator"
 #include "lsm_store/file/file_store_id.h"
@@ -21,7 +22,6 @@
 #include "slice_table/bucket_group.h"
 #include "slice_table/index/slice_bucket_index.h"
 #include "snapshot/snapshot_restore_utils.h"
-#include "blob_store.h"
 
 namespace ock {
 namespace bss {
@@ -87,7 +87,7 @@ public:
     uint32_t ComputeBucketGroupIndex(uint32_t bucketIndex);
     BResult RestoreFileStore(const std::vector<SliceTableRestoreMetaRef> &sliceTableRestoreMetaList,
                              std::unordered_map<std::string, std::string> &lazyPathMapping,
-                             std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,  bool isLazyDownload);
+                             std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool isLazyDownload);
 
     /**
      * For testing, force clean current version.

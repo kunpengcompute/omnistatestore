@@ -11,8 +11,8 @@
 #include <dirent.h>
 #include <ftw.h>
 
-#include "gtest/gtest.h"
 #include "common/bss_log.h"
+#include "gtest/gtest.h"
 #include "include/boost_state_db.h"
 #include "include/boost_state_table.h"
 #include "kv_table/kv_table_iterator.h"
@@ -71,7 +71,7 @@ NsKListTableRef nsKListTable1;
 BoostNativeMetric *metric = nullptr;
 PQTableRef pqTable;
 PQTableRef pqTable1;
-std::vector<std::string> compressionLevelPolicy = {"lz4", "lz4", "lz4"};
+std::vector<std::string> compressionLevelPolicy = { "lz4", "lz4", "lz4" };
 std::string lsmStoreCompressionPolicy = "lz4";
 
 std::map<std::vector<uint8_t>, std::vector<uint8_t>> mKV;
@@ -658,7 +658,7 @@ void ValidateKV()
     while (keysIterator->HasNext()) {
         auto result = keysIterator->Next();
         std::vector<uint8_t> key(result->key.PriKey().KeyData(),
-            result->key.PriKey().KeyData() + result->key.PriKey().KeyLen());
+                                 result->key.PriKey().KeyData() + result->key.PriKey().KeyLen());
         tempKeysSet.insert(key);
     }
     ASSERT_EQ(tempKeysSet, expectedKeysSet);
@@ -743,7 +743,7 @@ void ValidateNsKV()
         while (keysIterator->HasNext()) {
             auto result = keysIterator->Next();
             std::vector<uint8_t> key(result->key.PriKey().KeyData(),
-                result->key.PriKey().KeyData() + result->key.PriKey().KeyLen());
+                                     result->key.PriKey().KeyData() + result->key.PriKey().KeyLen());
             tempKeysSet.insert(key);
             ASSERT_TRUE(it.second.count(key) > 0);
         }
@@ -810,7 +810,7 @@ void ValidateKMap()
     while (keysIterator->HasNext()) {
         auto next = keysIterator->Next();
         std::vector<uint8_t> key(next->key.PriKey().KeyData(),
-            next->key.PriKey().KeyData() + next->key.PriKey().KeyLen());
+                                 next->key.PriKey().KeyData() + next->key.PriKey().KeyLen());
         tempKeysSet.insert(key);
     }
     ASSERT_EQ(tempKeysSet, expectedKeysSet);
@@ -944,7 +944,7 @@ void ValidateNsKMap()
         while (keysIterator->HasNext()) {
             auto next = keysIterator->Next();
             std::vector<uint8_t> key(next->key.PriKey().RealKeyData(),
-                next->key.PriKey().RealKeyData() + next->key.PriKey().RealKeyLen());
+                                     next->key.PriKey().RealKeyData() + next->key.PriKey().RealKeyLen());
             tempKeysSet.insert(key);
         }
         delete keysIterator;
@@ -992,7 +992,7 @@ void ValidateKList(bool flag = false)
             uint32_t index = flag ? value.size() - expectedValueIndex - 1 : expectedValueIndex;
             BinaryData tempValue(value[index].data(), value[index].size());
             auto ret = memcmp(reinterpret_cast<uint8_t *>(listCount.addresses[readValueIndex]) + subReadValuePos,
-                tempValue.Data(), tempValue.Length());
+                              tempValue.Data(), tempValue.Length());
             mCompareSize += tempValue.Length();
             subReadValuePos += tempValue.Length();
             if (subReadValuePos >= listCount.lengths[readValueIndex]) {
@@ -1017,7 +1017,7 @@ void ValidateKList(bool flag = false)
     while (keysIterator->HasNext()) {
         auto next = keysIterator->Next();
         std::vector<uint8_t> key(next->key.PriKey().KeyData(),
-            next->key.PriKey().KeyData() + next->key.PriKey().KeyLen());
+                                 next->key.PriKey().KeyData() + next->key.PriKey().KeyLen());
         tempKeysSet.insert(key);
     }
     delete keysIterator;
@@ -1052,7 +1052,8 @@ void ValidateNsKList(bool flag = false)
             uint32_t index = flag ? value.size() - expectedValueIndex - 1 : expectedValueIndex;
             BinaryData tempValue(value[index].data(), value[index].size());
             ASSERT_EQ(memcmp(reinterpret_cast<uint8_t *>(listCount.addresses[readValueIndex]) + subReadValuePos,
-                tempValue.Data(), tempValue.Length()), 0);
+                             tempValue.Data(), tempValue.Length()),
+                      0);
             mCompareSize += tempValue.Length();
             subReadValuePos += tempValue.Length();
             if (subReadValuePos >= listCount.lengths[readValueIndex]) {
@@ -1082,7 +1083,7 @@ void ValidateNsKList(bool flag = false)
         while (keysIterator->HasNext()) {
             auto next = keysIterator->Next();
             std::vector<uint8_t> key(next->key.PriKey().RealKeyData(),
-                next->key.PriKey().RealKeyData() + next->key.PriKey().RealKeyLen());
+                                     next->key.PriKey().RealKeyData() + next->key.PriKey().RealKeyLen());
             tempKeysSet.insert(key);
         }
         delete keysIterator;
@@ -1172,15 +1173,15 @@ void ValidateFiles()
 
 TableRef CreateFromDB(StateType keyedStateType, std::string tableName, BoostStateDB *db)
 {
-    auto tblDesc = std::make_shared<TableDescription>(
-        keyedStateType, tableName, -1, TableSerializer{}, db->GetConfig());
+    auto tblDesc = std::make_shared<TableDescription>(keyedStateType, tableName, -1, TableSerializer{},
+                                                      db->GetConfig());
     return db->GetTableOrCreate(tblDesc);
 }
 
 BResult UpdateFromDBWithTTL(StateType keyedStateType, std::string tableName, BoostStateDB *db, int64_t ttl)
 {
-    auto tblDesc = std::make_shared<TableDescription>(
-            keyedStateType, tableName, ttl, TableSerializer{}, db->GetConfig());
+    auto tblDesc = std::make_shared<TableDescription>(keyedStateType, tableName, ttl, TableSerializer{},
+                                                      db->GetConfig());
     return db->UpdateTtlConfig(tblDesc);
 }
 
@@ -1310,20 +1311,16 @@ void TestDB::PrepareForScaleIn()
     kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB));
     nsKVTable = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
     kMapTable = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB));
-    nsKMapTable =
-        std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
+    nsKMapTable = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
     kListTable = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB));
-    nsKListTable =
-        std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
+    nsKListTable = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
 
     kVTable1 = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB1));
     nsKVTable1 = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB1));
     kMapTable1 = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB1));
-    nsKMapTable1 =
-        std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB1));
+    nsKMapTable1 = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB1));
     kListTable1 = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB1));
-    nsKListTable1 =
-        std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB1));
+    nsKListTable1 = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB1));
 }
 
 void TestDB::PrepareDbWithBlob()
@@ -1361,16 +1358,14 @@ void TestDB::PrepareDbWithBlob()
     kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB));
     nsKVTable = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
     kMapTable = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB));
-    nsKMapTable =
-        std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
+    nsKMapTable = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
     kListTable = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB));
-    nsKListTable =
-        std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
+    nsKListTable = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
 }
 
 void TestDB::PrepareForTTL(int64_t ttlTime)
 {
-    auto boostStateDbImpl = reinterpret_cast<BoostStateDBImpl*>(mDB);
+    auto boostStateDbImpl = reinterpret_cast<BoostStateDBImpl *>(mDB);
     boostStateDbImpl->GetConfig().SetTtlFilterSwitch(true);
 
     BResult result1 = UpdateFromDBWithTTL(StateType::VALUE, "kVTable", mDB, ttlTime);
@@ -1397,11 +1392,9 @@ void TestDB::RestoreDb(std::string basePth, uint64_t cpId, std::string &restoreP
     kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB));
     nsKVTable = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
     kMapTable = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB));
-    nsKMapTable =
-        std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
+    nsKMapTable = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
     kListTable = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB));
-    nsKListTable =
-        std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
+    nsKListTable = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
     ConfigRef config1 = std::make_shared<Config>();
     config1->Init(NO_64, NO_127, NO_128);
     config1->mMemorySegmentSize = IO_SIZE_64M;
@@ -1413,11 +1406,9 @@ void TestDB::RestoreDb(std::string basePth, uint64_t cpId, std::string &restoreP
     kVTable1 = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB1));
     nsKVTable1 = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB1));
     kMapTable1 = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB1));
-    nsKMapTable1 =
-        std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB1));
+    nsKMapTable1 = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB1));
     kListTable1 = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB1));
-    nsKListTable1 =
-        std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB1));
+    nsKListTable1 = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB1));
 }
 
 void TestDB::SetUp()
@@ -1448,11 +1439,9 @@ void TestDB::SetUp()
     kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB));
     nsKVTable = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
     kMapTable = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB));
-    nsKMapTable =
-        std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
+    nsKMapTable = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
     kListTable = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB));
-    nsKListTable =
-        std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
+    nsKListTable = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
     pqTable1 = mDB->CreatePQTable("stateName1");
     pqTable = mDB->CreatePQTable("stateName");
 
@@ -1521,7 +1510,7 @@ void TestDB::TearDown()
 
 TEST_F(TestDB, test_sp_list_and_get_return_ok)
 {
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KListAddBigValue },  { 0.1, KListRemove } };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KListAddBigValue }, { 0.1, KListRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_1000; j++) {
             executeOperation(operationsConfig);
@@ -1563,7 +1552,6 @@ TEST_F(TestDB, test_sp_list_and_get_return_ok)
     ASSERT_EQ(mKList.size(), count);
 }
 
-
 TEST_F(TestDB, test_put_add_remove_bigklist_to_lsm_store_and_get_return_ok)
 {
     std::vector<OperationConfig> operationsConfig = {
@@ -1584,8 +1572,7 @@ TEST_F(TestDB, test_put_add_remove_bigklist_to_lsm_store_and_get_return_ok)
 TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_ok_with_ttl)
 {
     PrepareForTTL(NO_5 * NO_1000);
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut },
-                                                      { 0.1, KVRemove } };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut }, { 0.1, KVRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1598,8 +1585,7 @@ TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_ok_with_ttl)
 TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_false_with_ttl)
 {
     PrepareForTTL(NO_5 * NO_1000);
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut },
-                                                      { 0.1, KVRemove } };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut }, { 0.1, KVRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1621,8 +1607,7 @@ TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_false_with_ttl)
 TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_ok_with_update_ttl)
 {
     PrepareForTTL(NO_5 * NO_1000);
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut },
-                                                      { 0.1, KVRemove } };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut }, { 0.1, KVRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1638,8 +1623,7 @@ TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_ok_with_update_ttl)
 TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_ok_with_no_ttl)
 {
     PrepareForTTL(-1);
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut },
-                                                      { 0.1, KVRemove } };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut }, { 0.1, KVRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1654,8 +1638,7 @@ TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_ok_with_no_ttl)
 TEST_F(TestDB, test_KMap_to_lsm_store_and_get_return_ok_with_ttl)
 {
     PrepareForTTL(NO_5 * NO_1000);
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KMapPut },
-                                                      { 0.1, KMapRemove } };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KMapPut }, { 0.1, KMapRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1669,8 +1652,7 @@ TEST_F(TestDB, test_KMap_to_lsm_store_and_get_return_ok_with_ttl)
 TEST_F(TestDB, test_KMap_to_lsm_store_and_get_return_false_with_ttl)
 {
     PrepareForTTL(NO_5 * NO_1000);
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KMapPut },
-                                                      { 0.1, KMapRemove } };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KMapPut }, { 0.1, KMapRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1701,8 +1683,7 @@ TEST_F(TestDB, test_KMap_to_lsm_store_and_get_return_false_with_ttl)
 TEST_F(TestDB, test_KMap_to_lsm_store_and_get_return_ok_with_no_ttl)
 {
     PrepareForTTL(-1);
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KMapPut },
-                                                      { 0.1, KMapRemove } };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KMapPut }, { 0.1, KMapRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1717,9 +1698,7 @@ TEST_F(TestDB, test_KMap_to_lsm_store_and_get_return_ok_with_no_ttl)
 TEST_F(TestDB, test_KList_to_lsm_store_and_get_return_ok_with_ttl)
 {
     PrepareForTTL(NO_5 * NO_1000);
-    std::vector<OperationConfig> operationsConfig = { { 0.1, KListPut },
-                                                      { 0.8, KListAdd },
-                                                      { 0.1, KListRemove }};
+    std::vector<OperationConfig> operationsConfig = { { 0.1, KListPut }, { 0.8, KListAdd }, { 0.1, KListRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1733,9 +1712,7 @@ TEST_F(TestDB, test_KList_to_lsm_store_and_get_return_ok_with_ttl)
 TEST_F(TestDB, test_KList_to_lsm_store_and_get_return_false_with_ttl)
 {
     PrepareForTTL(NO_5 * NO_1000);
-    std::vector<OperationConfig> operationsConfig = { { 0.1, KListPut },
-                                                      { 0.8, KListAdd },
-                                                      { 0.1, KListRemove }};
+    std::vector<OperationConfig> operationsConfig = { { 0.1, KListPut }, { 0.8, KListAdd }, { 0.1, KListRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1757,9 +1734,7 @@ TEST_F(TestDB, test_KList_to_lsm_store_and_get_return_false_with_ttl)
 TEST_F(TestDB, test_KList_to_lsm_store_and_get_return_ok_with_no_ttl)
 {
     PrepareForTTL(-1);
-    std::vector<OperationConfig> operationsConfig = { { 0.1, KListPut },
-                                                      { 0.8, KListAdd },
-                                                      { 0.1, KListRemove }};
+    std::vector<OperationConfig> operationsConfig = { { 0.1, KListPut }, { 0.8, KListAdd }, { 0.1, KListRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -1774,13 +1749,9 @@ TEST_F(TestDB, test_KList_to_lsm_store_and_get_return_ok_with_no_ttl)
 TEST_F(TestDB, test_all_states_to_lsm_store_and_get_return_ok_with_ttl)
 {
     PrepareForTTL(NO_10 * NO_1000);
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut },
-                                                      { 0.1, KVRemove },
-                                                      { 0.9, KMapPut },
-                                                      { 0.1, KMapRemove },
-                                                      { 0.1, KListPut },
-                                                      { 0.8, KListAdd },
-                                                      { 0.1, KListRemove }};
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut },      { 0.1, KVRemove }, { 0.9, KMapPut },
+                                                      { 0.1, KMapRemove }, { 0.1, KListPut }, { 0.8, KListAdd },
+                                                      { 0.1, KListRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -2392,8 +2363,9 @@ TEST_F(TestDB, test_all_states_to_lsm_store_and_get_return_ok)
 TEST_F(TestDB, test_cp_and_get_return_ok)
 {
     mDB->GetConfig().SetEnableLocalRecovery(false);
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut }, { 0.1, KVRemove },
-        {0.9, PQTableAdd},  {0.1, PQTableRemove }};
+    std::vector<OperationConfig> operationsConfig = {
+        { 0.9, KVPut }, { 0.1, KVRemove }, { 0.9, PQTableAdd }, { 0.1, PQTableRemove }
+    };
     uint64_t cpId = 0;
     std::string currentDir = GetCurrentWorkingDirectory();
     std::string basePth = currentDir + "/cp/";
@@ -2429,14 +2401,11 @@ TEST_F(TestDB, test_cp_and_get_return_ok)
         pqTable1 = mDB->CreatePQTable("stateName1");
         pqTable = mDB->CreatePQTable("stateName");
         kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB));
-        nsKVTable =
-            std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
+        nsKVTable = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
         kMapTable = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB));
-        nsKMapTable =
-            std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
+        nsKMapTable = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
         kListTable = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB));
-        nsKListTable =
-            std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
+        nsKListTable = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
         pqTable = mDB->CreatePQTable("stateName");
         pqTable1 = mDB->CreatePQTable("stateName1");
         std::string restorePath = basePth + std::to_string(cpId);
@@ -2491,14 +2460,11 @@ TEST_F(TestDB, test_cp_local_recovery_ok)
         mDB = BoostStateDBFactory::Create();
         mDB->Open(config);
         kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB));
-        nsKVTable =
-            std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
+        nsKVTable = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
         kMapTable = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB));
-        nsKMapTable =
-            std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
+        nsKMapTable = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
         kListTable = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB));
-        nsKListTable =
-            std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
+        nsKListTable = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
         pqTable = mDB->CreatePQTable("stateName");
         pqTable1 = mDB->CreatePQTable("stateName1");
         std::string restorePath = basePth + std::to_string(cpId);
@@ -2546,14 +2512,11 @@ TEST_F(TestDB, test_cp_lsm_and_get_return_ok)
         std::unordered_map<std::string, std::string> pathMap;
         kVTable = nullptr;
         kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB));
-        nsKVTable =
-            std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
+        nsKVTable = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
         kMapTable = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB));
-        nsKMapTable =
-            std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
+        nsKMapTable = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
         kListTable = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB));
-        nsKListTable =
-            std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
+        nsKListTable = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
         pqTable = mDB->CreatePQTable("stateName");
         pqTable1 = mDB->CreatePQTable("stateName1");
         std::vector<std::string> restorePaths;
@@ -2575,8 +2538,9 @@ TEST_F(TestDB, test_cp_lsm_and_get_return_ok)
 
 TEST_F(TestDB, test_sp_lsm_and_get_return_ok)
 {
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KVPut }, { 0.1, KVRemove },
-        {0.9, PQTableAdd}, {0.1, PQTableRemove} };
+    std::vector<OperationConfig> operationsConfig = {
+        { 0.9, KVPut }, { 0.1, KVRemove }, { 0.9, PQTableAdd }, { 0.1, PQTableRemove }
+    };
     for (uint32_t j = 0; j < NO_10000; j++) {
         executeOperation(operationsConfig);
     }
@@ -2616,7 +2580,7 @@ TEST_F(TestDB, test_sp_lsm_and_get_return_ok)
 
 TEST_F(TestDB, test_sp_kmap_and_get_return_ok)
 {
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KMapPut },  { 0.1, KMapRemove } };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KMapPut }, { 0.1, KMapRemove } };
     for (uint32_t i = 0; i < NO_8; i++) {
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
@@ -2748,11 +2712,9 @@ TEST_F(TestDB, test_cp_scale_in_and_get_return_ok)
     kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB));
     nsKVTable = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
     kMapTable = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB));
-    nsKMapTable =
-        std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
+    nsKMapTable = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
     kListTable = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB));
-    nsKListTable =
-        std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
+    nsKListTable = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
     restorePaths.emplace_back(cpPth1);
     restorePaths.emplace_back(cpPth2);
     ASSERT_EQ(mDB->Restore(restorePaths, pathMap), BSS_OK);
@@ -2776,7 +2738,7 @@ TEST_F(TestDB, test_put_add_map)
             ASSERT_TRUE(mKMap[key][subKey].empty());
             uint32_t value = 1;
             std::vector<uint8_t> valVec(reinterpret_cast<uint8_t *>(&value),
-                reinterpret_cast<uint8_t *>(&value) + sizeof(uint32_t));
+                                        reinterpret_cast<uint8_t *>(&value) + sizeof(uint32_t));
             mKMap[key][subKey] = valVec;
             BinaryData rval(valVec.data(), valVec.size());
             kMapTable->Put(keyHashCode, priKey, secKey, rval);
@@ -2785,7 +2747,7 @@ TEST_F(TestDB, test_put_add_map)
             ASSERT_EQ(old, *reinterpret_cast<uint32_t *>(mKMap[key][subKey].data()));
             uint32_t newVal = old + 1;
             std::vector<uint8_t> valVec(reinterpret_cast<uint8_t *>(&newVal),
-                reinterpret_cast<uint8_t *>(&newVal) + sizeof(uint32_t));
+                                        reinterpret_cast<uint8_t *>(&newVal) + sizeof(uint32_t));
             mKMap[key][subKey] = valVec;
             BinaryData rval(valVec.data(), valVec.size());
             kMapTable->Put(keyHashCode, priKey, secKey, rval);
@@ -2846,9 +2808,7 @@ TEST_F(TestDB, test_put_kmap_to_all_table_and_get_return_ok_with_blob)
 {
     PrepareDbWithBlob();
     // Q7
-    std::vector<OperationConfig> operationsConfig = {
-        { 0.5, KMapPut }, { 0.8, KMapRemove }
-    };
+    std::vector<OperationConfig> operationsConfig = { { 0.5, KMapPut }, { 0.8, KMapRemove } };
     for (uint32_t i = 0; i < NO_5; i++) {
         for (uint32_t j = 0; j < NO_5000; j++) {
             executeOperation(operationsConfig);
@@ -2976,14 +2936,11 @@ TEST_F(TestDB, test_cp_lsm_and_get_return_ok_with_blob)
         std::unordered_map<std::string, std::string> pathMap;
         kVTable = nullptr;
         kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kVTable", mDB));
-        nsKVTable =
-            std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
+        nsKVTable = std::dynamic_pointer_cast<NsKVTable>(CreateFromDB(StateType::SUB_VALUE, "nsKVTable", mDB));
         kMapTable = std::dynamic_pointer_cast<KMapTable>(CreateFromDB(StateType::MAP, "kMapTable", mDB));
-        nsKMapTable =
-            std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
+        nsKMapTable = std::dynamic_pointer_cast<NsKMapTable>(CreateFromDB(StateType::SUB_MAP, "nsKMapTable", mDB));
         kListTable = std::dynamic_pointer_cast<KListTable>(CreateFromDB(StateType::LIST, "kListTable", mDB));
-        nsKListTable =
-            std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
+        nsKListTable = std::dynamic_pointer_cast<NsKListTable>(CreateFromDB(StateType::SUB_LIST, "nsKListTable", mDB));
         std::vector<std::string> restorePaths;
         restorePaths.emplace_back(restorePath);
         ASSERT_EQ(mDB->Restore(restorePaths, pathMap), BSS_OK);

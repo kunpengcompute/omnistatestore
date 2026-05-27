@@ -16,8 +16,8 @@
 #include <cstdint>
 #include <string>
 
-#include "include/bss_types.h"
 #include "common/io/output_view.h"
+#include "include/bss_types.h"
 
 namespace ock {
 namespace bss {
@@ -103,7 +103,7 @@ public:
     inline GroupRange Intersection(const GroupRangeRef &another) const
     {
         if (UNLIKELY(another == nullptr)) {
-            return {0, -1};
+            return { 0, -1 };
         }
         int32_t startGroup = std::max<int32_t>(mStartGroup, another->mStartGroup);
         int32_t endGroup = std::min<int32_t>(mEndGroup, another->mEndGroup);

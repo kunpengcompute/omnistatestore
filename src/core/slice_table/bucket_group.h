@@ -14,8 +14,8 @@
 
 #include <cstdint>
 
-#include "include/bss_err.h"
 #include "bucket_group_range.h"
+#include "include/bss_err.h"
 #include "lsm_store/file/file_store_impl.h"
 #include "slice_table/index/slice_bucket_index.h"
 #include "slice_table/index/slice_index_context.h"
@@ -25,8 +25,7 @@ namespace bss {
 
 class SliceChainIterator : public Iterator<std::shared_ptr<SliceIndexContext>> {
 public:
-    SliceChainIterator(SliceBucketIndexRef sliceBucketIndex,
-                       BucketGroupRangeRef bucketGroupRange);
+    SliceChainIterator(SliceBucketIndexRef sliceBucketIndex, BucketGroupRangeRef bucketGroupRange);
 
     bool HasNext() override;
 
@@ -68,7 +67,7 @@ public:
     }
 
     BResult Initialize(uint32_t bucketGroupId, const LsmStoreRef &lsmStore, const SliceBucketIndexRef &sliceIndex,
-        uint32_t startBucket, uint32_t endBucket);
+                       uint32_t startBucket, uint32_t endBucket);
 
     inline LsmStoreRef &GetLsmStore()
     {

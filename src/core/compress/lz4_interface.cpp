@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "lz4_interface.h"
+
 #include "bss_log.h"
 #include "util/bss_def.h"
-#include "lz4_interface.h"
 
 namespace ock {
 namespace bss {
@@ -38,7 +39,7 @@ uint32_t Lz4Interface::Compress(void *dst, size_t dstCapacity, const void *src, 
 
 uint32_t Lz4Interface::Decompress(void *dst, size_t dstCapacity, const void *src, size_t srcSize)
 {
-    if (UNLIKELY(src == nullptr || srcSize == 0  || srcSize > INT32_MAX)) {
+    if (UNLIKELY(src == nullptr || srcSize == 0 || srcSize > INT32_MAX)) {
         LOG_ERROR("Invalid parameter src for lz4 decompress, srcSize: " << srcSize);
         return 0;
     }
@@ -55,5 +56,5 @@ uint32_t Lz4Interface::Decompress(void *dst, size_t dstCapacity, const void *src
 
     return result;
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

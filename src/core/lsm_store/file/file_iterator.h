@@ -22,8 +22,8 @@ namespace bss {
 class FileIterator : public Iterator<KeyValueRef> {
 public:
     FileIterator(const FileReaderBaseRef &fileReader, const FullKeyFilterRef &keyValueFilter,
-                  const IteratorRef<BlockHandleRef> &blockHandleIterator, const MemManagerRef &memManager,
-                  FileProcHolder holder, bool shareReader)
+                 const IteratorRef<BlockHandleRef> &blockHandleIterator, const MemManagerRef &memManager,
+                 FileProcHolder holder, bool shareReader)
         : mFileReader(fileReader),
           mKeyValueFilter(keyValueFilter),
           mBlockHandleIterator(blockHandleIterator),
@@ -62,8 +62,8 @@ private:
 class FileSubIterator : public Iterator<KeyValueRef> {
 public:
     FileSubIterator(const FileReaderBaseRef &fileReader, const FullKeyFilterRef &internalKeyFilter,
-                     const IteratorRef<BlockHandleRef> &blockHandleIterator, const Key startKey, const Key endKey,
-                     bool reverseOrder)
+                    const IteratorRef<BlockHandleRef> &blockHandleIterator, const Key startKey, const Key endKey,
+                    bool reverseOrder)
         : mFileReader(fileReader),
           mInternalKeyFilter(internalKeyFilter),
           mBlockHandleIterator(blockHandleIterator),

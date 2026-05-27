@@ -19,10 +19,10 @@
 #include <thread>
 #include <vector>
 
-#include "include/bss_err.h"
-#include "include/ref.h"
 #include "common/bss_def.h"
 #include "common/bss_log.h"
+#include "include/bss_err.h"
+#include "include/ref.h"
 
 namespace ock {
 namespace bss {
@@ -167,6 +167,7 @@ private:
     void RunInThread();
     BResult DoRunnable(bool &flag);
     void FreeThread();
+
 private:
     RunnableQueue mRunnableQueue;
     uint16_t mThreadNum;

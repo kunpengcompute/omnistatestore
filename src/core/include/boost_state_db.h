@@ -84,8 +84,8 @@ public:
      * @return return BSS_OK if success, else return BSS_ERR.
      */
     virtual BResult Restore(std::vector<std::string> &restorePath,
-                            std::unordered_map<std::string, std::string> &lazyPathMapping,
-                            bool isLazyDownload = false, bool isNewJob = true) = 0;
+                            std::unordered_map<std::string, std::string> &lazyPathMapping, bool isLazyDownload = false,
+                            bool isNewJob = true) = 0;
 
     /**
      * Trigger save point.
@@ -112,7 +112,7 @@ public:
      *
      * @param metricPtr BoostNativeMetric*
      */
-    virtual void RegisterMetric(BoostNativeMetric* metricPtr) = 0;
+    virtual void RegisterMetric(BoostNativeMetric *metricPtr) = 0;
 
     /**
      * Get boost db state group id
@@ -147,9 +147,9 @@ public:
     virtual Config &GetConfig() = 0;
 
     /**
-    * Update slice table evict water mark
-    * @param highMark 内存淘汰高水位
-    */
+     * Update slice table evict water mark
+     * @param highMark 内存淘汰高水位
+     */
     virtual void UpdateSliceEvictWaterMark(int64_t highMark) = 0;
 
     /**
@@ -175,7 +175,7 @@ public:
      */
     static void Destroy(BoostStateDBPtr &db);
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

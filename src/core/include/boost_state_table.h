@@ -37,7 +37,7 @@ using StateFilterManagerRef = std::shared_ptr<StateFilterManager>;
 class SeqGenerator;
 using SeqGeneratorRef = std::shared_ptr<SeqGenerator>;
 
-struct  SectionsReadContext;
+struct SectionsReadContext;
 using SectionsReadContextRef = std::shared_ptr<SectionsReadContext>;
 
 class SequenceIdFilter;
@@ -74,7 +74,7 @@ using TableStateIdHelperRef = std::shared_ptr<TableStateIdHelper>;
 class AbstractTable : public Table {
 public:
     BResult Init(const FreshTableRef &freshTable, const SliceTableManagerRef &sliceTable,
-              const StateIdProviderRef &stateIdProvider, TableDescriptionRef &description,
+                 const StateIdProviderRef &stateIdProvider, TableDescriptionRef &description,
                  SeqGeneratorRef seqGenerator, int64_t tableTtl, StateFilterManagerRef &stateFilterManager);
 
     virtual inline uint32_t GetHashCode(uint32_t keyHashCode, const uint8_t *data)
@@ -148,7 +148,7 @@ using KVTableRef = std::shared_ptr<KVTable>;
 class AbstractKMapTable : public AbstractTable {
 public:
     BResult Put(uint32_t keyHashCode, const BinaryData &priKey, const BinaryData &secKey,
-        const BinaryData &value) override;
+                const BinaryData &value) override;
     BResult Get(uint32_t keyHashCode, const BinaryData &priKey, const BinaryData &secKey, BinaryData &value) override;
     bool Contain(uint32_t keyHashCode, const BinaryData &priKey, const BinaryData &secKey) override;
     bool Contain(uint32_t keyHashCode, const BinaryData &priKey) override;
@@ -165,7 +165,8 @@ public:
 };
 using NsKVTableRef = std::shared_ptr<NsKVTable>;
 
-class KMapTable : public AbstractKMapTable {};
+class KMapTable : public AbstractKMapTable {
+};
 using KMapTableRef = std::shared_ptr<KMapTable>;
 
 class NsKMapTable : public AbstractKMapTable {
@@ -190,18 +191,20 @@ public:
     ListResult SectionRead(int32_t readSectionId);
 
     void CleanResource(uint32_t resId);
+
 private:
-    std::atomic<int32_t> mIndex { 0 };
+    std::atomic<int32_t> mIndex{ 0 };
     std::unordered_map<int32_t, std::vector<Value>> mResourceMap;
-    std::atomic<int32_t> mReadSectionIndex { 0 };
+    std::atomic<int32_t> mReadSectionIndex{ 0 };
     std::unordered_map<int32_t, std::vector<SectionsReadContextRef>> mReadSectionMap;
     ListResult GetListCount(const std::deque<Value> &source, std::vector<SectionsReadContextRef> &readMetas);
     ListResult GetListCount(const std::deque<Value> &source, std::deque<Value> &slice,
-        std::vector<SectionsReadContextRef> &readMetas);
+                            std::vector<SectionsReadContextRef> &readMetas);
 };
 using AbstractKListTableRef = std::shared_ptr<AbstractKListTable>;
 
-class KListTable : public AbstractKListTable {};
+class KListTable : public AbstractKListTable {
+};
 using KListTableRef = std::shared_ptr<KListTable>;
 
 class NsKListTable : public AbstractKListTable {
@@ -222,10 +225,11 @@ public:
     ~MapIteratorWrraper();
     bool HasNext();
     std::vector<BinaryData> Next();
+
 private:
     MapIterator *mMapIterator;
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

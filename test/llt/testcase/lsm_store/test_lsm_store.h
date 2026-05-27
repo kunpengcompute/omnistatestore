@@ -12,17 +12,16 @@
 #ifndef BOOST_SS_SLICE_FACTORY_H
 #define BOOST_SS_SLICE_FACTORY_H
 
-#include "gtest/gtest.h"
+#include "common/bss_metric.h"
 #include "common/util/seq_generator.h"
 #include "flushing_bucket_group.h"
 #include "generator.h"
+#include "gtest/gtest.h"
 #include "lsm_store/file/file_cache_factory.h"
 #include "slice/slice.h"
-#include "common/bss_metric.h"
 
 using namespace ock::bss;
-using KeyVectorValueMap =
-        std::unordered_map<SliceKey, std::vector<Value>, SliceKeyHash, SliceKeyEqual>;
+using KeyVectorValueMap = std::unordered_map<SliceKey, std::vector<Value>, SliceKeyHash, SliceKeyEqual>;
 
 class TestLsmStore : public ::testing::Test {
 public:
@@ -40,7 +39,7 @@ public:
             uint32_t secKeyNum = 10;
             for (uint32_t i = 0; i < kvCount / secKeyNum; ++i) {
                 std::vector<SliceKey> keys = generator.GenerateDualKey(NO_32, NO_64, secKeyNum);
-                for (const auto &key: keys) {
+                for (const auto &key : keys) {
                     Value value = generator.GenerateValue(128);
                     kvPairList.emplace_back(key, value);
                 }
@@ -48,7 +47,7 @@ public:
             uint32_t leftNum = kvCount % secKeyNum;
             for (uint32_t i = 0; i < leftNum; ++i) {
                 std::vector<SliceKey> keys = generator.GenerateDualKey(NO_32, NO_64, leftNum);
-                for (const auto &key: keys) {
+                for (const auto &key : keys) {
                     Value value = generator.GenerateValue(128);
                     kvPairList.emplace_back(key, value);
                 }
@@ -63,7 +62,7 @@ public:
 
         // put key and values to slice.
         auto slice = std::make_shared<Slice>();
-        SliceCreateMeta meta = {1};
+        SliceCreateMeta meta = { 1 };
         auto result = slice->Initialize(kvPairList, meta, mMemManager);
         if (result != BSS_OK) {
             return nullptr;
@@ -96,10 +95,10 @@ public:
         auto tableFactory = std::make_shared<FileFactory>(config, std::make_shared<BlockCache>(NO_10000));
         tableFactory->Initialize(mMemManager);
         auto stateFilterManager =
-                std::make_shared<StateFilterManager>(std::make_shared<StateIdProvider>(0, NO_65535, mMemManager),
-                                                     config, 0, NO_65535);
-        mLsmStore = std::make_shared<LsmStore>(fileStoreId, config, tableFactory, fileCache,
-                                               stateFilterManager, mMemManager);
+            std::make_shared<StateFilterManager>(std::make_shared<StateIdProvider>(0, NO_65535, mMemManager), config, 0,
+                                                 NO_65535);
+        mLsmStore = std::make_shared<LsmStore>(fileStoreId, config, tableFactory, fileCache, stateFilterManager,
+                                               mMemManager);
         mLsmStore->Initialize();
 
         mSeqGenerator = std::make_shared<SeqGenerator>();
@@ -126,10 +125,10 @@ public:
         }
         auto current = mLsmStore->GetVersionSet()->GetCurrent();
         if (current != nullptr) {
-            for (auto level: current->GetLevels()) {
+            for (auto level : current->GetLevels()) {
                 auto fileMetaDataGroups = level.GetFileMetaDataGroups();
-                for (const auto &fileMetaDataGroup: fileMetaDataGroups) {
-                    for (const auto &fileMetaData: fileMetaDataGroup->GetFiles()) {
+                for (const auto &fileMetaDataGroup : fileMetaDataGroups) {
+                    for (const auto &fileMetaData : fileMetaDataGroup->GetFiles()) {
                         unlink(fileMetaData->GetIdentifier().c_str());
                     }
                 }
@@ -137,8 +136,7 @@ public:
         }
     }
 
-    Ref<FlushingBucketGroupIterator> CreateDataSliceIterator(
-            std::vector<std::pair<SliceKey, Value>> &kvPairs)
+    Ref<FlushingBucketGroupIterator> CreateDataSliceIterator(std::vector<std::pair<SliceKey, Value>> &kvPairs)
     {
         SliceRef slice = std::make_shared<Slice>();
         SliceCreateMeta meta = {};
@@ -147,10 +145,10 @@ public:
         DataSliceRef dataSlice = std::make_shared<DataSlice>();
         dataSlice->Init(slice);
 
-        std::vector<DataSliceRef> dataSlices = {dataSlice};
+        std::vector<DataSliceRef> dataSlices = { dataSlice };
 
         Ref<FlushingBucketGroupIterator> iterator = MakeRef<FlushingBucketGroupIterator>();
-        std::vector<std::vector<DataSliceRef>> slices = std::vector<std::vector<DataSliceRef>>{dataSlices};
+        std::vector<std::vector<DataSliceRef>> slices = std::vector<std::vector<DataSliceRef>>{ dataSlices };
         iterator->Initialize(slices);
 
         return iterator;
@@ -170,7 +168,7 @@ public:
         auto existed = mLsmStore->Get(checkKey, value);
         // deleted key already been compaction, then it doesn't exist.
         if (!existed) {
-            for (const auto &deletedKey: deleteKeys) {
+            for (const auto &deletedKey : deleteKeys) {
                 if (IsTheSameKey(deletedKey, checkKey)) {
                     return;
                 }
@@ -178,7 +176,7 @@ public:
         }
         ASSERT_TRUE(existed);
         bool found = true;
-        for (const auto &deletedKey: deleteKeys) {
+        for (const auto &deletedKey : deleteKeys) {
             if (IsTheSameKey(deletedKey, checkKey)) {
                 ASSERT_EQ(value.ValueType(), DELETE);
                 found = true;
@@ -195,7 +193,7 @@ public:
                                    const std::vector<SliceKey> &deleteKeys = {}, bool reverseOrder = false)
     {
         bool hasDeletedKey = false;
-        for (const auto &deletedKey: deleteKeys) {
+        for (const auto &deletedKey : deleteKeys) {
             if (IsTheSamePriKey(deletedKey, prefixKey)) {
                 hasDeletedKey = true;
             }
@@ -214,7 +212,7 @@ public:
             auto keyValue = iterator->Next();
             if (hasDeletedKey) {
                 // before compaction, deleted key exists, but ValueType is DELETE.
-                for (const auto &deletedKey: deleteKeys) {
+                for (const auto &deletedKey : deleteKeys) {
                     if (IsTheSameKey(deletedKey, keyValue->key)) {
                         ASSERT_EQ(keyValue->value.ValueType(), DELETE);
                         found = true;
@@ -239,7 +237,7 @@ public:
                                    const std::vector<SliceKey> &deleteKeys = {}, bool reverseOrder = false)
     {
         bool hasDeletedKey = false;
-        for (const auto &deletedKey: deleteKeys) {
+        for (const auto &deletedKey : deleteKeys) {
             if (IsTheSamePriKey(deletedKey, prefixKey)) {
                 hasDeletedKey = true;
             }
@@ -262,7 +260,7 @@ public:
             if (hasDeletedKey) {
                 // before compaction, deleted key exists, but ValueType is DELETE.
                 bool isDeleted = false;
-                for (const auto &deletedEntry: deleteKeys) {
+                for (const auto &deletedEntry : deleteKeys) {
                     if (IsTheSameKey(deletedEntry, keyValue->key)) {
                         ASSERT_EQ(keyValue->value.ValueType(), DELETE);
                         isDeleted = true;
@@ -275,7 +273,7 @@ public:
             }
 
             bool found = false;
-            for (const auto &checkValue: checkValues) {
+            for (const auto &checkValue : checkValues) {
                 if (IsTheSameValue(checkValue, keyValue->value)) {
                     found = true;
                     break;
@@ -296,7 +294,7 @@ public:
                                    const std::vector<SliceKey> &deleteKeys = {}, bool reverseOrder = false)
     {
         bool hasDeletedKey = false;
-        for (const auto &deletedKey: deleteKeys) {
+        for (const auto &deletedKey : deleteKeys) {
             if (IsTheSamePriKey(deletedKey, prefixKey)) {
                 hasDeletedKey = true;
             }
@@ -318,7 +316,7 @@ public:
             if (hasDeletedKey) {
                 // before compaction, deleted key exists, but ValueType is DELETE.
                 bool isDeleted = false;
-                for (const auto &deletedEntry: deleteKeys) {
+                for (const auto &deletedEntry : deleteKeys) {
                     if (IsTheSameKey(deletedEntry, keyValue->key)) {
                         ASSERT_EQ(keyValue->value.ValueType(), DELETE);
                         isDeleted = true;
@@ -331,7 +329,7 @@ public:
             }
 
             bool found = false;
-            for (const auto &checkEntry: checkEntries) {
+            for (const auto &checkEntry : checkEntries) {
                 if (IsTheSameKey(checkEntry.first, keyValue->key)) {
                     ASSERT_TRUE(IsTheSameValue(checkEntry.second, keyValue->value));
                     found = true;
@@ -378,6 +376,7 @@ protected:
     LsmStoreRef mLsmStore;
     SeqGeneratorRef mSeqGenerator;
     BoostNativeMetric *mMetric = nullptr;
+
 private:
     static FileCacheFactoryRef CreateFileCacheFactory()
     {
@@ -390,7 +389,7 @@ private:
         PathRef localPath = std::make_shared<Path>(Uri(localBasePath));
         ConfigRef config = std::make_shared<Config>();
         config->SetLocalPath(localPath->Name());
-        BoostNativeMetricPtr* metric = nullptr;
+        BoostNativeMetricPtr *metric = nullptr;
         return std::make_shared<FileCacheFactory>(config, nullptr, metric);
     }
 };

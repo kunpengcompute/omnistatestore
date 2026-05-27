@@ -54,7 +54,7 @@ public:
 
     // 将 std::vector<std::string> 转换为 "item1,item2,item3"
     static inline std::string MergeVectorToString(const std::vector<std::string> &stringArray,
-        uint32_t vectorMaxLength = UINT32_MAX)
+                                                  uint32_t vectorMaxLength = UINT32_MAX)
     {
         std::ostringstream oss;
         uint32_t index = 0;
@@ -73,7 +73,7 @@ public:
 
     // 将字符串 "item1,item2,item3" 转换为 std::vector<std::string>
     static inline void SplitStringToVector(const std::string &str, std::vector<std::string> &strVecter,
-        uint32_t vectorMaxLength = UINT32_MAX)
+                                           uint32_t vectorMaxLength = UINT32_MAX)
     {
         std::stringstream ss(str);
         std::string token;

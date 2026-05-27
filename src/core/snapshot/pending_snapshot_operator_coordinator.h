@@ -33,10 +33,20 @@ public:
                                        const FreshTableRef &freshTable, const SliceTableManagerRef &sliceTable,
                                        const MemManagerRef &memManager, const std::vector<PQTableRef> &pqTable)
 
-        : mSnapshotId(snapshotId), mStartKeyGroup(startKeyGroup), mEndKeyGroup(endKeyGroup), mSeqId(seqId),
-          mStateIdProvider(stateIdProvider), mLocalSnapshotPath(localSnapshotPath), mLocalFileManager(localFileManager),
-          mRemoteFileManager(localFileManager), mConfig(config), mFreshTable(freshTable), mSliceTable(sliceTable),
-          mSnapshotStat(std::make_shared<SnapshotStat>()), mMemManager(memManager), mPqTables(pqTable)
+        : mSnapshotId(snapshotId),
+          mStartKeyGroup(startKeyGroup),
+          mEndKeyGroup(endKeyGroup),
+          mSeqId(seqId),
+          mStateIdProvider(stateIdProvider),
+          mLocalSnapshotPath(localSnapshotPath),
+          mLocalFileManager(localFileManager),
+          mRemoteFileManager(localFileManager),
+          mConfig(config),
+          mFreshTable(freshTable),
+          mSliceTable(sliceTable),
+          mSnapshotStat(std::make_shared<SnapshotStat>()),
+          mMemManager(memManager),
+          mPqTables(pqTable)
     {
     }
 

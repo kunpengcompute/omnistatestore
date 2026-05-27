@@ -12,10 +12,10 @@
 #ifndef BOOST_SS_TEST_FRESH_TABLE_H
 #define BOOST_SS_TEST_FRESH_TABLE_H
 
+#include "fresh_table.h"
 #include "gtest/gtest.h"
 #include "include/boost_state_db.h"
 #include "include/boost_state_table.h"
-#include "fresh_table.h"
 
 using namespace ock::bss;
 

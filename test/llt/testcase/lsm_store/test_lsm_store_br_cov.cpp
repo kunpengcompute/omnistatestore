@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "test_lsm_store_br_cov.h"
+
 #include "fs/local/local_file_system.h"
 #include "lsm_store/file/file_structure.h"
-#include "test_lsm_store_br_cov.h"
 
 using namespace ock::bss;
 

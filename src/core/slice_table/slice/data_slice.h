@@ -27,11 +27,11 @@ public:
     {
     }
 
-    DataSlice& operator=(const DataSlice& other)
+    DataSlice &operator=(const DataSlice &other)
     {
         if (this != &other) {
             mChainIndex = other.GetChainIndex();
-            mSlice = other.GetSlice(); // 浅拷贝, 仅复制智能指针.
+            mSlice = other.GetSlice();  // 浅拷贝, 仅复制智能指针.
         }
         return *this;
     }

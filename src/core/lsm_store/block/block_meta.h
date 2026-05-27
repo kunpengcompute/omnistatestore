@@ -12,8 +12,8 @@
 #ifndef BOOST_SS_BLOCK_META_H
 #define BOOST_SS_BLOCK_META_H
 
-#include "block_handle.h"
 #include "binary/key/full_key.h"
+#include "block_handle.h"
 
 namespace ock {
 namespace bss {
@@ -22,8 +22,8 @@ public:
     BlockMeta() = default;
     ~BlockMeta() = default;
 
-    inline void Reset(const BlockHandleRef &blockHandle, uint32_t rawSize, uint32_t numKeys,
-                      const FullKeyRef &startKey, const FullKeyRef &endKey)
+    inline void Reset(const BlockHandleRef &blockHandle, uint32_t rawSize, uint32_t numKeys, const FullKeyRef &startKey,
+                      const FullKeyRef &endKey)
     {
         mBlockHandle = blockHandle;
         mRawSize = rawSize;

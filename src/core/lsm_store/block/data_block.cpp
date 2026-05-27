@@ -41,9 +41,9 @@ BResult DataBlock::GetKey(const Key &key, Value &value)
             return BSS_NOT_EXISTS;
         }
         if (iterator.Size() < mBinarySearchThreshold) {
-            return LinearSearch(key, value, iterator); // 线性查找, 通过迭代器遍历找到对应的数据.
+            return LinearSearch(key, value, iterator);  // 线性查找, 通过迭代器遍历找到对应的数据.
         } else {
-            return BinarySearch(key, value); // 二分查找.
+            return BinarySearch(key, value);  // 二分查找.
         }
     }
     return BSS_NOT_EXISTS;
@@ -70,8 +70,7 @@ BResult DataBlock::LinearSearch(const Key &key, Value &value, DataBlockIndexIter
             primaryKeyOffset = GetKeyIndexElement(mPrimaryKeyIndexOffset, mPrimaryKeyIndexElementSize,
                                                   newPrimaryKeyIndex);
             primaryKeyLenInfo = FullKeyUtil::ParsePrimaryKeyLen(mBuffer, primaryKeyOffset);
-            int32_t i = FullKeyUtil::ComparePrimaryKeyForLookup(key, mBuffer, primaryKeyOffset,
-                primaryKeyLenInfo);
+            int32_t i = FullKeyUtil::ComparePrimaryKeyForLookup(key, mBuffer, primaryKeyOffset, primaryKeyLenInfo);
             primaryKeySameAsLookupKey = (i == 0);
         }
 
@@ -121,8 +120,7 @@ BResult DataBlock::LinearSearch(const Key &key, Value &value, DataBlockIndexIter
             uint64_t secondaryKeyLenInfo = 0L;
             if (cmp == 0 && hasSecondaryKey) {
                 secondaryKeyLenInfo = FullKeyUtil::ParseSecondaryKeyLen(mBuffer, secondaryKeyOffset);
-                cmp = FullKeyUtil::CompareSecondaryKeyForLookup(key, mBuffer, secondaryKeyOffset,
-                    secondaryKeyLenInfo);
+                cmp = FullKeyUtil::CompareSecondaryKeyForLookup(key, mBuffer, secondaryKeyOffset, secondaryKeyLenInfo);
             }
 
             if (cmp == 0) {
@@ -235,8 +233,8 @@ BResult DataBlock::FindPrimaryKey(const Key &key, PrimaryKeyInfo &primaryKeyInfo
     return BSS_OK;
 }
 
-void DataBlock::BuildPrimaryInfo(PrimaryKeyInfo &primaryKeyInfo, uint32_t midPrimaryKeyIndex,
-                                 uint32_t primaryKeyOffset, uint64_t primaryKeyLenInfo)
+void DataBlock::BuildPrimaryInfo(PrimaryKeyInfo &primaryKeyInfo, uint32_t midPrimaryKeyIndex, uint32_t primaryKeyOffset,
+                                 uint64_t primaryKeyLenInfo)
 {
     uint32_t primaryKeyLen = FullKeyUtil::GetPrimaryKeyLen(primaryKeyLenInfo);
     uint32_t bufferOffset = primaryKeyOffset + primaryKeyLen;
@@ -248,8 +246,8 @@ void DataBlock::BuildPrimaryInfo(PrimaryKeyInfo &primaryKeyInfo, uint32_t midPri
 SecondaryLevelInfoRef DataBlock::GetSecondaryLevelInfo(PrimaryKeyInfo &primaryKeyInfo)
 {
     if (primaryKeyInfo.IsSingleSecondaryKey()) {
-        return std::make_shared<SingleSecondaryLevelInfo>(primaryKeyInfo.GetSecondaryLevelOffset(),
-                                                          mMemManager, mHolder);
+        return std::make_shared<SingleSecondaryLevelInfo>(primaryKeyInfo.GetSecondaryLevelOffset(), mMemManager,
+                                                          mHolder);
     }
 
     uint32_t bufferOffset = primaryKeyInfo.GetSecondaryLevelOffset();
@@ -263,9 +261,8 @@ SecondaryLevelInfoRef DataBlock::GetSecondaryLevelInfo(PrimaryKeyInfo &primaryKe
     uint32_t firstSecondaryKeyOffset = VarEncodingUtil::GetDecodedValue(decodedFirstSecondaryKeyOffset);
     bufferOffset += VarEncodingUtil::GetNumberOfEncodedBytes(decodedFirstSecondaryKeyOffset);
 
-    return std::make_shared<MultiSecondaryLevelInfo>(numBytesForSecondaryKeyIndexElement,
-                                                     numSecondaryKeys, bufferOffset, firstSecondaryKeyOffset,
-                                                     mMemManager, mHolder);
+    return std::make_shared<MultiSecondaryLevelInfo>(numBytesForSecondaryKeyIndexElement, numSecondaryKeys,
+                                                     bufferOffset, firstSecondaryKeyOffset, mMemManager, mHolder);
 }
 
 int32_t DataBlock::BinarySearch(const LsmKeyValueInfo &keyValueInfo, const Key &key, int32_t leftIndex,

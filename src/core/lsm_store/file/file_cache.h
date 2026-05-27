@@ -14,13 +14,13 @@
 
 #include <map>
 
-#include "include/config.h"
 #include "common/util/bss_lock.h"
 #include "common/util/string_util.h"
 #include "compressor_utils.h"
 #include "file_cache_manager.h"
 #include "file_factory.h"
 #include "file_writer.h"
+#include "include/config.h"
 #include "lsm_store/block/file_access.h"
 #include "lsm_store/key/full_key_filter.h"
 #include "lsm_store/version/version.h"
@@ -30,7 +30,7 @@ namespace bss {
 class FileCache {
 public:
     FileCache(const ConfigRef &config, const FileFactoryRef &factory, const FileCacheManagerRef &fileCache,
-               const MemManagerRef &memManager)
+              const MemManagerRef &memManager)
         : mConfig(config), mFileFactory(factory), mFileCache(fileCache), mMemManager(memManager), mFileStoreSeqId(0)
     {
         mCompressionLevelPolicy = config->GetCompressionLevelPolicy();
@@ -53,7 +53,7 @@ public:
             compressPolicy = mLsmStoreCompressionPolicy;
         }
         LOG_DEBUG("Write file using compression policy: "
-            << CompressAlgoUtil::ReverseCompressAlgoTransform(compressPolicy) << ", level: " << levelId << ".");
+                  << CompressAlgoUtil::ReverseCompressAlgoTransform(compressPolicy) << ", level: " << levelId << ".");
         return mFileFactory->CreateFileWriter(path, mConfig, compressPolicy, mMemManager, holder);
     }
 
@@ -155,9 +155,9 @@ public:
             strVecter.emplace_back(CompressAlgoUtil::ReverseCompressAlgoTransform(compressionItem));
         }
         LOG_INFO("Lsm compressionPolicy: "
-            << CompressAlgoUtil::ReverseCompressAlgoTransform(mLsmStoreCompressionPolicy)
-            << ", compressionLevelPolicy: "
-            << StringUtil::MergeVectorToString(strVecter, mConfig->GetFileStoreNumLevels()) << ".");
+                 << CompressAlgoUtil::ReverseCompressAlgoTransform(mLsmStoreCompressionPolicy)
+                 << ", compressionLevelPolicy: "
+                 << StringUtil::MergeVectorToString(strVecter, mConfig->GetFileStoreNumLevels()) << ".");
     }
 
     inline void RegisterMetric(BoostNativeMetricPtr metricPtr)

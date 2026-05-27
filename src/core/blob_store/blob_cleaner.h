@@ -50,17 +50,17 @@ public:
     }
     BlobCleaner() = default;
     BResult Init(const ConfigRef &config, const BlobFileGroupManagerRef &blobFileGroupManager,
-        const FileCacheManagerRef &fileCacheManager, const BlobFileManagerRef &blobFileManager,
-        const MemManagerRef &memManager, uint64_t version);
+                 const FileCacheManagerRef &fileCacheManager, const BlobFileManagerRef &blobFileManager,
+                 const MemManagerRef &memManager, uint64_t version);
 
     BResult Restore(const FileInputViewRef &fileInputView,
-        std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, uint64_t restoreVersion,
-        bool rescale);
-    
+                    std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, uint64_t restoreVersion,
+                    bool rescale);
+
     void FinishRestore();
 
     void TriggerSnapshot(uint64_t snapshotId, uint64_t blobStoreVersion, uint64_t seqId,
-        BlobStoreSnapshotOperatorRef &blobStoreSnapshotOperator);
+                         BlobStoreSnapshotOperatorRef &blobStoreSnapshotOperator);
 
     bool TriggerCompaction();
 
@@ -115,14 +115,14 @@ public:
     void DoCompaction();
 
     BResult ProcessCompaction(const std::vector<BlobImmutableFileRef> &blobFiles,
-        const std::vector<TombstoneFileRef> &tombstoneFiles, CompactionResult &result);
+                              const std::vector<TombstoneFileRef> &tombstoneFiles, CompactionResult &result);
 
     int32_t CompareBlobAndTombstone(BlobValueWrapperRef blobValueWrapper, TombstoneRef tombstone);
 
     BResult DoCompactionForBlobAndTombstone(const std::shared_ptr<BlobFileMergingIterator> &blobMergeIterator,
-        const std::shared_ptr<TombstoneFileMergingIterator> &tombstoneMergeIterator,
-        const std::shared_ptr<BlobCompactionFileWriter> &blobFileWriter,
-        const std::shared_ptr<TombstoneFileWriter> &tombstoneFileWriter);
+                                            const std::shared_ptr<TombstoneFileMergingIterator> &tombstoneMergeIterator,
+                                            const std::shared_ptr<BlobCompactionFileWriter> &blobFileWriter,
+                                            const std::shared_ptr<TombstoneFileWriter> &tombstoneFileWriter);
 
     bool IsBlobNotExpire(BlobValueWrapperRef &blobValueWrapper);
 
@@ -146,6 +146,7 @@ public:
     TombstoneServiceRef RegisterTombstoneService(const std::string &name);
 
     double CalBlobSpaceWasteRate(uint64_t minBlobId);
+
 private:
     ConfigRef mConfig = nullptr;
     BlobFileGroupManagerRef mBlobFileGroupManager = nullptr;
@@ -161,7 +162,7 @@ private:
     bool mEnableTombstone = false;
 };
 using BlobCleanerRef = std::shared_ptr<BlobCleaner>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

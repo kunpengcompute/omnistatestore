@@ -19,9 +19,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "common/io/output_view.h"
 #include "include/bss_types.h"
 #include "include/table_description.h"
-#include "common/io/output_view.h"
 #include "io/file_input_view.h"
 #include "io/file_output_view.h"
 #include "state_id.h"

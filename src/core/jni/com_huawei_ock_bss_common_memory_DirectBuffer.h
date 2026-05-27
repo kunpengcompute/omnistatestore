@@ -57,8 +57,7 @@ JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_common_memory_DirectBuffer_nativ
  * Signature: (I)Ljava/io/DirectByteBuffer;
  */
 JNIEXPORT jobject JNICALL Java_com_huawei_ock_bss_common_memory_DirectBuffer_nativeAllocDirectBuffer(JNIEnv *, jclass,
-    jint);
-
+                                                                                                     jint);
 
 /*
  * Class:     com_huawei_ock_bss_common_memory_DirectBuffer
@@ -66,7 +65,7 @@ JNIEXPORT jobject JNICALL Java_com_huawei_ock_bss_common_memory_DirectBuffer_nat
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_huawei_ock_bss_common_memory_DirectBuffer_nativeFreeDirectBuffer(JNIEnv *, jclass,
-                                                                                                   jlong);
+                                                                                                 jlong);
 
 #ifdef __cplusplus
 }

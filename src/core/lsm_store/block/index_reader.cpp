@@ -10,6 +10,7 @@
  */
 
 #include "index_reader.h"
+
 #include "binary/lsm_binary.h"
 
 namespace ock {

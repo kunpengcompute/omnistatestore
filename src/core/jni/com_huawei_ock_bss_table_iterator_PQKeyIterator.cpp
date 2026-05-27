@@ -11,13 +11,13 @@
 
 #include "com_huawei_ock_bss_table_iterator_PQKeyIterator.h"
 
-#include "kv_table/pq_table.h"
 #include "jni_common.h"
+#include "kv_table/pq_table.h"
 
 using namespace ock::bss;
 
 JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_table_iterator_PQKeyIterator_open(JNIEnv *env, jobject, jlong jtable,
-    jbyteArray groupId)
+                                                                                  jbyteArray groupId)
 {
     if (UNLIKELY(env == nullptr)) {
         LOG_ERROR("Input env is nullptr.");
@@ -50,7 +50,7 @@ JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_table_iterator_PQKeyIterator_ope
 }
 
 JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_iterator_PQKeyIterator_hasNext(JNIEnv *env, jobject,
-    jlong jIter)
+                                                                                        jlong jIter)
 {
     if (UNLIKELY(env == nullptr)) {
         LOG_ERROR("Input env is nullptr.");
@@ -65,7 +65,7 @@ JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_iterator_PQKeyIterator_
 }
 
 JNIEXPORT jobject JNICALL Java_com_huawei_ock_bss_table_iterator_PQKeyIterator_next(JNIEnv *env, jobject, jlong jIter,
-    jobject obj)
+                                                                                    jobject obj)
 {
     if (UNLIKELY(env == nullptr)) {
         LOG_ERROR("Input env is nullptr.");

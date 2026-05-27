@@ -13,14 +13,13 @@
 class TestExample : public testing::Test {
 public:
     TestExample() = default;
-    virtual void SetUp(void)
-    {
+    virtual void SetUp(void){
         // 在测试之前的初始化操作
     };
-    virtual void TearDown(void)
-    {
+    virtual void TearDown(void){
         // 在测试之后的清理操作
     };
+
 protected:
 };
 

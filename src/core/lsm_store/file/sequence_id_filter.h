@@ -61,14 +61,15 @@ public:
 
     inline bool IsExpired(uint64_t ts, uint64_t currentTime) const
     {
-        return (mTtl > 0 && ts +
-            std::min(static_cast<uint64_t>(INT64_MAX - ts), static_cast<uint64_t>(mTtl)) <= currentTime);
+        return (mTtl > 0 &&
+                ts + std::min(static_cast<uint64_t>(INT64_MAX - ts), static_cast<uint64_t>(mTtl)) <= currentTime);
     }
 
     inline int64_t GetTtlTime() override
     {
         return mTtl;
     }
+
 private:
     int64_t mTtl = 0;
 };

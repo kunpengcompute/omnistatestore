@@ -30,13 +30,13 @@ enum class FileProcHolder : uint32_t {
 
 class FileMemAllocator {
 public:
-    static const uint32_t DEFAULT_TIMEOUT = 5000; // 5s
+    static const uint32_t DEFAULT_TIMEOUT = 5000;  // 5s
 
-    static const uint32_t SAVEPOINT_TIMEOUT = 5 * 60 * 1000; // 5min
+    static const uint32_t SAVEPOINT_TIMEOUT = 5 * 60 * 1000;  // 5min
 
     static void AllocStrategy(FileProcHolder holder, bool &force, uint32_t &ts);
 
-    static uintptr_t Alloc(const MemManagerRef &memMgr, FileProcHolder holder, uint64_t size, const char* func);
+    static uintptr_t Alloc(const MemManagerRef &memMgr, FileProcHolder holder, uint64_t size, const char *func);
 
     inline static bool IsForceType(FileProcHolder holder)
     {

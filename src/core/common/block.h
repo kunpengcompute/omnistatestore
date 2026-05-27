@@ -13,6 +13,7 @@
 #define BOOST_SS_BLOCK_H
 
 #include <memory>
+
 #include "include/bss_types.h"
 #include "slice_table/binary/byte_buffer.h"
 

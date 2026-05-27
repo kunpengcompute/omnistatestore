@@ -14,10 +14,10 @@
 
 #include <random>
 
-#include "include/ref.h"
 #include "binary/query_binary.h"
 #include "binary/slice_binary.h"
 #include "binary/value/value.h"
+#include "include/ref.h"
 #include "test_utils.h"
 
 namespace ock {
@@ -121,8 +121,7 @@ public:
         return GenerateKey(priKeyLen, secKeyLen, 1)[0];
     }
 
-    SliceKey GenerateDualKey(const char *priKeyData, uint32_t priKeyLen, const char *secKeyData,
-                                    uint32_t secKeyLen)
+    SliceKey GenerateDualKey(const char *priKeyData, uint32_t priKeyLen, const char *secKeyData, uint32_t secKeyLen)
     {
         return GenerateDualKey(reinterpret_cast<uint8_t *>(const_cast<char *>(priKeyData)), priKeyLen,
                                reinterpret_cast<uint8_t *>(const_cast<char *>(secKeyData)), secKeyLen);
@@ -153,7 +152,7 @@ public:
     }
 
     SliceKey GenerateHashCollisionDualKey(uint8_t *priKeyData, uint32_t priKeyLen, uint8_t *secKeyData,
-        uint32_t secKeyLen, const SliceKey &key, uint32_t count)
+                                          uint32_t secKeyLen, const SliceKey &key, uint32_t count)
     {
         auto index = key.MixedHashCode() & (count - 1);
         // primary key.
@@ -171,7 +170,7 @@ public:
         std::uniform_int_distribution<uint32_t> dist;
         // hash code.
         uint32_t secKeyHashCode = test::HashForTest(secKeyData, secKeyLen);
-        uint32_t priKeyHashCode = secKeyHashCode ^ stateId ^ (c |(dist(gen) << 10));
+        uint32_t priKeyHashCode = secKeyHashCode ^ stateId ^ (c | (dist(gen) << 10));
         // prepare dual key.
         BinaryData priKey(priKeyBuffer->Data(), priKeyLen);
         BinaryData secKey(secKeyBuffer->Data(), secKeyLen);

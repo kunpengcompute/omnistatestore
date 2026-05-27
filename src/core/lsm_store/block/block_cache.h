@@ -14,8 +14,8 @@
 
 #include <memory>
 
-#include "common/util/lru_cache.h"
 #include "common/block.h"
+#include "common/util/lru_cache.h"
 
 namespace ock {
 namespace bss {
@@ -27,7 +27,7 @@ public:
     {
         if (cacheIndexAndFilterRatio > 0.001f) {
             LOG_INFO("Filter block and index block use independent cache pool, cacheIndexAndFilterRatio"
-                << cacheIndexAndFilterRatio);
+                     << cacheIndexAndFilterRatio);
             mUseOwnIndexCache = true;
         }
     }
@@ -154,6 +154,7 @@ public:
             LOG_INFO("Delete block cache success, slotId:" << slotId);
         }
     }
+
 private:
     std::mutex mLock;
     std::unordered_map<uint32_t, std::pair<uint32_t, BlockCacheRef>> mBlockCacheMap;

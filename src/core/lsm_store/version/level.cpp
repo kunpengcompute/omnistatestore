@@ -9,15 +9,16 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "level.h"
+
 #include <unordered_map>
 
-#include "include/bss_types.h"
 #include "binary/key/full_key.h"
 #include "binary/key/key.h"
+#include "include/bss_types.h"
 #include "key/full_key_util.h"
 #include "lsm_store/file/file_meta_data.h"
 #include "lsm_store/file/file_meta_data_group.h"
-#include "level.h"
 
 namespace ock {
 namespace bss {
@@ -126,7 +127,6 @@ std::vector<FileMetaDataRef> Level::GetFilesContainingStateId(uint32_t stateId)
     }
     return result;
 }
-
 
 bool Level::IsPrefixKeyWithinFile(const FileMetaDataRef &fileMetaData, const Key &prefixKey)
 {

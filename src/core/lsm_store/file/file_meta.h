@@ -110,8 +110,8 @@ private:
     PathRef mFilePath = nullptr;
     FileIdRef mFileId = nullptr;
     bool mCanDeleted = false;
-    std::atomic<uint64_t> mFileSize{ 0 };   // 文件大小.
-    std::atomic<uint64_t> mDataSize{ 0 };   // 文件中的数据大小.
+    std::atomic<uint64_t> mFileSize{ 0 };  // 文件大小.
+    std::atomic<uint64_t> mDataSize{ 0 };  // 文件中的数据大小.
     std::atomic<int32_t> mDbRef{ 0 };
     std::atomic<int64_t> mLastTimestampToDecDbRef{ -1 };
     std::atomic<int64_t> mLastEpochToDecDbRef{ -1 };

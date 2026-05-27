@@ -10,6 +10,7 @@
  */
 
 #include "index_block_writer.h"
+
 #include "binary/lsm_binary.h"
 #include "block_meta.h"
 #include "common/util/var_encoding_util.h"
@@ -38,7 +39,7 @@ BResult IndexBlockWriter::Finish(ByteBufferRef &byteBuffer)
     uint32_t numBytesForEndKeyIndex = FullKeyUtil::MinNumBytesToRepresentValue(mKeyValueOffset.at(numBlocks - 1));
     for (uint32_t i = 0; i < numBlocks; i++) {
         retVal = FullKeyUtil::WriteValueWithNumberOfBytes(mKeyValueOffset.at(i), numBytesForEndKeyIndex,
-            mBufferOutputView);
+                                                          mBufferOutputView);
         RETURN_NOT_OK_NO_LOG(retVal);
     }
     retVal = mBufferOutputView->WriteUint8(numBytesForEndKeyIndex);

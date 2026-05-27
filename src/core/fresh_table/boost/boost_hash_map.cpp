@@ -9,9 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "iostream"
-
 #include "boost_hash_map.h"
+
+#include "iostream"
 
 namespace ock {
 namespace bss {
@@ -119,8 +119,7 @@ uint32_t BoostHashMap::FindIndexNode(const Key &key, bool subKeyFlag)
         uint32_t hashCode = mMemorySegment->ToUint32_t(bucketChainPointer + HASHCODE_OFFSET);
         if (targetHashCode == hashCode) {
             uint32_t keyNode = mMemorySegment->ToUint32_t(bucketChainPointer + KEY_NODE_OFFSET);
-            const auto *freshKeyNode =
-                reinterpret_cast<const FreshKeyNode *>(mMemorySegment->GetSegment() + keyNode);
+            const auto *freshKeyNode = reinterpret_cast<const FreshKeyNode *>(mMemorySegment->GetSegment() + keyNode);
             if ((!subKeyFlag && freshKeyNode->Equal(key.PriKey())) ||
                 (subKeyFlag && freshKeyNode->Equal(key.SecKey()))) {
                 return bucketChainPointer;
@@ -168,7 +167,7 @@ std::deque<Value> BoostHashMap::GetList(const Key &key)
                    freshValueNode->Value(), freshValueNode->ValueSeqId(), mMemorySegment);
         result.emplace_back(value);
         valueNode = mMemorySegment->ToUint32_t(valueNode + VALUE_DATA_OFFSET +
-            mMemorySegment->ToUint32_t(valueNode + VALUE_LENGTH_OFFSET));
+                                               mMemorySegment->ToUint32_t(valueNode + VALUE_LENGTH_OFFSET));
         freshValueNode = FreshValueNode::FromBuffer(mMemorySegment->Data() + valueNode);
     }
     if (freshValueNode->NodeType() == NodeType::SERIALIZED) {
@@ -213,19 +212,17 @@ BResult BoostHashMap::Append(const Key &key, const Value &value)
     uint32_t indexNode = FindIndexNode(key);
     if (indexNode != 0) {
         RETURN_NOT_OK_AS_FALSE(indexNode > UINT32_MAX - LIST_TOTAL_VALUE_LEN_OFFSET, BSS_ERR);
-        uint32_t listTotalValueLen = mMemorySegment->ToUint32_t(indexNode +  LIST_TOTAL_VALUE_LEN_OFFSET);
+        uint32_t listTotalValueLen = mMemorySegment->ToUint32_t(indexNode + LIST_TOTAL_VALUE_LEN_OFFSET);
         if (listTotalValueLen > IO_SIZE_4M) {
             return BSS_FRESH_TABLE_IS_FULL;
         }
-        mMemorySegment->PutUint32_t(indexNode +  LIST_TOTAL_VALUE_LEN_OFFSET, listTotalValueLen + value.ValueLen());
+        mMemorySegment->PutUint32_t(indexNode + LIST_TOTAL_VALUE_LEN_OFFSET, listTotalValueLen + value.ValueLen());
         uint32_t valueNode = mMemorySegment->ToUint32_t(indexNode + VALUE_NODE_OFFSET);
         uint32_t appendValueNode;
         result = CreateValueNode(value, NodeType::COMPOSITE, appendValueNode);
         RETURN_NOT_OK_NO_LOG(result);
-        RETURN_NOT_OK_AS_FALSE(VALUE_DATA_OFFSET + GetValueLength(value) > UINT32_MAX - appendValueNode,
-            BSS_ERR);
-        mMemorySegment->PutUint32_t(appendValueNode + VALUE_DATA_OFFSET + GetValueLength(value),
-            valueNode);
+        RETURN_NOT_OK_AS_FALSE(VALUE_DATA_OFFSET + GetValueLength(value) > UINT32_MAX - appendValueNode, BSS_ERR);
+        mMemorySegment->PutUint32_t(appendValueNode + VALUE_DATA_OFFSET + GetValueLength(value), valueNode);
         mMemorySegment->PutUint32_t(indexNode + VALUE_NODE_OFFSET, appendValueNode);
     } else {
         result = AddIndexNode(key, value);
@@ -520,7 +517,7 @@ KeyValueRef BoostHashMap::CreateKeyValue(const PriKeyNode &priKey, const FreshVa
 }
 
 KeyValueRef BoostHashMap::CreateKeyValue(const PriKeyNode &priKey, const SecKeyNode &secKey,
-    const FreshValueNode *valueNode)
+                                         const FreshValueNode *valueNode)
 {
     auto keyValue = MakeRef<KeyValue>();
     keyValue->key.Init(priKey, secKey, mMemorySegment);
@@ -533,8 +530,8 @@ KeyValueRef BoostHashMap::CreateKeyValue(const PriKeyNode &priKey, const SecKeyN
     return keyValue;
 }
 
-void BoostHashMap::VisitNested(const BoostHashMap &hashMap, const PriKeyNode &priKey,
-    const SecKeyFilter &secKeyFilter, std::vector<KeyValueRef> &keyValues)
+void BoostHashMap::VisitNested(const BoostHashMap &hashMap, const PriKeyNode &priKey, const SecKeyFilter &secKeyFilter,
+                               std::vector<KeyValueRef> &keyValues)
 {
     hashMap.Visit([&](const FreshNode &secondFreshNode) {
         auto secondKeyNode = secondFreshNode.KeyNode();

@@ -17,10 +17,10 @@
 #include <memory>
 #include <sstream>
 
-#include "value_type.h"
 #include "bss_def.h"
 #include "bss_types.h"
 #include "buffer.h"
+#include "value_type.h"
 
 namespace ock {
 namespace bss {
@@ -72,8 +72,7 @@ public:
         if (UNLIKELY(mData != nullptr)) {
             uint32_t printLen = std::min(NO_20, mLength);
             for (uint32_t i = 0; i < printLen; i++) {
-                oss << std::hex << std::uppercase << std::setw(NO_2) << std::setfill('0')
-                    << static_cast<int>(mData[i]);
+                oss << std::hex << std::uppercase << std::setw(NO_2) << std::setfill('0') << static_cast<int>(mData[i]);
             }
         } else {
             oss << "null";
@@ -81,6 +80,7 @@ public:
         oss << "]";
         return oss.str();
     }
+
 protected:
     uint32_t mLength{ 0 };
     const uint8_t *mData{ nullptr };
@@ -147,7 +147,7 @@ struct PQBinaryDataSetComparator {
         return PQBinaryDataComparator::Compare(a, b) < 0;
     }
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

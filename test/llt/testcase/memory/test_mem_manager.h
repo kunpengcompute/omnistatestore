@@ -12,8 +12,8 @@
 #ifndef BOOST_SS_TEST_MEM_MANAGER_H
 #define BOOST_SS_TEST_MEM_MANAGER_H
 
-#include "memory/mem_manager.h"
 #include "gtest/gtest.h"
+#include "memory/mem_manager.h"
 
 using namespace ock::bss;
 class TestMemManager : public testing::Test {

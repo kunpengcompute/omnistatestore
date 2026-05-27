@@ -10,8 +10,9 @@
  */
 
 #include "file_system.h"
-#include "common/fs/local/local_file_system.h"
+
 #include "common/fs/hdfs/hadoop_file_system.h"
+#include "common/fs/local/local_file_system.h"
 
 namespace ock {
 namespace bss {
@@ -21,9 +22,9 @@ FileSystemRef FileSystem::CreateFileSystem(FileSystemType type, const PathRef &p
     std::string scheme = (type == FileSystemType::LOCAL) ? "file" : "hdfs";
     FileSystemRef fileSystem = nullptr;
     // 创建文件系统.
-    if (scheme == "file") { // 本地文件系统.
+    if (scheme == "file") {  // 本地文件系统.
         fileSystem = std::make_shared<LocalFileSystem>(path);
-    } else if (scheme == "hdfs") { // hdfs远端文件系统.
+    } else if (scheme == "hdfs") {  // hdfs远端文件系统.
         fileSystem = std::make_shared<HadoopFileSystem>(path);
     } else {
         LOG_ERROR("Invalid scheme " << scheme);
@@ -33,5 +34,5 @@ FileSystemRef FileSystem::CreateFileSystem(FileSystemType type, const PathRef &p
     return fileSystem;
 }
 
-}
-}
+}  // namespace bss
+}  // namespace ock

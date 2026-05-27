@@ -12,11 +12,11 @@
 #ifndef BOOST_SS_PENDING_SAVEPOINT_COORDINATOR_H
 #define BOOST_SS_PENDING_SAVEPOINT_COORDINATOR_H
 
-#include "fresh_table/fresh_table.h"
-#include "kv_table/stateId_provider.h"
-#include "fresh_table_snapshot_operator.h"
-#include "slice_table_snapshot_operator.h"
 #include "file_store_snapshot_operator.h"
+#include "fresh_table/fresh_table.h"
+#include "fresh_table_snapshot_operator.h"
+#include "kv_table/stateId_provider.h"
+#include "slice_table_snapshot_operator.h"
 
 namespace ock {
 namespace bss {
@@ -28,10 +28,15 @@ public:
     enum class State { CREATED, RUNNING, COMPLETED, FAILED, CANCELED };
 
     PendingSavepointCoordinator(const SnapshotManagerRef &snapshotManager, const FreshTableRef &freshTable,
-        const SliceTableManagerRef &sliceTable, uint64_t savepointId, const StateIdProviderRef &stateIdProvider,
-        const MemManagerRef &memManager, const std::vector<PQTableRef> &pqTable)
-        : mSnapshotManagerRef(snapshotManager), mFreshTable(freshTable), mSliceTable(sliceTable),
-          mSavepointId(savepointId), mStateIdProvider(stateIdProvider), mMemManager(memManager),
+                                const SliceTableManagerRef &sliceTable, uint64_t savepointId,
+                                const StateIdProviderRef &stateIdProvider, const MemManagerRef &memManager,
+                                const std::vector<PQTableRef> &pqTable)
+        : mSnapshotManagerRef(snapshotManager),
+          mFreshTable(freshTable),
+          mSliceTable(sliceTable),
+          mSavepointId(savepointId),
+          mStateIdProvider(stateIdProvider),
+          mMemManager(memManager),
           mPqTables(pqTable)
     {
     }

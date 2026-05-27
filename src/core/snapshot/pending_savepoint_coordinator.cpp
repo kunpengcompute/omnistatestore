@@ -41,8 +41,7 @@ BResult PendingSavepointCoordinator::Start()
     RETURN_NOT_OK(DoBlobStoreSnapshot());
 
     // 4. FileStore执行savepoint.
-    auto fileStoreSnapshotOperator = mSliceTable->PrepareFileStoreSnapshot(AllocateOperatorId(),
-        GetSnapshotId());
+    auto fileStoreSnapshotOperator = mSliceTable->PrepareFileStoreSnapshot(AllocateOperatorId(), GetSnapshotId());
     RegisterSnapshotOperator(fileStoreSnapshotOperator);
     fileStoreSnapshotOperator->Start();
     return fileStoreSnapshotOperator->SyncSnapshot(true);

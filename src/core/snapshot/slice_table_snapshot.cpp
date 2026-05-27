@@ -10,6 +10,7 @@
  */
 
 #include "slice_table_snapshot.h"
+
 #include "flushing_bucket_group.h"
 #include "snapshot_sync_task.h"
 
@@ -18,8 +19,7 @@ namespace bss {
 const std::shared_ptr<SliceTableSnapshot::LogicalSliceChainSnapshotMeta> SliceTableSnapshot::mEmptySliceMeta = nullptr;
 
 BResult SliceTableSnapshot::Initialize(const SliceBucketIndexRef &sliceBucketIndex,
-                                       const BucketGroupManagerRef &bucketGroupManager,
-                                       const MemManagerRef &memManager,
+                                       const BucketGroupManagerRef &bucketGroupManager, const MemManagerRef &memManager,
                                        bool isSavepoint, uint64_t snapshotId)
 {
     if (UNLIKELY(sliceBucketIndex == nullptr || bucketGroupManager == nullptr)) {
@@ -71,7 +71,8 @@ BResult SliceTableSnapshot::GenSliceTableIndexSnapshot()
         int32_t tailIndex = curLogicSliceChain->GetSliceChainTailIndex();
         int32_t headIndex = -1;
         bool hasEvictedSlice = false;
-        for (int32_t j = 0; j <= tailIndex; j++) { // 从前往后找到第一个状态为非evicted的, 状态为Flushing的slice也打入到快照中.
+        for (int32_t j = 0; j <= tailIndex; j++) {  // 从前往后找到第一个状态为非evicted的,
+                                                    // 状态为Flushing的slice也打入到快照中.
             SliceAddressRef curSliceAddress = curLogicSliceChain->GetSliceAddress(j);
             if (UNLIKELY(curSliceAddress == nullptr)) {
                 mSliceBucketIndex->Unlock(idx);
@@ -87,13 +88,13 @@ BResult SliceTableSnapshot::GenSliceTableIndexSnapshot()
         std::vector<FilePageRef> filePages;
         curLogicSliceChain->GetFilePages(filePages);
         bool hasFilePage = hasEvictedSlice || !filePages.empty();
-        if (headIndex == -1) { // 表示当前SliceChain上的数据已经处于evicted, 按照case2处理.
+        if (headIndex == -1) {  // 表示当前SliceChain上的数据已经处于evicted, 按照case2处理.
             SnapshotNoDataSlicesLogicalSliceChain(idx, hasFilePage);
             mSliceBucketIndex->Unlock(idx);
             continue;
         }
         auto chainSnapshotMeta = std::make_shared<LogicalSliceChainSnapshotMeta>(headIndex, tailIndex, hasFilePage);
-        CopySliceChainParams params{ {}, {}, true, true }; // 此处需要深拷贝sliceAddress.
+        CopySliceChainParams params{ {}, {}, true, true };  // 此处需要深拷贝sliceAddress.
         LogicalSliceChainRef snapshotSliceChain = nullptr;
         auto ret = CopyLogicSliceChain(curLogicSliceChain, chainSnapshotMeta, params, snapshotSliceChain);
         mSliceBucketIndex->Unlock(idx);
@@ -104,8 +105,9 @@ BResult SliceTableSnapshot::GenSliceTableIndexSnapshot()
         totalSlice += (tailIndex - headIndex + 1);
         std::lock_guard<std::mutex> lock(mChainSnapMutex);
         mSliceChainSnapshotArray.emplace_back(snapshotSliceChain, chainSnapshotMeta);
-        LOG_DEBUG("Insert slice chain, bucketIndex:" << idx << ", snapshotId:" << mSnapshotId << ", sliceSize:" <<
-                  snapshotSliceChain->GetSliceSize() << ", headIndex:" << headIndex << ", tailIndex:" << tailIndex);
+        LOG_DEBUG("Insert slice chain, bucketIndex:" << idx << ", snapshotId:" << mSnapshotId
+                                                     << ", sliceSize:" << snapshotSliceChain->GetSliceSize()
+                                                     << ", headIndex:" << headIndex << ", tailIndex:" << tailIndex);
     }
     LOG_INFO("Generate slice table snapshot success, totalSlice:" << totalSlice << ", snapshotId:" << mSnapshotId);
     return BSS_OK;
@@ -113,14 +115,14 @@ BResult SliceTableSnapshot::GenSliceTableIndexSnapshot()
 
 void SliceTableSnapshot::SnapshotNoDataSlicesLogicalSliceChain(uint32_t slot, bool hasFilePage)
 {
-    if (!hasFilePage) { // 不含有filePage则插入EmptySliceChain和emptyMeta.
+    if (!hasFilePage) {  // 不含有filePage则插入EmptySliceChain和emptyMeta.
         std::lock_guard<std::mutex> lock(mChainSnapMutex);
         mSliceChainSnapshotArray.emplace_back(LogicalSliceChain::mEmptySliceChain, mEmptySliceMeta);
         LOG_DEBUG("Insert empty slice chain, bucketIndex:" << slot << ", snapshotId:" << mSnapshotId);
-    } else { // 表示sliceChain上的数据已经被flush到fileStore, 需要插入含有一个filePage的sliceChain和meta.
+    } else {  // 表示sliceChain上的数据已经被flush到fileStore, 需要插入含有一个filePage的sliceChain和meta.
         auto chainSnapshotMeta = std::make_shared<LogicalSliceChainSnapshotMeta>(-1, -1, true);
         LogicalSliceChainRef sliceChain = std::make_shared<LogicalSliceChainImpl>();
-        sliceChain->SetFilePages(std::vector<FilePageRef>(NO_1)); // 默认只有一个filePage.
+        sliceChain->SetFilePages(std::vector<FilePageRef>(NO_1));  // 默认只有一个filePage.
         std::lock_guard<std::mutex> lock(mChainSnapMutex);
         mSliceChainSnapshotArray.emplace_back(sliceChain, chainSnapshotMeta);
         LOG_DEBUG("Insert slice chain, has fileStore, bucketIndex:" << slot << ", snapshotId:" << mSnapshotId);
@@ -129,13 +131,12 @@ void SliceTableSnapshot::SnapshotNoDataSlicesLogicalSliceChain(uint32_t slot, bo
 
 BResult SliceTableSnapshot::CopyLogicSliceChain(const LogicalSliceChainRef &sliceChainBeforeCopy,
                                                 const LogicalSliceChainSnapshotMetaRef &chainMeta,
-                                                CopySliceChainParams &params,
-                                                LogicalSliceChainRef &copiedChain)
+                                                CopySliceChainParams &params, LogicalSliceChainRef &copiedChain)
 {
     copiedChain = std::make_shared<LogicalSliceChainImpl>();
     RETURN_NOT_OK(copiedChain->Initialize(sliceChainBeforeCopy, chainMeta->mSliceChainHeadIndex,
-        chainMeta->mSliceChainTailIndex, params.copiedDataSliceReference,
-        params.deepCopySliceAddress, chainMeta->mHasFilePage));
+                                          chainMeta->mSliceChainTailIndex, params.copiedDataSliceReference,
+                                          params.deepCopySliceAddress, chainMeta->mHasFilePage));
     if (sliceChainBeforeCopy->HasFilePage()) {
         auto bucketGroup = GetBucketGroup();
         RETURN_ERROR_AS_NULLPTR(bucketGroup);
@@ -152,7 +153,7 @@ SnapshotMetaRef SliceTableSnapshot::SnapshotMetaFunc(uint64_t snapshotId, const 
     }
 
     // 文件中的元数据内容: KV分离标记+bucket数量+空sliceChain标记+非空sliceChain信息+bucketGroup信息.
-    localOutputView->WriteUint8(NO_0); // 当前版本仅支持KV不分离模式
+    localOutputView->WriteUint8(NO_0);  // 当前版本仅支持KV不分离模式
     localOutputView->WriteUint32(mTotalBucketNum);
 
     uint64_t totalSize = 0;
@@ -267,8 +268,8 @@ void SliceTableSnapshot::SliceTableSnapshotSliceFlushIterator::GetSnapshotMeta(
     SliceTableSnapshot::LogicalSliceChainSnapshotMetaRef &meta, bool &isEmptyChain)
 {
     std::lock_guard<std::mutex> lk(mSliceTableSnapshot->mChainSnapMutex);
-    isEmptyChain =
-        mSliceTableSnapshot->mSliceChainSnapshotArray[mChainArrayCursor].first == LogicalSliceChain::mEmptySliceChain;
+    isEmptyChain = mSliceTableSnapshot->mSliceChainSnapshotArray[mChainArrayCursor].first ==
+                   LogicalSliceChain::mEmptySliceChain;
     meta = mSliceTableSnapshot->mSliceChainSnapshotArray[mChainArrayCursor].second;
 }
 

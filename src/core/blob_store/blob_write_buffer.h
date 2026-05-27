@@ -29,10 +29,10 @@ public:
     }
     BlobWriteBuffer() = default;
 
-    BResult Init(const BlobFileManagerRef& blobFileManager, const MemManagerRef& memManager,
-        ExecutorServicePtr blobFlushExecutor);
+    BResult Init(const BlobFileManagerRef &blobFileManager, const MemManagerRef &memManager,
+                 ExecutorServicePtr blobFlushExecutor);
 
-    BResult Write(const uint8_t* value, uint32_t length, uint64_t expireTime, uint32_t keyGroup, uint64_t &blobId);
+    BResult Write(const uint8_t *value, uint32_t length, uint64_t expireTime, uint32_t keyGroup, uint64_t &blobId);
 
     BResult Get(uint64_t blobId, uint32_t keyGroup, Value &value);
 
@@ -128,15 +128,16 @@ public:
 
     BResult FlushCurrentWriteBuffer(uint64_t snapshotId);
 
-    inline uint64_t GetCurrentSeqId()const
+    inline uint64_t GetCurrentSeqId() const
     {
         return mSeqGenerator->Next();
     }
 
-    inline void RestoreSeqId(uint64_t seqId)const
+    inline void RestoreSeqId(uint64_t seqId) const
     {
         mSeqGenerator->Restore(seqId);
     }
+
 private:
     MemManagerRef mMemManager = nullptr;
     ReadWriteLock mRwLock;
@@ -144,13 +145,13 @@ private:
     SeqGeneratorRef mSeqGenerator = nullptr;
     ExecutorServicePtr mBlobFlushExecutor = nullptr;
     ConcurrentDeque<BlobDataBlockRef> mFlushQueue;
-    std::atomic<uint64_t> mFlushWaiting {0};
+    std::atomic<uint64_t> mFlushWaiting{ 0 };
     BlobFileManagerRef mBlobFileManager = nullptr;
     uint32_t mDefaultBlockSize = IO_SIZE_16K;
     std::atomic<int32_t> mBackgroundFlush{ 0 };
 };
 using BlobWriteBufferRef = std::shared_ptr<BlobWriteBuffer>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

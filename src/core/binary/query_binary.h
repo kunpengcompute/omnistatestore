@@ -24,8 +24,9 @@ namespace bss {
 
 struct QueryKey : public Key {
 public:
-    QueryKey(uint16_t stateId, uint32_t keyHashCode, const BinaryData &priKey,
-        const BinaryData &secKey, BufferRef &buffer) : QueryKey(stateId, keyHashCode, priKey, secKey)
+    QueryKey(uint16_t stateId, uint32_t keyHashCode, const BinaryData &priKey, const BinaryData &secKey,
+             BufferRef &buffer)
+        : QueryKey(stateId, keyHashCode, priKey, secKey)
     {
         mBuffer = buffer;
     }
@@ -47,8 +48,8 @@ public:
         mMixedHashCode = stateId ^ mPriKey.HashCode() ^ mSecKey.HashCode();
     }
 
-    QueryKey(uint16_t stateId, uint32_t keyHashCode, const BinaryData &priKey, BufferRef &buffer) : QueryKey(stateId,
-        keyHashCode, priKey)
+    QueryKey(uint16_t stateId, uint32_t keyHashCode, const BinaryData &priKey, BufferRef &buffer)
+        : QueryKey(stateId, keyHashCode, priKey)
     {
         mBuffer = buffer;
     }
@@ -101,6 +102,7 @@ public:
     {
         values = std::move(mValues);
     }
+
 private:
     std::deque<Value> mValues;
 };

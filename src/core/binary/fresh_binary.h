@@ -14,9 +14,9 @@
 
 #include <iostream>
 
-#include "boost/node_type.h"
 #include "binary/key/key.h"
 #include "binary/value/value.h"
+#include "boost/node_type.h"
 #include "common/bss_def.h"
 #include "value/value_type.h"
 namespace ock {
@@ -102,7 +102,6 @@ private:
     };
 
 public:
-
     static FreshKeyNodePtr FromBuffer(uint8_t *buffer)
     {
         return reinterpret_cast<FreshKeyNode *>(buffer);
@@ -369,8 +368,8 @@ public:
     inline std::string ToString() const
     {
         std::ostringstream oss;
-        oss << "ValueType: " << static_cast<int>(mValue.mValueType) << ", ValueLen: " << mValueLen << ", seqId: "
-            << mValue.mSeqId << ", ValueData: [";
+        oss << "ValueType: " << static_cast<int>(mValue.mValueType) << ", ValueLen: " << mValueLen
+            << ", seqId: " << mValue.mSeqId << ", ValueData: [";
         if (UNLIKELY(mValue.mValue != nullptr)) {
             uint32_t printLen = std::min(NO_10, mValueLen);
             for (uint32_t i = 0; i < printLen; i++) {

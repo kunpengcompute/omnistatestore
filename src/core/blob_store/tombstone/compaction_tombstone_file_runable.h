@@ -16,10 +16,9 @@
 namespace ock {
 namespace bss {
 
-class TombstoneFileCompactionRunable  : public Runnable {
+class TombstoneFileCompactionRunable : public Runnable {
 public:
-    explicit TombstoneFileCompactionRunable(const BlobCleanerRef &blobCleaner)
-        : mBlobCleaner(blobCleaner)
+    explicit TombstoneFileCompactionRunable(const BlobCleanerRef &blobCleaner) : mBlobCleaner(blobCleaner)
     {
     }
 
@@ -48,6 +47,6 @@ private:
     uint32_t mCompactionIntervalInSecond = 10;
 };
 
-} // namespace bss
-} // namespace ock
-#endif // COMPACTION_TOMBSTONE_FILE_RUNABLE_H
+}  // namespace bss
+}  // namespace ock
+#endif  // COMPACTION_TOMBSTONE_FILE_RUNABLE_H

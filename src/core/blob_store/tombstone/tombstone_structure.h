@@ -1,5 +1,5 @@
 /*
-* Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -14,8 +14,8 @@
 
 #include <cstdint>
 
-#include "tombstone.h"
 #include "bss_log.h"
+#include "tombstone.h"
 
 namespace ock {
 namespace bss {

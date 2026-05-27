@@ -263,8 +263,8 @@ BResult SliceTableRestoreOperation::DoCompactCompositeSlice(
     uint32_t compactionCount = 0L;
     auto retVal = SliceCompactionUtils::MergeDataSlicesForCompaction(
         resultVec, compactionCount, canCompactSliceListReversed, mMemManager, forceFilter,
-        mSliceTable->GetStateFilterManager(), mSliceTable->GetSliceBucketIndex()->GetSlotStateFilter(bucketIndex),
-        true, mSliceTable->GetTombstoneService());
+        mSliceTable->GetStateFilterManager(), mSliceTable->GetSliceBucketIndex()->GetSlotStateFilter(bucketIndex), true,
+        mSliceTable->GetTombstoneService());
     if (UNLIKELY((retVal != BSS_OK))) {
         LOG_WARN("Merge slice data for compaction failed or data empty, ret:" << retVal << ".");
         return retVal;

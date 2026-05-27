@@ -64,5 +64,5 @@ BlobDataBlockMetaRef BlobIndexBlockWriter::SelectDataBlockMeta(uint64_t blobId)
     return nullptr;
 }
 
-}
-}
+}  // namespace bss
+}  // namespace ock

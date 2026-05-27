@@ -15,8 +15,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "include/ref.h"
 #include "bss_log.h"
+#include "include/ref.h"
 namespace ock {
 namespace bss {
 

@@ -26,7 +26,6 @@
 namespace ock {
 namespace bss {
 
-
 class TombstoneFileWriter {
 public:
     TombstoneFileWriter(const ConfigRef &config, const TombstoneFileManagerRef &fileManager, uint64_t version,
@@ -58,7 +57,7 @@ public:
         }
         if (mPreTombstone != nullptr && tombstone->GetBlobId() < mPreTombstone->GetBlobId()) {
             LOG_ERROR("tombstone blobId is smaller than previous one, pre:" << mPreTombstone->GetBlobId()
-                << ", cur:" << tombstone->GetBlobId());
+                                                                            << ", cur:" << tombstone->GetBlobId());
             return BSS_INVALID_PARAM;
         }
         mPreTombstone = tombstone;
@@ -139,7 +138,7 @@ private:
         RETURN_NOT_OK(ret);
 
         LOG_INFO("Write tombstone file:" << PathTransform::ExtractFileName(mCurFile->GetFileMeta()->GetIdentifier())
-            << " success. Size: " << fileOutputView->Size());
+                                         << " success. Size: " << fileOutputView->Size());
         fileMeta->SetFileSize(fileOutputView->Size());
         return BSS_OK;
     }
@@ -180,4 +179,4 @@ using TombstoneFileWriterRef = std::shared_ptr<TombstoneFileWriter>;
 }  // namespace bss
 }  // namespace ock
 
-#endif // BOOST_SS_TOMBSTONE_FILE_WRITER_H
+#endif  // BOOST_SS_TOMBSTONE_FILE_WRITER_H

@@ -13,18 +13,18 @@
 #define BOOST_STATE_STORE_KV_TEST_UTILS_H
 
 #include <cstdint>
-#include <iostream>
-#include <random>
-#include <memory>
 #include <fstream>
+#include <iostream>
+#include <memory>
+#include <random>
 
 #include "gtest/gtest.h"
 
 #define private public
 #define protected public
 
-#include "include/bss_types.h"
 #include "../ut_main.h"
+#include "include/bss_types.h"
 
 namespace ock {
 namespace bss {

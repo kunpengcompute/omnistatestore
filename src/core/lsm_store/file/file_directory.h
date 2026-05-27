@@ -14,11 +14,12 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
+
 #include <mutex>
 #include <utility>
 
-#include "common/path_transform.h"
 #include "common/path.h"
+#include "common/path_transform.h"
 
 namespace ock {
 namespace bss {
@@ -58,8 +59,8 @@ public:
         if (lastSlashPos != std::string::npos) {
             std::string parentPath = path.substr(0, lastSlashPos);
             if (!CreateDirectories(parentPath, mode)) {
-                LOG_ERROR("Create directory failed, path:" << PathTransform::ExtractFileName(path) <<
-                          ", errno:" << errno);
+                LOG_ERROR("Create directory failed, path:" << PathTransform::ExtractFileName(path)
+                                                           << ", errno:" << errno);
                 return false;  // 递归创建父目录失败
             }
         }
@@ -75,7 +76,8 @@ public:
 
     static bool CheckDirExists(const std::string &path)
     {
-        struct stat st {};
+        struct stat st {
+        };
         if (stat(path.c_str(), &st) == 0) {
             // 如果路径已经存在且是目录，返回成功
             if (S_ISDIR(st.st_mode)) {
@@ -105,6 +107,6 @@ private:
 };
 using FileDirectoryRef = std::shared_ptr<FileDirectory>;
 
-} // namespace bss
-} // namespace ock
+}  // namespace bss
+}  // namespace ock
 #endif  // BOOST_SS_FILE_DIRECTORY_H

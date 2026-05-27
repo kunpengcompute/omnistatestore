@@ -16,8 +16,8 @@
 #include <set>
 #include <utility>
 
-#include "include/auto_closeable.h"
 #include "common/util/iterator.h"
+#include "include/auto_closeable.h"
 #include "serialized_data.h"
 #include "slice_table/slice_table.h"
 
@@ -30,8 +30,9 @@ class MapIterator : public Iterator<KeyValueRef> {
 public:
     MapIterator(const KeyValueIteratorRef &freshTableIterator, const KeyValueIteratorRef &sliceTableIterator,
                 EntryIteratorType iteratorType, BlobValueTransformFunc blobValueTransformFunc = nullptr)
-        : mSliceTableIterator(std::move(sliceTableIterator)), mIteratorType(iteratorType),
-        mFunc(std::move(blobValueTransformFunc))
+        : mSliceTableIterator(std::move(sliceTableIterator)),
+          mIteratorType(iteratorType),
+          mFunc(std::move(blobValueTransformFunc))
     {
         if (freshTableIterator != nullptr) {
             while (freshTableIterator->HasNext()) {
@@ -185,7 +186,9 @@ private:
 struct WarpEntry {
 public:
     WarpEntry() = default;
-    WarpEntry(PQBinaryData data, uint64_t seq) : mData(data), mSeqId(seq) {}
+    WarpEntry(PQBinaryData data, uint64_t seq) : mData(data), mSeqId(seq)
+    {
+    }
 
     PQBinaryData mData;
     uint64_t mSeqId;
@@ -194,8 +197,8 @@ using WarpEntryPtr = std::shared_ptr<WarpEntry>;
 
 class WarpIterator {
 public:
-    WarpIterator(PQListIterator iter, uint64_t seq, const PQBinaryData data) : mIterator(iter),
-        mSeqId(seq), mSeekKey(data)
+    WarpIterator(PQListIterator iter, uint64_t seq, const PQBinaryData data)
+        : mIterator(iter), mSeqId(seq), mSeekKey(data)
     {
         Advance();
     }
@@ -216,6 +219,7 @@ public:
         Advance();
         return tmp;
     }
+
 private:
     void Advance()
     {
@@ -240,10 +244,10 @@ public:
     ~PQKeyIterator()
     {
         free(const_cast<uint8_t *>(mGroupId.Data()));
-	}
+    }
 
-	void Close() override
-	{
+    void Close() override
+    {
         if (mFileIterator != nullptr) {
             mFileIterator->Close();
         }
@@ -254,8 +258,8 @@ public:
         PQBinaryData start;
         start.mData = data;
         for (const auto &item : skipList) {
-            WarpIteratorPtr warpIterator = std::make_shared<WarpIterator>(item->NewIterator(start),
-                item->GetSeqId(), start);
+            WarpIteratorPtr warpIterator = std::make_shared<WarpIterator>(item->NewIterator(start), item->GetSeqId(),
+                                                                          start);
             if (warpIterator->HasNext()) {
                 mIteratorQueue.emplace(warpIterator);
             }
@@ -314,7 +318,7 @@ public:
 
     inline void GetNextValidSkipListData(PQBinaryData &key1)
     {
-        while (mSkipListData.IsValid())  {
+        while (mSkipListData.IsValid()) {
             if (!key1.IsValid() && mSkipListData.mValueType == DELETE) {
                 DoGetNextEntry();
                 continue;
@@ -402,6 +406,7 @@ public:
             return BssMath::IntegerCompare(r2->GetNextKey()->mSeqId, r1->GetNextKey()->mSeqId) > 0;
         }
     };
+
 private:
     BinaryData mCurrentKey;
     std::priority_queue<WarpIteratorPtr, std::vector<WarpIteratorPtr>, ComparePQListIterator> mIteratorQueue;

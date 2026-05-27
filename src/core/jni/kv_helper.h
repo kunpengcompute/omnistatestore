@@ -11,25 +11,25 @@
 
 #ifndef BOOST_SS_KV_HELPER_H
 #define BOOST_SS_KV_HELPER_H
+#include <fcntl.h>
+#include <jni.h>
+#include <linux/limits.h>
+#include <unistd.h>
+
 #include <cassert>
 #include <list>
 #include <string>
 #include <vector>
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <linux/limits.h>
-
-#include <jni.h>
-#include "securec.h"
+#include "bss_def.h"
+#include "bss_log.h"
+#include "common/path_transform.h"
+#include "common/util/string_util.h"
 #include "include/bss_types.h"
 #include "include/config.h"
 #include "include/state_type.h"
-#include "bss_def.h"
-#include "bss_log.h"
-#include "common/util/string_util.h"
 #include "kv_table/serialized_data.h"
-#include "common/path_transform.h"
+#include "securec.h"
 #include "snapshot/binary_key_value_Item_iterator.h"
 using namespace ock::bss;
 
@@ -144,7 +144,7 @@ inline std::pair<uint32_t, uint32_t> GetKeyGroupRange(JNIEnv *env, jclass boostC
 
 // 获取String字符串
 inline std::string GetStringFromJava(JNIEnv *env, jclass boostConfigClass, jobject jBoostConfig, const char *methodName,
-    const char *className)
+                                     const char *className)
 {
     if (UNLIKELY(methodName == nullptr || className == nullptr)) {
         LOG_ERROR("Method name or class name is null.");
@@ -272,8 +272,7 @@ inline bool GetTtlFilterSwitch(JNIEnv *env, jclass boostConfigClass, jobject jBo
 
 inline bool GetCacheFilterAndIndexSwitch(JNIEnv *env, jclass boostConfigClass, jobject jBoostConfig)
 {
-    jmethodID getCacheFilterAndIndexSwitch = env->GetMethodID(boostConfigClass, "getCacheFilterAndIndexSwitch",
-        "()Z");
+    jmethodID getCacheFilterAndIndexSwitch = env->GetMethodID(boostConfigClass, "getCacheFilterAndIndexSwitch", "()Z");
     if (getCacheFilterAndIndexSwitch == nullptr) {
         return false;
     }
@@ -347,13 +346,13 @@ inline bool CheckPathValid(const std::string &inputPath, bool allowPathNotExist 
             return true;
         }
         LOG_ERROR("Path transform realpath failed, path: " << PathTransform::ExtractFileName(path)
-            << ", error: " << strerror(errorCode));
+                                                           << ", error: " << strerror(errorCode));
         return false;
     }
 
     if (UNLIKELY(std::string(realPath).size() > PATH_MAX)) {
         LOG_ERROR("InputPath size too big, size: " << std::string(realPath).size() << ", limit: " << PATH_MAX
-            << ", path: " << PathTransform::ExtractFileName(inputPath));
+                                                   << ", path: " << PathTransform::ExtractFileName(inputPath));
         free(realPath);
         return false;
     }
@@ -363,7 +362,8 @@ inline bool CheckPathValid(const std::string &inputPath, bool allowPathNotExist 
         return false;
     }
 
-    struct stat s {};
+    struct stat s {
+    };
     // The path has been checked before, it is readable and exists.
     if (lstat(realPath, &s) != 0) {
         LOG_ERROR("Failed to get the inputPath stat, path: " << PathTransform::ExtractFileName(inputPath));
@@ -432,7 +432,7 @@ inline ConfigRef CreateConfig(JNIEnv *env, jobject jBoostConfig)
 
     // 获取localPath
     auto localPath = GetStringFromJava(env, boostConfigClass, jBoostConfig, "getInstanceBasePath",
-        "()Ljava/lang/String;");
+                                       "()Ljava/lang/String;");
     if (UNLIKELY(!CheckPathValid(localPath))) {
         env->DeleteLocalRef(boostConfigClass);
         LOG_ERROR("Get configuration item localPath failed. localPath: " << PathTransform::ExtractFileName(localPath));
@@ -501,7 +501,7 @@ inline ConfigRef CreateConfig(JNIEnv *env, jobject jBoostConfig)
 
     // 获取lsmStoreCompressionPolicy
     auto lsmStoreCompressionPolicy = GetStringFromJava(env, boostConfigClass, jBoostConfig,
-        "getLsmStoreCompressionPolicy", "()Ljava/lang/String;");
+                                                       "getLsmStoreCompressionPolicy", "()Ljava/lang/String;");
     if (lsmStoreCompressionPolicy.empty()) {
         env->DeleteLocalRef(boostConfigClass);
         LOG_ERROR("Get configuration item lsmStoreCompressionPolicy failed.");
@@ -511,17 +511,17 @@ inline ConfigRef CreateConfig(JNIEnv *env, jobject jBoostConfig)
 
     // 获取lsmStoreCompressionLevelPolicy
     auto lsmStoreCompressionLevelPolicy = GetStringFromJava(env, boostConfigClass, jBoostConfig,
-        "getLsmStoreCompressionLevelPolicy", "()Ljava/lang/String;");
+                                                            "getLsmStoreCompressionLevelPolicy",
+                                                            "()Ljava/lang/String;");
     if (lsmStoreCompressionLevelPolicy.empty()) {
         env->DeleteLocalRef(boostConfigClass);
         LOG_ERROR("Get configuration item lsmStoreCompressionLevelPolicy failed.");
         return nullptr;
     }
     std::vector<std::string> compressionLevel;
-    StringUtil::SplitStringToVector(lsmStoreCompressionLevelPolicy, compressionLevel,
-        config->GetFileStoreNumLevels());
+    StringUtil::SplitStringToVector(lsmStoreCompressionLevelPolicy, compressionLevel, config->GetFileStoreNumLevels());
     LOG_INFO("Parse configuration item lsmStoreCompressionLevelPolicy:"
-        << StringUtil::MergeVectorToString(compressionLevel, config->GetFileStoreNumLevels()) << ".");
+             << StringUtil::MergeVectorToString(compressionLevel, config->GetFileStoreNumLevels()) << ".");
 
     auto taskSlotFlag = GetTaskSlotFlag(env, boostConfigClass, jBoostConfig);
     if (UNLIKELY(taskSlotFlag < 0)) {
@@ -620,8 +620,7 @@ inline jobject ConvertStateType(JNIEnv *env, StateType stateType)
 inline bool SetStateType(JNIEnv *env, jobject javaItem, jclass clazz, const BinaryKeyValueItemRef &cppItem)
 {
     if (UNLIKELY(setStateTypeMethod == nullptr)) {
-        setStateTypeMethod = env->GetMethodID(clazz, "setStateType",
-                                              "(Lcom/huawei/ock/bss/common/BoostStateType;)V");
+        setStateTypeMethod = env->GetMethodID(clazz, "setStateType", "(Lcom/huawei/ock/bss/common/BoostStateType;)V");
     }
 
     if (UNLIKELY(setStateTypeMethod == nullptr)) {

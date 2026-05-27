@@ -21,7 +21,7 @@ namespace ock {
 namespace bss {
 class BasicUtils {
 public:
-    inline static uint64_t TotalFileSize(const std::vector<FileMetaDataRef>& files)
+    inline static uint64_t TotalFileSize(const std::vector<FileMetaDataRef> &files)
     {
         uint64_t fileSize = 0UL;
         for (auto &file : files) {
@@ -33,4 +33,4 @@ public:
 
 }  // namespace bss
 }  // namespace ock
-#endif // BSS_DEV_BASIC_UTILS_H
+#endif  // BSS_DEV_BASIC_UTILS_H

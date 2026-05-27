@@ -10,6 +10,7 @@
  */
 
 #include "blob_immutable_file.h"
+
 #include "blob_index_block.h"
 
 namespace ock {
@@ -68,5 +69,5 @@ ByteBufferRef BlobImmutableFile::CreateBuffer(uint32_t size)
     }
     return byteBuffer;
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

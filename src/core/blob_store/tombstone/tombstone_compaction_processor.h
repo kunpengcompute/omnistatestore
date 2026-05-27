@@ -23,9 +23,9 @@ class TombstoneFileManager;
 class TombstoneCompactionProcessor {
 public:
     TombstoneCompactionProcessor(const std::vector<TombstoneFileRef> &input,
-        const std::vector<TombstoneFileRef> &nextLevel,
-        const ConfigRef &config, const std::shared_ptr<TombstoneFileManager> &fileManager,
-        bool isTopLevel, const MemManagerRef &memManager, const BlobFileGroupManagerRef &blobFileGroupManager)
+                                 const std::vector<TombstoneFileRef> &nextLevel, const ConfigRef &config,
+                                 const std::shared_ptr<TombstoneFileManager> &fileManager, bool isTopLevel,
+                                 const MemManagerRef &memManager, const BlobFileGroupManagerRef &blobFileGroupManager)
         : mInputFiles(input),
           mNextLevelFiles(nextLevel),
           mConfig(config),

@@ -123,8 +123,7 @@ public:
     BResult GenSliceTableIndexSnapshot();
 
     BResult CopyLogicSliceChain(const LogicalSliceChainRef &sliceChainBeforeCopy,
-                                const LogicalSliceChainSnapshotMetaRef &chainMeta,
-                                CopySliceChainParams &params,
+                                const LogicalSliceChainSnapshotMetaRef &chainMeta, CopySliceChainParams &params,
                                 LogicalSliceChainRef &copiedChain);
 
     SnapshotMetaRef SnapshotMetaFunc(uint64_t snapshotId, const FileOutputViewRef &localOutputView);

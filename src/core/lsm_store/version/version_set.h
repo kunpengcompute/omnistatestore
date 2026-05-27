@@ -14,18 +14,18 @@
 
 #include <unordered_set>
 
-#include "include/bss_err.h"
-#include "include/config.h"
 #include "compaction/compaction.h"
 #include "compaction/compaction_picker.h"
+#include "include/bss_err.h"
+#include "include/config.h"
 #include "lsm_store/file/file_cache.h"
 #include "lsm_store/file/file_meta_data_group.h"
 #include "lsm_store/file/input_sorted_run.h"
 #include "lsm_store/file/merging_iterator.h"
 #include "lsm_store/file/order_range.h"
+#include "tombstone/tombstone_service.h"
 #include "version.h"
 #include "version_edit.h"
-#include "tombstone/tombstone_service.h"
 
 namespace ock {
 namespace bss {
@@ -34,7 +34,7 @@ public:
     VersionSet() = default;
 
     VersionSet(const ConfigRef &config, const GroupRangeRef &range, const HashCodeOrderRangeRef &curOrderRange,
-        const FileCacheRef &fileCache)
+               const FileCacheRef &fileCache)
         : mConfig(config), mOrderRange(curOrderRange), mGroupRange(range)
     {
         mFileMetaDataComparator = FileMetaDataGroup::CreateFileMetaDataComparator(false);
@@ -267,9 +267,8 @@ public:
         return versionBuilder->Build();
     }
 
-    static void RestoreFileMetaDataGroup(const HashCodeOrderRangeRef &curOrderRange,
-                                         RestoreBuilderRef &versionBuilder, Level &level,
-                                         const FileMetaDataGroupRef &fileMetaDataGroup,
+    static void RestoreFileMetaDataGroup(const HashCodeOrderRangeRef &curOrderRange, RestoreBuilderRef &versionBuilder,
+                                         Level &level, const FileMetaDataGroupRef &fileMetaDataGroup,
                                          const GroupRange &intersectionGroupRange)
     {
         FileDataGroupBuilderRef builder = FileDataGroupBuilder::NewBuilder();
@@ -329,8 +328,9 @@ public:
         mBaseVersion->Retain();
     }
 
-    static VersionInnerBuilderRef NewVersionInnerBuilder(VersionSet* versionSet, const VersionPtr &currentVersion,
-        const GroupRangeRef &groupRange, const HashCodeOrderRangeRef &orderRange)
+    static VersionInnerBuilderRef NewVersionInnerBuilder(VersionSet *versionSet, const VersionPtr &currentVersion,
+                                                         const GroupRangeRef &groupRange,
+                                                         const HashCodeOrderRangeRef &orderRange)
     {
         VersionInnerBuilderRef builder = std::make_shared<VersionInnerBuilder>(versionSet, currentVersion);
         builder->SetGroupRange(groupRange);
@@ -382,8 +382,8 @@ public:
         VersionBuilderRef versionBuilder = VersionBuilder::NewBuilder(static_cast<void *>(mVersionSet));
         std::vector<Level> levels = mBaseVersion->GetLevels();
 
-        std::unordered_map<uint32_t, std::unordered_map<GroupRangeRef, FileDataGroupBuilderRef,
-                                                        PersonHash, PersonEqual>> fileMetaDataGroupBuilders;
+        std::unordered_map<uint32_t, std::unordered_map<GroupRangeRef, FileDataGroupBuilderRef, PersonHash, PersonEqual>>
+            fileMetaDataGroupBuilders;
         // 遍历所有新增的文件，按照级别和组范围进行分组，并创建对应的文件元数据组构建器.
         for (auto &item : allAddedFiles) {
             GroupRangeRef groupRange = item.first;
@@ -451,8 +451,8 @@ public:
             }
             auto levelPtr = levelBuilder->Build();
             LOG_DEBUG("Add level to version, levelId:" << levelId << ", totalFiles:" << levelPtr.TotalFileSize()
-                                                       << ", fileDataGroup:"
-                                                       << levelPtr.GetFileMetaDataGroups().size() << ".");
+                                                       << ", fileDataGroup:" << levelPtr.GetFileMetaDataGroups().size()
+                                                       << ".");
             versionBuilder->AddLevel(levelId, levelPtr);
         }
 

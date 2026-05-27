@@ -14,8 +14,8 @@
 
 #include <vector>
 
-#include "include/config.h"
 #include "include/boost_state_table.h"
+#include "include/config.h"
 #include "lsm_store/file/file_cache_factory.h"
 #include "snapshot_manager.h"
 #include "snapshot_restore_utils.h"
@@ -28,11 +28,17 @@ public:
     RestoreOperator(ConfigRef &config, FileManagerRef &localFileManager, FileManagerRef &remoteFileManager,
                     SliceTableManagerRef &sliceTable, FreshTableRef &freshTable, StateIdProviderRef &stateIdProvider,
                     std::unordered_map<std::string, TableRef> &tables, FileCacheFactoryRef &fileCacheFactory,
-                    SnapshotManagerRef &snapshotManager,
-                    std::unordered_map<std::string, PQTableRef> pqTables)
-        : mConfig(config), mLocalFileManager(localFileManager), mRemoteFileManager(remoteFileManager),
-          mSliceTable(sliceTable), mFreshTable(freshTable), mTables(tables), mPQTables(pqTables),
-          mStateIdProvider(stateIdProvider), mFileCacheFactory(fileCacheFactory), mSnapshotManager(snapshotManager)
+                    SnapshotManagerRef &snapshotManager, std::unordered_map<std::string, PQTableRef> pqTables)
+        : mConfig(config),
+          mLocalFileManager(localFileManager),
+          mRemoteFileManager(remoteFileManager),
+          mSliceTable(sliceTable),
+          mFreshTable(freshTable),
+          mTables(tables),
+          mPQTables(pqTables),
+          mStateIdProvider(stateIdProvider),
+          mFileCacheFactory(fileCacheFactory),
+          mSnapshotManager(snapshotManager)
     {
     }
 
@@ -42,7 +48,8 @@ public:
 
     // 将restoredMetaInfo里面的本地恢复路径中的文件链接到当前db的本地恢复路径中.
     BResult CreateHardLinkForRestoredLocalFile(bool isExcludeSSTFiles,
-        const std::vector<SnapshotFileMappingRef> &restoredLocalFileMappings, const PathRef &currentBasePath);
+                                               const std::vector<SnapshotFileMappingRef> &restoredLocalFileMappings,
+                                               const PathRef &currentBasePath);
 
 private:
     SnapshotFileMappingRef OrganizeRemoteFileInfo(std::vector<SnapshotFileMappingRef> &restoredLocalFileMappings,

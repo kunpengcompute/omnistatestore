@@ -9,8 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "common/bss_log.h"
 #include "file_id_generator.h"
+
+#include "common/bss_log.h"
 
 namespace ock {
 namespace bss {
@@ -23,7 +24,7 @@ std::mutex FileIdGenerator::mMutex;
 
 uint32_t FileIdRecorder::mCardinality = 0;
 uint32_t FileIdRecorder::mMaxAllowedUniqueID = 0;
-std::atomic<bool> FileIdRecorder::isInitialized { false };
+std::atomic<bool> FileIdRecorder::isInitialized{ false };
 std::vector<bool> FileIdRecorder::mUsedFileUniqueIDs;
 
 FileIdRef FileIdGenerator::Generate()

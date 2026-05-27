@@ -102,7 +102,7 @@ BResult BlobFileWriter::CompressBlock(ByteBufferRef &buffer, uint32_t &bufferSiz
         return BSS_ALLOC_FAIL;
     }
     uint32_t outputSize = compressor->Compress(outputBuffer->Data(), maxCompressedLength, buffer->Data(),
-        buffer->Capacity(), NO_4);
+                                               buffer->Capacity(), NO_4);
     // 假如数据已无法压缩，即不压缩，主动失败
     if (UNLIKELY(outputSize == 0 || outputSize > bufferSize)) {
         return BSS_INNER_ERR;
@@ -137,7 +137,7 @@ BlobImmutableFileRef BlobFileWriter::WriteImmutableFile(uint64_t currentVersion)
     RETURN_NULLPTR_AS_NOT_OK(mFileOutputView->Flush());
     RETURN_NULLPTR_AS_NULLPTR(mBlobFileReader);
     return std::make_shared<BlobImmutableFile>(mFilePath, mConfig, mMemManager, mBlockCache, mFileCacheManager,
-        blockHandle, mBlobFileMeta, mBlobFileReader);
+                                               blockHandle, mBlobFileMeta, mBlobFileReader);
 }
 
 ByteBufferRef BlobFileWriter::CreateBuffer(uint32_t size)
@@ -163,16 +163,15 @@ BResult BlobFileWriter::SelectBlobValue(uint64_t blobId, uint32_t keyGroup, Valu
     RETURN_ERROR_AS_NULLPTR(mBlobFileMeta);
     auto group = mBlobFileMeta->GetValidGroupRange();
     RETURN_ERROR_AS_NULLPTR(group);
-    if (blobId < mBlobFileMeta->GetMinBlobId() || blobId > mBlobFileMeta->GetMaxBlobId()
-        || !group->ContainsGroup(static_cast<int32_t>(keyGroup))) {
+    if (blobId < mBlobFileMeta->GetMinBlobId() || blobId > mBlobFileMeta->GetMaxBlobId() ||
+        !group->ContainsGroup(static_cast<int32_t>(keyGroup))) {
         return BSS_NOT_FOUND;
     }
     RETURN_ERROR_AS_NULLPTR(mBlobIndexBlockWriter);
     auto dataBlockMeta = mBlobIndexBlockWriter->SelectDataBlockMeta(blobId);
     RETURN_ERROR_AS_NULLPTR(dataBlockMeta);
     auto blockHandle = dataBlockMeta->GetBlockHandle();
-    auto blockBuilder = [dataBlockMeta](ByteBufferRef &byteBuffer) ->
-        BlockRef {
+    auto blockBuilder = [dataBlockMeta](ByteBufferRef &byteBuffer) -> BlockRef {
         auto blobDataBlock = std::make_shared<BlobDataBlock>(byteBuffer);
         RETURN_NULLPTR_AS_NOT_OK(blobDataBlock->Init(dataBlockMeta, byteBuffer->Capacity()));
         return blobDataBlock;
@@ -185,5 +184,5 @@ BResult BlobFileWriter::SelectBlobValue(uint64_t blobId, uint32_t keyGroup, Valu
     auto allocator = [self](uint32_t size) -> ByteBufferRef { return self->CreateBuffer(size); };
     return blobDataBlock->BinarySearchBlobValue(blobId, allocator, value);
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

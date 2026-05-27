@@ -24,7 +24,7 @@ void EvictManager::ForceEvict()
 }
 
 BResult EvictManager::Initialize(const ConfigRef &config, const BucketGroupManagerRef &bucketGroupManager,
-    const AccessRecorderRef &accessRecord)
+                                 const AccessRecorderRef &accessRecord)
 {
     mSliceEvictManager = std::make_shared<SliceEvictManager>();
     mFullSortEvictor = std::make_shared<FullSortEvictor>();
@@ -36,7 +36,7 @@ void EvictManager::Exit()
 {
     if (mFullSortEvictor != nullptr) {
         mFullSortEvictor->Exit();
-        mFullSortEvictor = nullptr; // 置空避免循环引用.
+        mFullSortEvictor = nullptr;  // 置空避免循环引用.
     }
 }
 }  // namespace bss

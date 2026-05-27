@@ -21,14 +21,14 @@
 namespace ock {
 namespace bss {
 struct GroupRangeHash {
-    size_t operator()(const GroupRangeRef& groupRange) const
+    size_t operator()(const GroupRangeRef &groupRange) const
     {
         return groupRange->HashCode();
     }
 };
 
 struct GroupRangeEqual {
-    bool operator()(const GroupRangeRef& lhs, const GroupRangeRef& rhs) const
+    bool operator()(const GroupRangeRef &lhs, const GroupRangeRef &rhs) const
     {
         return lhs->Equals(rhs);
     }
@@ -60,7 +60,7 @@ public:
 
     class Builder {
     public:
-        Builder* DeleteFile(const GroupRangeRef &groupRange, uint32_t levelId, const std::string &fileIdentifier)
+        Builder *DeleteFile(const GroupRangeRef &groupRange, uint32_t levelId, const std::string &fileIdentifier)
         {
             auto iter = mDeletedFiles.find(groupRange);
             if (iter == mDeletedFiles.end()) {
@@ -83,7 +83,7 @@ public:
             return this;
         }
 
-        Builder* AddFile(const GroupRangeRef &groupRange, const uint32_t levelId, const FileMetaDataRef &fileMetaData)
+        Builder *AddFile(const GroupRangeRef &groupRange, const uint32_t levelId, const FileMetaDataRef &fileMetaData)
         {
             auto &map = mNewFiles[groupRange];
             map[levelId].insert(fileMetaData);
@@ -95,7 +95,7 @@ public:
             return std::make_shared<VersionEdit>(mNewFiles, mDeletedFiles);
         }
 
-        static Builder* NewBuilder()
+        static Builder *NewBuilder()
         {
             return new (std::nothrow) Builder();
         }

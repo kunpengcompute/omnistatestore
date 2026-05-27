@@ -12,10 +12,10 @@
 #ifndef BSS_DEV_FILE_NAME_H
 #define BSS_DEV_FILE_NAME_H
 
-#include <string>
-#include <memory>
 #include <algorithm>
 #include <cstring>
+#include <memory>
+#include <string>
 
 #include "common/path.h"
 
@@ -32,4 +32,4 @@ public:
 
 }  // namespace bss
 }  // namespace ock
-#endif // BSS_DEV_FILE_NAME_H
+#endif  // BSS_DEV_FILE_NAME_H

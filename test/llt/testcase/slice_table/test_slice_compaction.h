@@ -17,8 +17,8 @@
 #include <memory>
 #include <random>
 
-#include "common/test_bss_log.h"
 #include "boost_state_db_impl.h"
+#include "common/test_bss_log.h"
 
 using namespace ock::bss;
 class TestSliceCompaction : public testing::Test {

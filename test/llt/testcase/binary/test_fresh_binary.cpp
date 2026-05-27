@@ -9,8 +9,8 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "gtest/gtest.h"
 #include "binary/fresh_binary.h"
+#include "gtest/gtest.h"
 #include "test_utils.h"
 
 using namespace ock::bss;
@@ -27,9 +27,9 @@ TEST(TestFreshValueNode, TestVisit)
     MemorySegmentRef memorySegment = MakeRef<MemorySegment>(capacity, bufSegment, memManager);
 
     uint32_t valLen = sizeof(FreshValueNode);
-    FreshValueNode v1{ NodeType::COMPOSITE, valLen, ValueType::APPEND, 1};
-    FreshValueNode v2{ NodeType::COMPOSITE, valLen, ValueType::APPEND, 2};
-    FreshValueNode v3{ NodeType::SERIALIZED, valLen, ValueType::APPEND, 3};
+    FreshValueNode v1{ NodeType::COMPOSITE, valLen, ValueType::APPEND, 1 };
+    FreshValueNode v2{ NodeType::COMPOSITE, valLen, ValueType::APPEND, 2 };
+    FreshValueNode v3{ NodeType::SERIALIZED, valLen, ValueType::APPEND, 3 };
     uint32_t nodeLen = valLen + NO_5;
     auto nodeDistance = nodeLen + NO_4;
     memcpy_s(bufSegment, capacity, &v2, sizeof(FreshValueNode));
@@ -39,11 +39,11 @@ TEST(TestFreshValueNode, TestVisit)
     *reinterpret_cast<uint32_t *>(bufSegment + nodeDistance + nodeLen) = 0;
     *reinterpret_cast<uint32_t *>(bufSegment + nodeLen) = nodeDistance * 2;
 
-    std::vector<FreshValueNodePtr> targetNodes{&v1, &v2, &v3};
+    std::vector<FreshValueNodePtr> targetNodes{ &v1, &v2, &v3 };
     uint32_t visitIdx = 0;
     auto node = FreshValueNode::FromBuffer(bufSegment + nodeDistance);
     bool passed = true;
-    node->VisitAsList(*memorySegment, [&] (FreshValueNode &curNode)-> bool {
+    node->VisitAsList(*memorySegment, [&](FreshValueNode &curNode) -> bool {
         passed &= (visitIdx < targetNodes.size());
         passed &= (targetNodes[visitIdx]->ValueSeqId() == curNode.ValueSeqId());
         visitIdx++;

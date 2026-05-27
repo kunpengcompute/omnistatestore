@@ -44,7 +44,7 @@ public:
     {
         ReadLocker<ReadWriteLock> lock(&mLock);
         uint64_t size = 0;
-        for (const auto& immutableFile : mFiles) {
+        for (const auto &immutableFile : mFiles) {
             CONTINUE_LOOP_AS_NULLPTR(immutableFile);
             auto fileMeta = immutableFile->GetBlobFileMeta();
             CONTINUE_LOOP_AS_NULLPTR(fileMeta);
@@ -77,7 +77,7 @@ public:
         auto lastFileMeta = lastFile->GetBlobFileMeta();
         RETURN_FALSE_AS_NULLPTR(lastFileMeta);
         return blobId >= firstFileMeta->GetMinBlobId() && blobId <= lastFileMeta->GetMaxBlobId() &&
-            mGroupRange->ContainsGroup((int32_t)keyGroup);
+               mGroupRange->ContainsGroup((int32_t)keyGroup);
     }
 
     BResult AddLastFile(const BlobImmutableFileRef &file);
@@ -102,7 +102,7 @@ public:
     {
         if (UNLIKELY(start + fileCount > mFiles.size())) {
             LOG_ERROR("Invalid file range, start: " << start << ", fileCount: " << fileCount
-                << ", fileSize: " << mFiles.size());
+                                                    << ", fileSize: " << mFiles.size());
             return {};
         }
         std::vector<BlobImmutableFileRef> compactionFiles;
@@ -130,7 +130,7 @@ public:
         // 替换范围包括start, 不包括end
         if (UNLIKELY(startIndex > endIndex || endIndex > mFiles.size() || newFiles.empty())) {
             LOG_ERROR("Invalid file range, startIndex: " << startIndex << ", endIndex: " << endIndex << ", fileSize: "
-                << mFiles.size() << ", newFiles size: " << newFiles.size());
+                                                         << mFiles.size() << ", newFiles size: " << newFiles.size());
             return BSS_ERR;
         }
         mFiles.erase(mFiles.begin() + startIndex, mFiles.begin() + endIndex);
@@ -153,7 +153,7 @@ public:
             auto now = TimeStampUtil::GetCurrentTime();
             if (minExpire > 0 && now > maxExpire + blobFileRetainTimeInMill) {
                 LOG_INFO("Blob file is expire, address: " << fileMeta->GetFileAddress() << ", minExpire: " << minExpire
-                    << ", maxExpire: " << maxExpire << ", now: " << now);
+                                                          << ", maxExpire: " << maxExpire << ", now: " << now);
                 ret.emplace_back(*file);
                 file = mFiles.erase(file);
                 continue;
@@ -170,7 +170,7 @@ private:
     std::set<BlobImmutableFileRef> mInCompactionFiles;
 };
 
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

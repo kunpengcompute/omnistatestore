@@ -132,8 +132,8 @@ BinaryKeyValueItemRef BinaryKeyValueItemIterator::Convert(const KeyValueRef &pai
     return item;
 }
 
-void BinaryKeyValueItemIterator::BuildKey(const Key &key, const std::string &stateName,
-                                          const StateType &stateType, BinaryKeyValueItemRef &reuseItem)
+void BinaryKeyValueItemIterator::BuildKey(const Key &key, const std::string &stateName, const StateType &stateType,
+                                          BinaryKeyValueItemRef &reuseItem)
 {
     std::pair<std::pair<uint8_t *, uint32_t>, std::pair<uint8_t *, uint32_t>> pair;
     auto primaryKey = key.PriKey();
@@ -161,8 +161,7 @@ void BinaryKeyValueItemIterator::BuildKey(const Key &key, const std::string &sta
 }
 
 void BinaryKeyValueItemIterator::BuildSecondaryKey(const Key &key, const std::string &stateName,
-                                                   const StateType &stateType,
-                                                   BinaryKeyValueItemRef &reuseItem) const
+                                                   const StateType &stateType, BinaryKeyValueItemRef &reuseItem) const
 {
     auto secondaryKey = key.SecKey();
     if (stateType == MAP || stateType == SUB_MAP) {

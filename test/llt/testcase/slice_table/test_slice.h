@@ -13,21 +13,23 @@
 #define LOG_TEST_H
 
 #include <glob.h>
-#include <climits>
-#include <csignal>
-#include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
+
+#include <climits>
+#include <csignal>
 #include <cstdint>
-#include <string>
-#include <sstream>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
+#include <sstream>
+#include <string>
+
+#include "common/bss_log.h"
 #include "gtest/gtest.h"
+#include "securec.h"
 #include "spdlog/common.h"
 #include "spdlog/spdlog.h"
-#include "common/bss_log.h"
-#include "securec.h"
 
 #endif

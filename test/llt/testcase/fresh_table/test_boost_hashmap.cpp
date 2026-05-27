@@ -9,14 +9,15 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "test_boost_hashmap.h"
+
 #include <random>
 
 #include "../../ut_main.h"
-#include "include/binary_data.h"
 #include "binary/query_binary.h"
+#include "include/binary_data.h"
 #include "test_utils.h"
 #include "unordered_map"
-#include "test_boost_hashmap.h"
 
 using namespace ock::bss;
 MemManagerRef TestBoostHashMap::mMemManager = nullptr;
@@ -383,7 +384,7 @@ TEST_F(TestBoostHashMap, PutMapValueAndGetFromIterator)
             auto value = pair.second;
 
             std::string readSecondString = std::string(reinterpret_cast<const char *>(secondKey->SecKeyData()),
-                secondKey->SecKeyDataLen());
+                                                       secondKey->SecKeyDataLen());
             std::string readValueString = std::string(reinterpret_cast<const char *>(value->Value()),
                                                       value->ValueDataLen());
             auto valueInMap = unorderedMap[readFirstKeyString][readSecondString];

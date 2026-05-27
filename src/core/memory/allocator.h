@@ -14,11 +14,11 @@
 
 #include <list>
 
-#include "util/bss_lock.h"
-#include "include/bss_types.h"
 #include "common/bss_log.h"
 #include "include/bss_err.h"
+#include "include/bss_types.h"
 #include "include/ref.h"
+#include "util/bss_lock.h"
 
 namespace ock {
 namespace bss {
@@ -42,11 +42,11 @@ enum class AllocatorCacheTierPolicy : int16_t {
  * @brief Allocator options
  */
 struct AllocatorOptions {
-    uintptr_t address = 0;                     /* base address of large range of memory for allocator */
-    uint64_t size = 0;                         /* size of large memory chuck */
-    uint32_t minBlockSize = 0;                 /* min size of block can be allocated from allocator */
+    uintptr_t address = 0;                   /* base address of large range of memory for allocator */
+    uint64_t size = 0;                       /* size of large memory chuck */
+    uint32_t minBlockSize = 0;               /* min size of block can be allocated from allocator */
     uint32_t bucketCount = NO_8192;          /* default size of hash bucket */
-    bool alignedAddress = false;               /* force to align the memory block allocated */
+    bool alignedAddress = false;             /* force to align the memory block allocated */
     uint16_t cacheTierCount = NO_8;          /* for DYNAMIC_SIZE_WITH_CACHE only */
     uint16_t cacheBlockCountPerTier = NO_16; /* for DYNAMIC_SIZE_WITH_CACHE only */
     AllocatorCacheTierPolicy cacheTierPolicy = AllocatorCacheTierPolicy::TIER_TIMES; /* tier policy */
@@ -138,7 +138,7 @@ public:
 
     BResult Free(uintptr_t address) override;
 
-    void Destroy() override {};
+    void Destroy() override{};
 };
 
 class MultiAllocator : public Allocator {
@@ -168,6 +168,6 @@ private:
     uint64_t mBigBlockSize;
     std::list<uintptr_t> mBigList;
 };
-}
-}
-#endif // BOOST_SS_ALLOCATOR_H
+}  // namespace bss
+}  // namespace ock
+#endif  // BOOST_SS_ALLOCATOR_H

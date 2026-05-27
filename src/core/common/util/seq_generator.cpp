@@ -15,5 +15,5 @@ namespace ock {
 namespace bss {
 std::atomic<uint64_t> SeqIDUtils::timeBackCounts(0);
 std::atomic<uint64_t> SeqIDUtils::numOverflowCounts(0);
-}
-}
+}  // namespace bss
+}  // namespace ock

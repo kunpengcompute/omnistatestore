@@ -204,8 +204,8 @@ public:
             return ret;
         }
         uint32_t count = 0;
-        while (!IsSnapshotQueueEmpty() && count < NO_300) { // 等待所有MemorySegment Flush完成，最多等30s.
-            usleep(NO_100000); // 100ms
+        while (!IsSnapshotQueueEmpty() && count < NO_300) {  // 等待所有MemorySegment Flush完成，最多等30s.
+            usleep(NO_100000);                               // 100ms
             count++;
         }
         if (IsSnapshotQueueEmpty()) {
@@ -333,10 +333,10 @@ public:
     /**
      * only for test.
      */
-     inline void SetActiveEmpty()
-     {
-         mActive = nullptr;
-     }
+    inline void SetActiveEmpty()
+    {
+        mActive = nullptr;
+    }
 
 private:
     enum class MapLayerType { SINGLE_LAYER, DUAL_LAYER };
@@ -353,7 +353,7 @@ private:
 
     BResult RestoreOpen();
 
-    BResult FillDataByMemorySegment(const BoostSegmentRef &boostSegment, GroupRange& validKeyGroups);
+    BResult FillDataByMemorySegment(const BoostSegmentRef &boostSegment, GroupRange &validKeyGroups);
 
     bool VisitBinarySegmentMap(const BoostSegmentRef &segment, std::deque<Value> &result, const Key &key);
 

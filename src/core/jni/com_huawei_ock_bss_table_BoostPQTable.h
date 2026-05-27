@@ -1,5 +1,5 @@
 /*
-* Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025-2025. All rights reserved.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -38,8 +38,8 @@ JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_BoostPQTable_add(JNIEnv
  * Method:    remove
  * Signature: (J[BI)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_BoostPQTable_remove(JNIEnv *, jobject, jlong,
-                jbyteArray, jint);
+JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_BoostPQTable_remove(JNIEnv *, jobject, jlong, jbyteArray,
+                                                                             jint);
 #ifdef __cplusplus
 }
 #endif

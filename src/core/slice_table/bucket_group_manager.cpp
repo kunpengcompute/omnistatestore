@@ -10,6 +10,7 @@
  */
 
 #include "bucket_group_manager.h"
+
 #include "common/bss_log.h"
 
 namespace ock {
@@ -65,8 +66,8 @@ BResult BucketGroupManager::AssignBucketToBucketGroup(const std::shared_ptr<Conf
 
         // 初始化LsmStore, 创建FileStoreCompaction.
         auto fileFactory = FileFactory::CreateFileFactory(config, mMemManager);
-        auto lsmStore = std::make_shared<LsmStore>(fileStoreId, config, fileFactory, fileCache,
-                                                   stateFilterManager, mMemManager);
+        auto lsmStore = std::make_shared<LsmStore>(fileStoreId, config, fileFactory, fileCache, stateFilterManager,
+                                                   mMemManager);
         auto ret = lsmStore->Initialize();
         RETURN_NOT_OK_NO_LOG(ret);
         LOG_INFO("Create file store success, index:" << index << ", fileStoreId:" << fileStoreId->ToString().c_str());

@@ -14,18 +14,19 @@
 
 #include <dirent.h>
 #include <ftw.h>
+
+#include <cerrno>
 #include <filesystem>
 #include <iostream>
-#include <cerrno>
 
-#include "gtest/gtest.h"
+#include "../fuzz_main.h"
 #include "common/bss_log.h"
+#include "gtest/gtest.h"
+#include "hash.h"
 #include "include/boost_state_db.h"
 #include "include/boost_state_table.h"
 #include "slice_table/slice_table.h"
-#include "../fuzz_main.h"
 #include "test_utils.h"
-#include "hash.h"
 
 namespace ock {
 namespace bss {
@@ -338,7 +339,7 @@ public:
         kMapTable->Remove(keyHashCode, priKey);
     }
 
-    inline uint64_t SyncCheckpoint(std::string& checkpointPath)
+    inline uint64_t SyncCheckpoint(std::string &checkpointPath)
     {
         int index = 0;
         uint64_t checkpointId = *(uint64_t *)DT_SetGetU64(&g_Element[index++], 0x0);
@@ -356,7 +357,7 @@ public:
         mDB->CreateAsyncCheckpoint(checkpointId, isIncremental);
     }
 
-    inline ConfigRef FuzzConfig(std::string& basePath)
+    inline ConfigRef FuzzConfig(std::string &basePath)
     {
         int index = 0;
         uint32_t maxParallelism = *(uint32_t *)DT_SetGetU32(&g_Element[index++], 0x0);
@@ -437,7 +438,8 @@ public:
             return false;
         }
 
-        struct stat s {};
+        struct stat s {
+        };
         // The path has been checked before, it is readable and exists.
         if (lstat(realPath, &s) != 0) {
             LOG_ERROR("Failed to get the inputPath stat, path: " << PathTransform::ExtractFileName(inputPath));
@@ -468,7 +470,7 @@ public:
     }
 
     inline bool GetRestoreParam(std::vector<std::string> &metaPaths,
-                          std::unordered_map<std::string, std::string> &lazyPathMapping)
+                                std::unordered_map<std::string, std::string> &lazyPathMapping)
     {
         int index = 0;
         std::string metaPath = DT_SetGetString(&g_Element[index++], 19, 0, "RestoreDB_metaPath");
@@ -549,9 +551,9 @@ public:
         it = nullptr;
     }
 };
-} // test_table
-} // test
-} // bss
-} // ock
+}  // namespace test_table
+}  // namespace test
+}  // namespace bss
+}  // namespace ock
 
 #endif  // BOOST_SS_TEST_KV_TABLE_H

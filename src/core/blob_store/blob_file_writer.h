@@ -12,6 +12,7 @@
 #ifndef BLOB_FILE_WRITER_H
 #define BLOB_FILE_WRITER_H
 #include <bss_err.h>
+
 #include "blob_data_block.h"
 #include "blob_file_meta.h"
 #include "blob_file_reader.h"
@@ -37,7 +38,8 @@ public:
     }
 
     BResult Init(const PathRef &filePath, const ConfigRef &config, const FileIdRef &blobFileId,
-        const MemManagerRef &memManager, const BlockCacheRef &blockCache, const FileCacheManagerRef &fileCacheManager)
+                 const MemManagerRef &memManager, const BlockCacheRef &blockCache,
+                 const FileCacheManagerRef &fileCacheManager)
     {
         RETURN_INVALID_PARAM_AS_NULLPTR(filePath);
         RETURN_INVALID_PARAM_AS_NULLPTR(config);
@@ -84,7 +86,7 @@ public:
         }
         if (UNLIKELY(UINT32_MAX - mBlobIndexBlockWriter->EstimateSize() < mFileOutputSize)) {
             LOG_ERROR("The parameters are not legal, fileOutputSize: " << mFileOutputSize << ", index block size:"
-                << mBlobIndexBlockWriter->EstimateSize());
+                                                                       << mBlobIndexBlockWriter->EstimateSize());
             return UINT32_MAX;
         }
         return mFileOutputSize + mBlobIndexBlockWriter->EstimateSize();
@@ -100,6 +102,7 @@ public:
     BResult SelectBlobValue(uint64_t blobId, uint32_t keyGroup, Value &value);
 
     ByteBufferRef CreateBuffer(uint32_t size);
+
 private:
     FileOutputViewRef mFileOutputView = nullptr;
     PathRef mFilePath = nullptr;
@@ -114,7 +117,7 @@ private:
     BlobFileReaderRef mBlobFileReader = nullptr;
 };
 using BlobFileWriterRef = std::shared_ptr<BlobFileWriter>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

@@ -56,8 +56,8 @@ public:
         }
         ret = memcpy_s(mData + mOffset, mCapacity - mOffset, buf, len);
         if (UNLIKELY(ret != BSS_OK)) {
-            LOG_ERROR("Memory copy failed, ret:" << ret << ", capacity:" << mCapacity << ", offset:" <<
-                      mOffset << ", len:" << len << ", errno:" << errno);
+            LOG_ERROR("Memory copy failed, ret:" << ret << ", capacity:" << mCapacity << ", offset:" << mOffset
+                                                 << ", len:" << len << ", errno:" << errno);
             return BSS_INNER_ERR;
         }
         mOffset += len;
@@ -220,7 +220,7 @@ private:
             }
             newCapacity = newCapacity << 1;
         }
-        while ((newCapacity - mOffset) > (size + IO_SIZE_1M)) { // 按照1M的步长进行缩容.
+        while ((newCapacity - mOffset) > (size + IO_SIZE_1M)) {  // 按照1M的步长进行缩容.
             newCapacity -= IO_SIZE_1M;
         }
 

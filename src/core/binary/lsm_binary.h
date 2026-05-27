@@ -44,7 +44,8 @@ public:
             return cmp;
         }
         return ((cmp = memcmp(mKeyData, other.KeyData(), std::min(mKeyLen, other.KeyLen()))) != 0) ?
-            cmp : BssMath::IntegerCompare(mKeyLen, other.KeyLen());
+                   cmp :
+                   BssMath::IntegerCompare(mKeyLen, other.KeyLen());
     }
 
     inline static LsmPriKeyNode &From(uint8_t *buffer)
@@ -181,8 +182,8 @@ public:
             if (cmp != 0) {
                 return cmp;
             }
-            cmp = PQBinaryDataComparator::ComparePrefix(mPriKey->mKeyData, mPriKey->mKeyLen,
-                other.PriKey().KeyData(), other.PriKey().KeyLen());
+            cmp = PQBinaryDataComparator::ComparePrefix(mPriKey->mKeyData, mPriKey->mKeyLen, other.PriKey().KeyData(),
+                                                        other.PriKey().KeyLen());
             return cmp != 0 ? cmp : other.IsEndKey() ? -1 : cmp;
         }
         // compare primary key.
@@ -218,8 +219,8 @@ public:
 private:
     inline void GetKeyAndValueForSingle(Key &key, Value &value)
     {
-        PriKeyNode priKey(mSgl.mStateId, mPriKey->mKeyHashCode ^ mPriKey->NsHashCode(mSgl.mStateId),
-            mPriKey->mKeyData, mPriKey->mKeyLen);
+        PriKeyNode priKey(mSgl.mStateId, mPriKey->mKeyHashCode ^ mPriKey->NsHashCode(mSgl.mStateId), mPriKey->mKeyData,
+                          mPriKey->mKeyLen);
         auto &sglSecKey = mSgl.mSecKey;
         SecKeyNode secKey = sglSecKey != nullptr ?
                                 SecKeyNode(sglSecKey->mHashCode, sglSecKey->mKeyData, sglSecKey->mKeyLen) :
@@ -238,8 +239,8 @@ private:
         RETURN_INNER_ERR_AS_BUFFER_OVER_FLOW(mBuffer->Capacity(), offset + sizeof(uint16_t));
         uint16_t stateId = *(reinterpret_cast<const uint16_t *>(data + offset));
 
-        PriKeyNode priKey(stateId, mPriKey->mKeyHashCode ^ mPriKey->NsHashCode(mSgl.mStateId),
-            mPriKey->mKeyData, mPriKey->mKeyLen);
+        PriKeyNode priKey(stateId, mPriKey->mKeyHashCode ^ mPriKey->NsHashCode(mSgl.mStateId), mPriKey->mKeyData,
+                          mPriKey->mKeyLen);
         bool hasSecKey = StateId::HasSecKey(stateId);
         if (hasSecKey) {
             SecKeyNode secKey;

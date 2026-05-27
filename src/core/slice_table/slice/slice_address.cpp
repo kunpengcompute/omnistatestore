@@ -35,7 +35,7 @@ float SliceAddress::Score(uint64_t tick)
 
     float score = static_cast<float>(mHitCount) / static_cast<float>(tick - mBorn);
     LOG_DEBUG("Computing score, score: " << score << ", hitCount: " << mHitCount << ", born: " << mBorn
-        << ", tick: " << tick);
+                                         << ", tick: " << tick);
     return score;
 }
 
@@ -79,8 +79,9 @@ BResult SliceAddress::Restore(const FileInputViewRef &reader, SliceAddressRef &s
     sliceAddress = std::make_shared<SliceAddress>(sliceLen, checkSum, 0, startOffset, sliceId);
     RETURN_ALLOC_FAIL_AS_NULLPTR(sliceAddress);
     sliceAddress->SetLocalAddress(localAddress);
-    LOG_DEBUG("Restore slice address success, checkSum:" << checkSum << ", sliceId:" << sliceId << ", startOffset:" <<
-              startOffset << ", localAddress:" << localAddress << ", sliceLen:" << sliceLen);
+    LOG_DEBUG("Restore slice address success, checkSum:" << checkSum << ", sliceId:" << sliceId << ", startOffset:"
+                                                         << startOffset << ", localAddress:" << localAddress
+                                                         << ", sliceLen:" << sliceLen);
     return BSS_OK;
 }
 

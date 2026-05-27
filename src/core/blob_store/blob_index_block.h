@@ -19,8 +19,7 @@ namespace bss {
 
 class BlobIndexBlock : public Block {
 public:
-    BlobIndexBlock(ByteBufferRef& byteBuffer, uint32_t dataBlockNums)
-        : Block(byteBuffer), mDataBlockNums(dataBlockNums)
+    BlobIndexBlock(ByteBufferRef &byteBuffer, uint32_t dataBlockNums) : Block(byteBuffer), mDataBlockNums(dataBlockNums)
     {
     }
 
@@ -42,6 +41,6 @@ private:
     uint32_t mDataBlockNums = 0;
 };
 using BlobIndexBlockRef = std::shared_ptr<BlobIndexBlock>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 #endif

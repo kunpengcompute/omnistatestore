@@ -16,8 +16,8 @@
 #include <mutex>
 #include <vector>
 
-#include "mem_manager.h"
 #include "binary/byte_buffer.h"
+#include "mem_manager.h"
 
 namespace ock {
 namespace bss {
@@ -90,18 +90,19 @@ public:
         std::lock_guard<std::mutex> lock(mMutex);
         mFreeList.push_back(ptr);
     }
+
 private:
     uint8_t *mBaseAddr = nullptr;
     uint32_t mTotalMemSize = 0;
     uint32_t mBlockSize = 0;
     std::vector<uint8_t *> mFreeList;
     std::mutex mMutex;
-    std::atomic<bool> mIinitialized{false};
+    std::atomic<bool> mIinitialized{ false };
     bool mFree = false;
     MemManagerRef mMemManager = nullptr;
 };
 using FixedSizeMemoryPoolRef = Ref<FixedSizeMemoryPool>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

@@ -18,11 +18,11 @@
 #include <memory>
 #include <random>
 
-#include "include/bss_err.h"
-#include "include/ref.h"
 #include "common/io/file_input_view.h"
 #include "common/io/file_output_view.h"
 #include "data_slice.h"
+#include "include/bss_err.h"
+#include "include/ref.h"
 #include "slice_status.h"
 #include "snapshot/snapshot_meta.h"
 
@@ -56,8 +56,9 @@ public:
         if (LIKELY(other.mDataSlice != nullptr)) {
             mDataSlice = std::make_shared<DataSlice>(*other.mDataSlice);
         } else {
-            LOG_ERROR("Snapshot copy failed, data slice is nullptr, dataLen:" << other.mOriDataLen << ", status:" <<
-                      static_cast<uint32_t>(other.mSliceStatus.load()) << ", checkSum:" << other.mCheckSum);
+            LOG_ERROR("Snapshot copy failed, data slice is nullptr, dataLen:"
+                      << other.mOriDataLen << ", status:" << static_cast<uint32_t>(other.mSliceStatus.load())
+                      << ", checkSum:" << other.mCheckSum);
         }
     }
 
@@ -78,7 +79,7 @@ public:
         return *this;
     }
 
-    void Init(const DataSliceRef& dataSlice, uint64_t accessNumber);
+    void Init(const DataSliceRef &dataSlice, uint64_t accessNumber);
 
     inline void SetChainIndex(uint32_t chainIndex)
     {
@@ -100,7 +101,9 @@ public:
     inline DataSliceRef GetDataSlice()
     {
         return (mDataSlice == nullptr || mDataSlice->GetSlice() == nullptr ||
-                mDataSlice->GetSlice()->GetByteBuffer() == nullptr) ? nullptr : mDataSlice;
+                mDataSlice->GetSlice()->GetByteBuffer() == nullptr) ?
+                   nullptr :
+                   mDataSlice;
     }
 
     inline SliceRef GetSlice()
@@ -245,11 +248,11 @@ private:
     std::atomic<SliceStatus> mSliceStatus{ SliceStatus::NORMAL };
     static std::atomic<uint64_t> mGenerateSliceId;
     uint32_t mOriDataLen = 0;
-    uint32_t mCheckSum = 12568; // 当前设置为魔术字:12568.
+    uint32_t mCheckSum = 12568;  // 当前设置为魔术字:12568.
     uint64_t mBorn = 0;
     uint32_t mHitCount = 0;
-    std::string mLocalAddress; // snapshot文件地址.
-    uint64_t mStartOffset = 0; // snapshot文件中的偏移.
+    std::string mLocalAddress;  // snapshot文件地址.
+    uint64_t mStartOffset = 0;  // snapshot文件中的偏移.
     uint64_t mSliceId = GenerateRandomNumber();
     DataSliceRef mDataSlice = nullptr;
     SliceAddressRef mFatherSlice = nullptr;

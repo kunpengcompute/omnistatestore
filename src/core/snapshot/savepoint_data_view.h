@@ -36,30 +36,33 @@ public:
 
         KeyValueRef Next() override;
 
-		void Close() override;
+        void Close() override;
 
     private:
         SavepointDataView *mSavepointDataViewImpl = nullptr;
         VectorIteratorRef<LsmStoreRef> mLsmStores = nullptr;
         KeyValueIteratorRef mCurrentIterator = nullptr;
-		bool mIsPQ = false;
+        bool mIsPQ = false;
     };
 
     SavepointDataView(const SnapshotManagerRef &snapshotManager, const PendingSavepointCoordinatorRef &pendingSavepoint,
                       uint32_t maxParallelism, const MemManagerRef &mMemManager)
-        : mSnapshotManager(snapshotManager), mPendingSavepoint(pendingSavepoint), mMaxParallelism(maxParallelism),
-          mSnapshotId(mPendingSavepoint->GetSnapshotId()), mMemManager(mMemManager)
+        : mSnapshotManager(snapshotManager),
+          mPendingSavepoint(pendingSavepoint),
+          mMaxParallelism(maxParallelism),
+          mSnapshotId(mPendingSavepoint->GetSnapshotId()),
+          mMemManager(mMemManager)
     {
         auto tuple = FindFileStoreMapping();
-		// 仅迭代kv
-		auto sortedKeyValueIterator = CreateSortedKeyValueIterator(tuple);
-		// 仅迭代pq
-		KeyValueIteratorRef sortedPQIterator = nullptr;
-		if (tuple.second == nullptr) {
-			LOG_ERROR("FileStore is nullptr.");
-		} else {
-			sortedPQIterator = std::make_shared<MultipleFileStoreIterator>(this, tuple.second, true);
-		}
+        // 仅迭代kv
+        auto sortedKeyValueIterator = CreateSortedKeyValueIterator(tuple);
+        // 仅迭代pq
+        KeyValueIteratorRef sortedPQIterator = nullptr;
+        if (tuple.second == nullptr) {
+            LOG_ERROR("FileStore is nullptr.");
+        } else {
+            sortedPQIterator = std::make_shared<MultipleFileStoreIterator>(this, tuple.second, true);
+        }
 
         auto sliceTable = pendingSavepoint->GetSliceTable();
         auto func = [sliceTable](uint64_t blobId, uint32_t keyHashCode, uint64_t seqId,
@@ -68,11 +71,11 @@ public:
         };
         mCurrentIterator = MakeRef<BinaryKeyValueItemIterator>(mPendingSavepoint->GetStateIdProviderSnapshot(),
                                                                mMaxParallelism, sortedKeyValueIterator,
-															   sortedPQIterator, mMemManager, func);
+                                                               sortedPQIterator, mMemManager, func);
     }
 
     KeyValueIteratorRef CreateSortedKeyValueIterator(
-		const std::pair<SliceTableSnapshotOperatorRef, FileStoreSnapshotOperatorRef>& tuple);
+        const std::pair<SliceTableSnapshotOperatorRef, FileStoreSnapshotOperatorRef> &tuple);
 
     std::pair<SliceTableSnapshotOperatorRef, FileStoreSnapshotOperatorRef> FindFileStoreMapping();
 

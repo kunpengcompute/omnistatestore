@@ -17,10 +17,7 @@
 
 namespace ock {
 namespace bss {
-enum CompressAlgo : uint8_t {
-    NONE = 1,
-    LZ4 = 2
-};
+enum CompressAlgo : uint8_t { NONE = 1, LZ4 = 2 };
 
 class CompressAlgoUtil {
 public:
@@ -28,7 +25,7 @@ public:
 
     static std::string ReverseCompressAlgoTransform(CompressAlgo &compressAlgo);
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

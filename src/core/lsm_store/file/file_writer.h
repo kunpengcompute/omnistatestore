@@ -14,14 +14,14 @@
 
 #include <functional>
 
-#include "include/compress_algo.h"
-#include "include/config.h"
 #include "binary/slice_binary.h"
 #include "common/io/file_output_view.h"
 #include "data_slice_flush_iterator.h"
 #include "file_block_meta.h"
 #include "file_mem_allocator.h"
 #include "file_meta_index_block_writer.h"
+#include "include/compress_algo.h"
+#include "include/config.h"
 #include "lsm_store/block/block_handle.h"
 #include "lsm_store/block/block_meta.h"
 #include "lsm_store/block/data_block_writer.h"
@@ -33,7 +33,7 @@ namespace bss {
 class FileWriter {
 public:
     FileWriter(const PathRef &filePath, const ConfigRef &config, CompressAlgo compressAlgorithm,
-        const MemManagerRef &memManager, FileProcHolder holder)
+               const MemManagerRef &memManager, FileProcHolder holder)
         : mFilePath(filePath), mCompressAlgorithm(compressAlgorithm), mMemManager(memManager), mHolder(holder)
     {
         mDataBlockWriter = std::make_shared<DataBlockWriter>(config->GetHashIndexLoadRatio(), memManager, holder);
@@ -91,7 +91,7 @@ public:
     }
 
     static IndexBlockWriterRef CreateIndexBlockWriter(const ConfigRef &config, const MemManagerRef &memManager,
-                                                        FileProcHolder holder)
+                                                      FileProcHolder holder)
     {
         return std::make_shared<IndexBlockWriter>(config->GetHashIndexLoadRatio(), memManager, holder);
     }
@@ -110,7 +110,7 @@ public:
 
 private:
     PathRef mFilePath = nullptr;
-    uint32_t mBlockSize = 0; // 在配置项中设置data block size的大小为16KB.
+    uint32_t mBlockSize = 0;  // 在配置项中设置data block size的大小为16KB.
     CompressAlgo mCompressAlgorithm = CompressAlgo::NONE;
     FileOutputViewRef mFileOutputView = nullptr;
     uint32_t mFileOutputSize = 0;

@@ -28,8 +28,8 @@ public:
     }
 
     void Init(std::vector<DataSliceRef> &canCompactSliceListReversed,
-        std::vector<SliceAddressRef> &invalidSliceAddressList, bool reachMemoryLimit, uint32_t finalOldSliceSize,
-        uint32_t compactionStartChainIndex, uint32_t compactionEndChainIndex)
+              std::vector<SliceAddressRef> &invalidSliceAddressList, bool reachMemoryLimit, uint32_t finalOldSliceSize,
+              uint32_t compactionStartChainIndex, uint32_t compactionEndChainIndex)
     {
         mCanCompactSliceListReversed = canCompactSliceListReversed;
         mInvalidSliceAddressList = invalidSliceAddressList;
@@ -49,7 +49,7 @@ public:
         return mFinalOldSliceSize;
     }
 
-    inline const std::vector<DataSliceRef>& GetSliceListReversed() const
+    inline const std::vector<DataSliceRef> &GetSliceListReversed() const
     {
         return mCanCompactSliceListReversed;
     }
@@ -127,7 +127,7 @@ public:
     {
         SelectedSliceContextRef selectedSliceContext = std::make_shared<SelectedSliceContext>();
         selectedSliceContext->Init(mCanCompactSliceListReversed, mInvalidSliceAddressList, mReachMemoryLimit,
-            mSliceSize, mCompactionStartChainIndex, mCompactionEndChainIndex);
+                                   mSliceSize, mCompactionStartChainIndex, mCompactionEndChainIndex);
         return selectedSliceContext;
     }
 
@@ -152,7 +152,8 @@ public:
     }
 
     SelectedSliceContextRef SelectCompactionSlice(SliceIndexContextRef &sliceIndexContext, uint32_t curChainIndex,
-        uint32_t minLength);
+                                                  uint32_t minLength);
+
 private:
     ConfigRef mConfig = nullptr;
     SliceBucketIndexRef mBucketIndex = nullptr;

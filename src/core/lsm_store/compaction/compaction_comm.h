@@ -23,5 +23,5 @@ enum class Reason {
 };
 
 }
-}
-#endif // BSS_DEV_COMPACTION_COMM_H
+}  // namespace ock
+#endif  // BSS_DEV_COMPACTION_COMM_H

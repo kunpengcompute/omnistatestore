@@ -29,9 +29,9 @@ public:
      * @param [out]rescaleRelation 缩放关系
      */
     static BResult Rescale(const SliceBucketGroupRangeGroupRef &oldSegmentGroup,
-                        const SliceBucketGroupRangeGroupRef &newSegmentGroup,
-                        const BucketGroupManagerRef &bucketGroupManager,
-                        std::unordered_map<uint32_t, std::vector<uint32_t>> &rescaleRelation)
+                           const SliceBucketGroupRangeGroupRef &newSegmentGroup,
+                           const BucketGroupManagerRef &bucketGroupManager,
+                           std::unordered_map<uint32_t, std::vector<uint32_t>> &rescaleRelation)
     {
         uint32_t oldGroupPoint = 0;
         uint32_t newGroupPoint = 0;
@@ -42,8 +42,8 @@ public:
             auto curOldRange = oldSegmentRanges[oldGroupPoint];
             auto curNewRange = newSegmentRanges[newGroupPoint];
             int32_t cmp = curOldRange->OverlapCompare(curNewRange);
-            LOG_DEBUG("SliceTable handle rescale, cmpResult:" << cmp << ", oldGroupPoint:" << oldGroupPoint <<
-                      ", newGroupPoint" << newGroupPoint);
+            LOG_DEBUG("SliceTable handle rescale, cmpResult:" << cmp << ", oldGroupPoint:" << oldGroupPoint
+                                                              << ", newGroupPoint" << newGroupPoint);
             if (UNLIKELY(cmp == ERROR_CASE_DIV_BY_ZERO)) {
                 LOG_ERROR("Failed to compare overlap.");
                 return BSS_ERR;
@@ -87,7 +87,7 @@ public:
 
 private:
     static BResult AddLogicalSLiceChainIntoMappingTable(SliceBucketIndexRef &sliceBucketIndex, uint32_t indexSlot,
-                                                     LogicalSliceChainRef &logicalSliceChain)
+                                                        LogicalSliceChainRef &logicalSliceChain)
     {
         auto logicChainedSlice = sliceBucketIndex->GetLogicChainedSlice(indexSlot);
         if (UNLIKELY(logicChainedSlice == nullptr)) {
@@ -133,8 +133,8 @@ private:
                     }
                     oldLogicalSliceChain->RestoreFilePage(lsmStore);
                 }
-                RETURN_AS_NOT_OK_NO_LOG(AddLogicalSLiceChainIntoMappingTable(
-                    newSegmentGroup->mSliceBucketIndex, mappingIndex, oldLogicalSliceChain));
+                RETURN_AS_NOT_OK_NO_LOG(AddLogicalSLiceChainIntoMappingTable(newSegmentGroup->mSliceBucketIndex,
+                                                                             mappingIndex, oldLogicalSliceChain));
             }
             return;
         }
@@ -166,8 +166,8 @@ private:
                     }
                     logicalSliceChain->RestoreFilePage(lsmStore);
                 }
-                RETURN_AS_NOT_OK_NO_LOG(AddLogicalSLiceChainIntoMappingTable(
-                    newSegmentGroup->mSliceBucketIndex, j, logicalSliceChain));
+                RETURN_AS_NOT_OK_NO_LOG(
+                    AddLogicalSLiceChainIntoMappingTable(newSegmentGroup->mSliceBucketIndex, j, logicalSliceChain));
             }
         }
     }

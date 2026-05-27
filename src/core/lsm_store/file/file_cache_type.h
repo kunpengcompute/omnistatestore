@@ -14,16 +14,9 @@
 
 namespace ock {
 namespace bss {
-enum class FileCacheType {
-    NONE = 0,
-    INFINITE = 1,
-    LIMITED = 2
-};
+enum class FileCacheType { NONE = 0, INFINITE = 1, LIMITED = 2 };
 
-enum FileStatus : uint8_t {
-    LOCAL = 1,
-    DFS = 2
-};
+enum FileStatus : uint8_t { LOCAL = 1, DFS = 2 };
 
 }  // namespace bss
 }  // namespace ock

@@ -50,12 +50,14 @@ class BlobFileIterator : public Iterator<BlobImmutableFileRef> {
                 mNextFileGroup = mBlobFileGroups[mNextFileGroupIndex];
             }
         }
+
     private:
         std::vector<BlobFileGroupRef> mBlobFileGroups;
         int64_t mNextFileGroupIndex = 0;
         BlobFileGroupRef mNextFileGroup = nullptr;
         BlobFileGroupRef mCurrentFileGroup = nullptr;
     };
+
 public:
     BResult Init(const BlobFileGroupManagerRef &blobFileGroupManager)
     {
@@ -108,6 +110,7 @@ public:
             mCurrentFileGroup = nullptr;
         }
     }
+
 private:
     std::vector<BlobImmutableFileRef> mFiles;
     int64_t mNextFileIndex = 0;
@@ -117,7 +120,7 @@ private:
     std::shared_ptr<BlobFileGroupIterator> mFileGroupIterator = nullptr;
 };
 
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

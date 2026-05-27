@@ -47,7 +47,7 @@ JNIEXPORT void JNICALL Java_com_huawei_ock_bss_common_BoostStateDB_notifyDBSnaps
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_com_huawei_ock_bss_common_BoostStateDB_notifyDBSnapshotComplete(JNIEnv *, jobject, jlong,
-                                                                                         jlong);
+                                                                                            jlong);
 
 /*
  * Class:     com_huawei_ock_bss_common_BoostStateDB
@@ -68,8 +68,8 @@ JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_common_BoostStateDB_changeHeapAv
  * Method:    registerBoostNativeMetric
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_com_huawei_ock_bss_common_BoostStateDB_registerBoostNativeMetric
-    (JNIEnv *, jobject, jlong, jlong);
+JNIEXPORT void JNICALL Java_com_huawei_ock_bss_common_BoostStateDB_registerBoostNativeMetric(JNIEnv *, jobject, jlong,
+                                                                                             jlong);
 
 #ifdef __cplusplus
 }

@@ -9,8 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "input_level_compaction.h"
 #include "compaction_picker.h"
+
+#include "input_level_compaction.h"
 
 namespace ock {
 namespace bss {
@@ -80,8 +81,8 @@ CompactionRef CompactionPicker::GenerateCompactionBaseOnInputs(const VersionPtr 
                                                                std::vector<FileMetaDataRef> &levelInputs)
 {
     if (current->GetCompactionScore() == DOUBLE_MAX_VALUE) {
-        return std::make_shared<InputLevelCompaction>(current, current->GetCompactionLevel(),
-                                                      curGroupRange, mConf->GetFileBaseSize(), levelInputs);
+        return std::make_shared<InputLevelCompaction>(current, current->GetCompactionLevel(), curGroupRange,
+                                                      mConf->GetFileBaseSize(), levelInputs);
     }
 
     uint32_t levelId = current->GetCompactionLevel();
@@ -137,9 +138,9 @@ CompactionRef CompactionPicker::GenerateCompactionBaseOnInputs(const VersionPtr 
     float inputLevelOverlapRatio = (totalInputLevelSize == 0L) ?
                                        0.0F :
                                        (static_cast<float>(inputSize) / static_cast<float>(totalInputLevelSize));
-    float outputLevelOverlapRatio = (totalOutputLevelSize == 0L) ? 0.0F :
-                                                                   (static_cast<float>(outputLevelSize) /
-                                                                    static_cast<float>(totalOutputLevelSize));
+    float outputLevelOverlapRatio =
+        (totalOutputLevelSize == 0L) ? 0.0F :
+                                       (static_cast<float>(outputLevelSize) / static_cast<float>(totalOutputLevelSize));
     LOG_INFO("Pick compaction result, level-"
              << levelId << " overlapped ratio: " << ratio << ", input-level: (" << GetFileNames(levelInputs) << " "
              << inputSize << " bytes with ratio " << inputLevelOverlapRatio << "), output-level: ("
@@ -178,8 +179,8 @@ void CompactionPicker::findAllSmallestAndLargest(const VersionPtr &current, uint
             std::pair<FullKeyRef, FullKeyRef> expandedRange = GetKeyRange(levelInputs4);
             const FullKeyRef &expandedSmallest = expandedRange.first;
             const FullKeyRef &expandedLargest = expandedRange.second;
-            std::vector<FileMetaDataRef> expandedOutputList =
-                GetOverlappingInputs(current, levelId + 1, groupRange, expandedSmallest, expandedLargest);
+            std::vector<FileMetaDataRef> expandedOutputList = GetOverlappingInputs(current, levelId + 1, groupRange,
+                                                                                   expandedSmallest, expandedLargest);
 
             if (expandedOutputList.size() == outputLevelInputs.size()) {
                 largest = expandedLargest;
@@ -197,7 +198,7 @@ void CompactionPicker::findAllSmallestAndLargest(const VersionPtr &current, uint
 }
 
 std::pair<FileMetaDataRef, bool> CompactionPicker::GetInitialInputFile(const VersionPtr &current, uint32_t levelId,
-    const GroupRangeRef &curGroupRange)
+                                                                       const GroupRangeRef &curGroupRange)
 {
     GroupRangeRef groupRange = current->GetLevel(levelId).GetBottomLeftMostGroupRange();
     auto mayOverlappedFiles = current->GetMayOverlappedFiles(levelId, groupRange);
@@ -221,8 +222,8 @@ std::vector<FileMetaDataRef> CompactionPicker::ExpandInputFilesIfNeeded(const Ve
     levelInputs.clear();
 
     for (auto &inputGroupRange : groupRanges) {
-        auto overlappingInputs = GetOverlappingInputs(current, levelId, inputGroupRange,
-                                                      keyRange.first, keyRange.second);
+        auto overlappingInputs = GetOverlappingInputs(current, levelId, inputGroupRange, keyRange.first,
+                                                      keyRange.second);
         for (auto &fileMetaData : overlappingInputs) {
             levelInputs.emplace_back(fileMetaData);
         }
@@ -268,8 +269,8 @@ std::string CompactionPicker::GetFileNames(const std::vector<FileMetaDataRef> &f
 }
 
 std::vector<FileMetaDataRef> CompactionPicker::GetOverlappingInputs(const VersionPtr &current, uint32_t levelId,
-                                                                    GroupRangeRef queryGroupRange,
-                                                                    FullKeyRef begin, FullKeyRef end)
+                                                                    GroupRangeRef queryGroupRange, FullKeyRef begin,
+                                                                    FullKeyRef end)
 {
     if (levelId + 1 > current->GetNumLevels()) {
         return {};
@@ -286,8 +287,7 @@ std::vector<FileMetaDataRef> CompactionPicker::GetOverlappingInputs(const Versio
         }
         auto smallest = fileMetaData->GetSmallest();
         auto largest = fileMetaData->GetLargest();
-        if (smallest->CompareKey(*end) <= 0 &&
-            largest->CompareKey(*begin) >= 0) {
+        if (smallest->CompareKey(*end) <= 0 && largest->CompareKey(*begin) >= 0) {
             inputs.emplace_back(fileMetaData);
             if (mayOverlappedFiles.second || levelId == 0) {
                 bool beginExpanded = (smallest->CompareKey(*begin) < 0);
@@ -308,8 +308,7 @@ std::vector<FileMetaDataRef> CompactionPicker::GetOverlappingInputs(const Versio
     return inputs;
 }
 
-std::pair<FullKeyRef, FullKeyRef> CompactionPicker::GetKeyRange(
-    const std::vector<std::vector<FileMetaDataRef>> &inputs)
+std::pair<FullKeyRef, FullKeyRef> CompactionPicker::GetKeyRange(const std::vector<std::vector<FileMetaDataRef>> &inputs)
 {
     FullKeyRef smallest = nullptr;
     FullKeyRef largest = nullptr;
@@ -377,8 +376,8 @@ FileMetaDataRef CompactionPicker::FindSmallestBoundaryFile(const std::vector<Fil
         if (f->GetSmallest()->CompareFullKey(*largestKey, largestKey->SeqId()) > 0 &&
             f->GetSmallest()->Compare(*largestKey) == 0 &&
             (smallestBoundaryFile == nullptr ||
-            f->GetSmallest()->CompareFullKey(*smallestBoundaryFile->GetSmallest(),
-            smallestBoundaryFile->GetSmallest()->SeqId()) < 0)) {
+             f->GetSmallest()->CompareFullKey(*smallestBoundaryFile->GetSmallest(),
+                                              smallestBoundaryFile->GetSmallest()->SeqId()) < 0)) {
             smallestBoundaryFile = f;
         }
     }

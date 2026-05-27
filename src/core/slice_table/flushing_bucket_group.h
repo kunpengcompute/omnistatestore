@@ -12,8 +12,8 @@
 #ifndef BOOST_SS_FLUSHINGBUCKETGROUP_H
 #define BOOST_SS_FLUSHINGBUCKETGROUP_H
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "memory/full_sort_evictor.h"
 #include "slice_table/slice/data_slice.h"
@@ -36,8 +36,7 @@ private:
 
 class FlushingBucketGroup {
 public:
-    BResult Initialize(std::vector<SliceScore> &list, uint32_t bucketGroupId,
-                       const FullSortEvictorRef &evictor,
+    BResult Initialize(std::vector<SliceScore> &list, uint32_t bucketGroupId, const FullSortEvictorRef &evictor,
                        const FlushQueueForBucketGroupRef &flushQueueForBucketGroup);
 
     Ref<FlushingBucketGroupIterator> Iterator();

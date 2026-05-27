@@ -53,7 +53,8 @@ JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_table_iterator_SubTableKeyIte
 }
 
 JNIEXPORT jobject JNICALL Java_com_huawei_ock_bss_table_iterator_SubTableKeyIterator_next(JNIEnv *env, jclass,
-    jlong jTableEntryIterator, jobject object)
+                                                                                          jlong jTableEntryIterator,
+                                                                                          jobject object)
 {
     if (UNLIKELY(env == nullptr)) {
         LOG_ERROR("Input env is nullptr.");

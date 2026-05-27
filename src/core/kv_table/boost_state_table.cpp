@@ -9,12 +9,13 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "include/table_description.h"
+#include "include/boost_state_table.h"
+
 #include "common/util/seq_generator.h"
 #include "fresh_table/fresh_table.h"
+#include "include/table_description.h"
 #include "kv_table_iterator.h"
 #include "slice_table/slice_table.h"
-#include "include/boost_state_table.h"
 
 namespace ock {
 namespace bss {
@@ -176,7 +177,7 @@ MapIterator *AbstractTable::FullEntryIterator()
 
     // create entry iterator by fresh table iterator and slice table iterator.
     return new (std::nothrow) MapIterator{ freshTableIterator, sliceTableIterator, EntryIteratorType::KVALUE_ITERATOR,
-        blobValueTransformFunc};
+                                           blobValueTransformFunc };
 }
 
 uint16_t AbstractTable::GetStateId()
@@ -184,8 +185,8 @@ uint16_t AbstractTable::GetStateId()
     return mStateIdProvider->GetStateId(mDescription);
 }
 
-BResult AbstractKMapTable::Put(uint32_t keyHashCode, const BinaryData &priKey,
-    const BinaryData &secKey, const BinaryData &value)
+BResult AbstractKMapTable::Put(uint32_t keyHashCode, const BinaryData &priKey, const BinaryData &secKey,
+                               const BinaryData &value)
 {
     KeyValue keyValue;
     uint16_t stateId = GetStateId(keyHashCode);
@@ -203,7 +204,7 @@ BResult AbstractKMapTable::Get(uint32_t keyHashCode, const BinaryData &priKey, c
                                BinaryData &value)
 {
     if (!KeyMayMatchSecondPeakFilter(secKey)) {
-        return  BSS_NOT_EXISTS;
+        return BSS_NOT_EXISTS;
     }
 
     // trans to dual key.
@@ -333,8 +334,8 @@ MapIterator *AbstractKMapTable::EntryIterator(uint32_t hashCode, const BinaryDat
     auto sliceTableIterator = mSliceTable->PrefixIterator(queryKey, blobValueTransformFunc);
 
     // create map iterator by slice table iterator and fresh table iterator.
-    return new (std::nothrow) MapIterator(freshTableIterator, sliceTableIterator, EntryIteratorType::KMAP_ITERATOR,
-        blobValueTransformFunc);
+    return new (std::nothrow)
+        MapIterator(freshTableIterator, sliceTableIterator, EntryIteratorType::KMAP_ITERATOR, blobValueTransformFunc);
 }
 
 MapIteratorWrraper *AbstractKMapTable::EntryIteratorWrraper(uint32_t hashCode, const BinaryData &priKey)
@@ -387,8 +388,8 @@ KeyIterator *NsKMapTable::KeysIterator(const BinaryData &nameSpace)
     auto sliceTableIterator = mSliceTable->EntryIterator(keyFilter, stateId);
 
     // create key iterator by slice table iterator and fresh table iterator.
-    return new (std::nothrow) KeyIterator{ freshTableIterator, sliceTableIterator,
-        EntryIteratorType::KSUBMAP_ITERATOR };
+    return new (std::nothrow)
+        KeyIterator{ freshTableIterator, sliceTableIterator, EntryIteratorType::KSUBMAP_ITERATOR };
 }
 
 BResult AbstractKListTable::Put(uint32_t hashCode, const BinaryData &key, const BinaryData &value)
@@ -436,7 +437,7 @@ ListResult AbstractKListTable::Get(uint32_t hashCode, const BinaryData &key)
 }
 
 ListResult AbstractKListTable::GetListCount(const std::deque<Value> &source,
-    std::vector<SectionsReadContextRef> &readMetas)
+                                            std::vector<SectionsReadContextRef> &readMetas)
 {
     ListResult listCount;
     std::vector<Value> result;
@@ -459,7 +460,7 @@ ListResult AbstractKListTable::GetListCount(const std::deque<Value> &source,
 }
 
 ListResult AbstractKListTable::GetListCount(const std::deque<Value> &source, std::deque<Value> &slice,
-    std::vector<SectionsReadContextRef> &readMetas)
+                                            std::vector<SectionsReadContextRef> &readMetas)
 {
     std::vector<Value> result;
     ListResult listCount;
@@ -592,8 +593,8 @@ KeyIterator *NsKListTable::KeysIterator(const BinaryData &nameSpace)
     auto sliceTableIterator = mSliceTable->EntryIterator(keyFilter, stateId);
 
     // create key iterator by slice table iterator and fresh table iterator.
-    return new (std::nothrow) KeyIterator{ freshTableIterator, sliceTableIterator,
-        EntryIteratorType::KSUBLIST_ITERATOR };
+    return new (std::nothrow)
+        KeyIterator{ freshTableIterator, sliceTableIterator, EntryIteratorType::KSUBLIST_ITERATOR };
 }
 
 MapIteratorWrraper::MapIteratorWrraper(MapIterator *mapIterator)

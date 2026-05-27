@@ -17,11 +17,11 @@
 #include <utility>
 #include <vector>
 
-#include "include/bss_err.h"
 #include "binary/byte_buffer.h"
 #include "binary/fresh_binary.h"
 #include "binary/key/key.h"
 #include "binary/slice_binary.h"
+#include "include/bss_err.h"
 #include "serialized_data.h"
 #include "slice_table/binary_map/binary_key.h"
 #include "slice_table/slice/raw_data_slice.h"
@@ -288,7 +288,7 @@ public:
 
         startValueOffset = (index == 0) ? 0 : mValueOffsets[index - 1] & 0xFFFFFFF;
         value.Init(valueType, endValueOffset - startValueOffset,
-            mBuffer->Data() + mValueDataBaseOffset + startValueOffset, seqId, mBuffer);
+                   mBuffer->Data() + mValueDataBaseOffset + startValueOffset, seqId, mBuffer);
         return value;
     }
 
@@ -311,7 +311,7 @@ public:
     }
 
     BResult Put(uint32_t index, FreshValueNodePtr &value, const MemorySegment &freshSegment, bool isValue,
-        SliceTableManagerRef sliceTable, uint32_t keyHashCode, uint16_t stateId, uint64_t &seqId);
+                SliceTableManagerRef sliceTable, uint32_t keyHashCode, uint16_t stateId, uint64_t &seqId);
 
     inline void ReleaseByteBuffer()
     {
@@ -333,8 +333,8 @@ public:
     /*
      * slice初始化，将kvPairs写到ByteBuffer中
      */
-    BResult Initialize(std::vector<std::pair<SliceKey, Value>> &kvPairs,
-                       const SliceCreateMeta &meta, const MemManagerRef &memManager, bool forceMemory = true);
+    BResult Initialize(std::vector<std::pair<SliceKey, Value>> &kvPairs, const SliceCreateMeta &meta,
+                       const MemManagerRef &memManager, bool forceMemory = true);
 
     BResult Initialize(RawDataSlice &rawDataSlice, const SliceCreateMeta &meta, const MemManagerRef &memManager,
                        bool &forceEvict, SliceTableManagerRef sliceTable);
@@ -392,10 +392,8 @@ public:
     }
 
 private:
-    BResult CreateAndInitBuffer(const SliceCreateMeta &meta,
-                                std::vector<std::pair<SliceKey, Value>> &kvPairs,
-                                std::vector<std::pair<SliceKey, uint32_t>> &sortedKeySlotList,
-                                bool forceMemory);
+    BResult CreateAndInitBuffer(const SliceCreateMeta &meta, std::vector<std::pair<SliceKey, Value>> &kvPairs,
+                                std::vector<std::pair<SliceKey, uint32_t>> &sortedKeySlotList, bool forceMemory);
 
     BResult FillBuffer(const std::vector<std::pair<SliceKey, Value>> &kvPairs,
                        std::vector<std::pair<SliceKey, uint32_t>> &sortedKeySlotList);
@@ -429,11 +427,11 @@ private:
                              StateIdInterval stateIdInterval);
 
     BResult CreateAndInitBuffer(const SliceCreateMeta &meta, RawDataSlice &rawDataSlice,
-        std::vector<std::pair<BinaryKey, uint32_t>> &sortedKeySlotList, bool &forceEvict,
-        SliceTableManagerRef sliceTable);
+                                std::vector<std::pair<BinaryKey, uint32_t>> &sortedKeySlotList, bool &forceEvict,
+                                SliceTableManagerRef sliceTable);
 
     BResult FillBuffer(RawDataSlice &rawDataSlice, std::vector<std::pair<BinaryKey, uint32_t>> &sortedKeySlotList,
-        SliceTableManagerRef sliceTable);
+                       SliceTableManagerRef sliceTable);
 
     BResult BinarySearchBound(uint32_t targetMixedHashCode, uint32_t startSlot, uint32_t indexCount,
                               uint32_t &lowerBound, uint32_t &upperBound);

@@ -13,18 +13,19 @@
 #define BOOST_SS_SKIPLIST_TRANSFORMER_H
 
 #include <set>
+
 #include "binary/key_value.h"
 #include "binary/query_binary.h"
-#include "include/binary_data.h"
 #include "fresh_table/memory/skiplist.h"
+#include "include/binary_data.h"
 
 namespace ock {
 namespace bss {
 
 class PQIterator : public Iterator<KeyValueRef> {
 public:
-    PQIterator(const std::shared_ptr<SkipList<PQBinaryData, PQBinaryDataComparator>> &skipList,
-        uint16_t stateId) : mSkipList(skipList), mSeqId(skipList->GetSeqId()), mStateId(stateId)
+    PQIterator(const std::shared_ptr<SkipList<PQBinaryData, PQBinaryDataComparator>> &skipList, uint16_t stateId)
+        : mSkipList(skipList), mSeqId(skipList->GetSeqId()), mStateId(stateId)
     {
         mIter = skipList->NewIterator();
         mSkipListEntry = mIter.HasNext() ? mIter.Next() : PQBinaryData();
@@ -74,6 +75,6 @@ private:
 
 using PQTableIteratorRef = std::shared_ptr<PQIterator>;
 
-}
-}
+}  // namespace bss
+}  // namespace ock
 #endif  // BOOST_SS_SKIPLIST_TRANSFORMER_H

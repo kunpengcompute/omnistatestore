@@ -13,6 +13,7 @@
 #define BOOST_SS_AUTO_CLOSEABLE_H
 
 #include <malloc.h>
+
 #include <atomic>
 
 namespace ock {
@@ -37,7 +38,7 @@ public:
 
     static std::atomic<uint64_t> GLOBAL_COUNT;
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

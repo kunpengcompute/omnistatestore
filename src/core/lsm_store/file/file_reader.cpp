@@ -10,6 +10,7 @@
  */
 
 #include "file_reader.h"
+
 #include "block/index_block_writer.h"
 #include "compressor_utils.h"
 #include "file_address_util.h"
@@ -98,15 +99,15 @@ BlockRef FileReader::GetOrLoadBlock(const BlockHandle &blockHandle, BlockType bl
         ByteBufferRef byteBuffer;
         BResult result = ReadBlock(blockHandle, byteBuffer);
         if (UNLIKELY(result != BSS_OK)) {
-            LOG_ERROR("Read block failed, ret:" << result << ", block offset:" << blockHandle.GetOffset() <<
-                ", size:" << blockHandle.GetSize());
+            LOG_ERROR("Read block failed, ret:" << result << ", block offset:" << blockHandle.GetOffset()
+                                                << ", size:" << blockHandle.GetSize());
             return nullptr;
         }
         // 3. 将Block加入到block cache缓存中.
         block = BuildBlock(byteBuffer, blockType);
         if (UNLIKELY(block == nullptr)) {
-            LOG_ERROR("Build block failed, block offset:" << blockHandle.GetOffset() << ", size:" <<
-                blockHandle.GetSize());
+            LOG_ERROR("Build block failed, block offset:" << blockHandle.GetOffset()
+                                                          << ", size:" << blockHandle.GetSize());
             return nullptr;
         }
         mBlockCache->Put(blockId, block, blockType);
@@ -188,8 +189,7 @@ BResult FileReaderBase::DecompressBlock(ByteBufferRef &buffer, uint32_t originLe
     }
     CompressorRef compressor = CompressorUtils::InitCompressor(compressAlgo);
     RETURN_ALLOC_FAIL_AS_NULLPTR(compressor);
-    auto addrOrigin = FileMemAllocator::Alloc(mMemManager, mHolder, originLength,
-                                              __FUNCTION__);
+    auto addrOrigin = FileMemAllocator::Alloc(mMemManager, mHolder, originLength, __FUNCTION__);
     if (UNLIKELY(addrOrigin == 0)) {
         buffer = nullptr;
         return BSS_ALLOC_FAIL;
@@ -202,8 +202,8 @@ BResult FileReaderBase::DecompressBlock(ByteBufferRef &buffer, uint32_t originLe
         LOG_ERROR("Make origin buffer ref failed.");
         return BSS_ALLOC_FAIL;
     }
-    uint32_t decompressedSize = compressor->Decompress(originBuffer->Data(), originLength,
-        buffer->Data(), buffer->Capacity());
+    uint32_t decompressedSize = compressor->Decompress(originBuffer->Data(), originLength, buffer->Data(),
+                                                       buffer->Capacity());
     if (UNLIKELY(decompressedSize == 0 || decompressedSize != originLength)) {
         LOG_ERROR("Decompress failed, originLength: " << originLength << ", decompressedSize: " << decompressedSize);
         buffer = nullptr;
@@ -330,12 +330,12 @@ FilterBlockRef FileReader::GetFilterBlock()
     ByteBufferRef byteBuffer;
     auto ret = ReadBlock(*mFilterBlockHandle, byteBuffer);
     if (UNLIKELY(ret != BSS_OK)) {
-        LOG_WARN("Read filter block failed, ret:" << ret << ", block offset:" <<
-                  mFilterBlockHandle->GetOffset() << ", size:" << mFilterBlockHandle->GetSize());
+        LOG_WARN("Read filter block failed, ret:" << ret << ", block offset:" << mFilterBlockHandle->GetOffset()
+                                                  << ", size:" << mFilterBlockHandle->GetSize());
         return nullptr;
     }
-    LOG_DEBUG("Read filter block success, block offset:" << mFilterBlockHandle->GetOffset() <<
-              ", size:" << mFilterBlockHandle->GetSize());
+    LOG_DEBUG("Read filter block success, block offset:" << mFilterBlockHandle->GetOffset()
+                                                         << ", size:" << mFilterBlockHandle->GetSize());
     FilterBlockRef filterBlock = std::make_shared<FilterBlock>(byteBuffer);
     RETURN_NULLPTR_AS_NULLPTR(filterBlock);
     RETURN_NULLPTR_AS_NOT_OK(filterBlock->Init());
@@ -348,12 +348,12 @@ IndexBlockRef FileReader::GetIndexBlock()
     ByteBufferRef byteBuffer;
     auto ret = ReadBlock(*mIndexBlockHandle, byteBuffer);
     if (UNLIKELY(ret != BSS_OK)) {
-        LOG_WARN("Read index block failed, ret:" << ret << ", block offset:" <<
-                  mIndexBlockHandle->GetOffset() << ", size:" << mIndexBlockHandle->GetSize());
+        LOG_WARN("Read index block failed, ret:" << ret << ", block offset:" << mIndexBlockHandle->GetOffset()
+                                                 << ", size:" << mIndexBlockHandle->GetSize());
         return nullptr;
     }
-    LOG_DEBUG("Read index block success, block offset:" << mIndexBlockHandle->GetOffset() <<
-              ", size:" << mIndexBlockHandle->GetSize());
+    LOG_DEBUG("Read index block success, block offset:" << mIndexBlockHandle->GetOffset()
+                                                        << ", size:" << mIndexBlockHandle->GetSize());
     IndexBlockRef indexBlock = std::make_shared<IndexBlock>(byteBuffer, mMemManager, mHolder);
     return indexBlock;
 }

@@ -12,8 +12,8 @@
 #ifndef BOOST_SS_STATE_FILTER_MANAGER_H
 #define BOOST_SS_STATE_FILTER_MANAGER_H
 
-#include "include/table_description.h"
 #include "binary/slice_binary.h"
+#include "include/table_description.h"
 #include "kv_table/stateId_provider.h"
 #include "lsm_store/key/full_key_filter.h"
 #include "lsm_store/key/key_group_state_filter.h"
@@ -63,8 +63,8 @@ public:
 
     ~StateFilterManager() override
     {
-        std::unordered_map<TableDescriptionRef, SequenceIdFilterRef, TableDescriptionHashTTL,
-                           TableDescriptionEqualTTL>().swap(mStateFilterMap);
+        std::unordered_map<TableDescriptionRef, SequenceIdFilterRef, TableDescriptionHashTTL, TableDescriptionEqualTTL>()
+            .swap(mStateFilterMap);
     }
 
     inline bool Filter(const SliceKey &sliceKey, uint64_t seqId)

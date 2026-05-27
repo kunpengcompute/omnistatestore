@@ -18,8 +18,8 @@
 #include <queue>
 
 #include "common/concurrent_deque.h"
-#include "slice_evict_manager.h"
 #include "executor/executor_service.h"
+#include "slice_evict_manager.h"
 #include "slice_table/access_recorder.h"
 #include "slice_table/bucket_group.h"
 #include "slice_table/bucket_group_manager.h"
@@ -32,10 +32,7 @@ namespace bss {
 struct SliceScore {
     SliceScore() = default;
     SliceScore(SliceAddressRef &sliceAddress, uint64_t queue, SliceIndexContextRef &indexContext, uint64_t tick)
-        : mScore(sliceAddress->Score(tick)),
-          mQueue(queue),
-          mSliceAddress(sliceAddress),
-          mIndexContext(indexContext)
+        : mScore(sliceAddress->Score(tick)), mQueue(queue), mSliceAddress(sliceAddress), mIndexContext(indexContext)
     {
     }
     float mScore;

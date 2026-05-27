@@ -13,8 +13,9 @@
 #define BLOB_DATA_BLOCK_H
 
 #include <binary/value/value.h>
-#include "blob_structure.h"
+
 #include "blob_data_block_meta.h"
+#include "blob_structure.h"
 #include "block.h"
 
 namespace ock {
@@ -38,6 +39,7 @@ struct BlobValueWrapper {
     {
         return mSeqId & 0xFFFFU;
     }
+
 public:
     Value mBlobValue;
     uint64_t mBlobId = 0;
@@ -47,8 +49,7 @@ using BlobValueWrapperRef = std::shared_ptr<BlobValueWrapper>;
 
 class BlobDataBlock : public Block {
 public:
-    explicit BlobDataBlock(ByteBufferRef &buffer)
-        : Block(buffer)
+    explicit BlobDataBlock(ByteBufferRef &buffer) : Block(buffer)
     {
     }
 
@@ -65,7 +66,7 @@ public:
 
     BufferRef CopyNewBufferFromBuffer(const BufferAllocator &allocator, uint32_t offset, uint32_t length);
 
-    BResult BinarySearchBlobValue(uint64_t blobId, BufferAllocator allocator, Value& value);
+    BResult BinarySearchBlobValue(uint64_t blobId, BufferAllocator allocator, Value &value);
 
     BResult GetBlobValueWrapper(BlobValueWrapper &blobValueWrapper, uint32_t index, BufferAllocator allocator);
 
@@ -73,6 +74,7 @@ public:
     {
         return mBlobDataBlockMeta;
     }
+
 private:
     BlobDataBlockMetaRef mBlobDataBlockMeta = nullptr;
     uint32_t mLength = 0;
@@ -80,7 +82,7 @@ private:
     uint32_t mIndexOffset = 0;
 };
 using BlobDataBlockRef = std::shared_ptr<BlobDataBlock>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

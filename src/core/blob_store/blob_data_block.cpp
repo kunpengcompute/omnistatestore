@@ -80,15 +80,15 @@ BResult BlobDataBlock::BinarySearchBlobValue(uint64_t blobId, BufferAllocator al
             continue;
         }
         uint32_t offset = 0;
-        ret = mBuffer->ReadUint32(offset, mIndexOffset + mid * BLOB_INDEX_ENTRY_STRUCT_SIZE
-            + BLOB_DATA_BLOCK_HEADER_SIZE);
+        ret = mBuffer->ReadUint32(offset,
+                                  mIndexOffset + mid * BLOB_INDEX_ENTRY_STRUCT_SIZE + BLOB_DATA_BLOCK_HEADER_SIZE);
         RETURN_NOT_OK(ret);
         uint32_t nextOffset = 0;
         if (mid == mBlobBlockNum - NO_1) {
             nextOffset = mIndexOffset;
         } else {
-            ret = mBuffer->ReadUint32(nextOffset, mIndexOffset +
-                mid * BLOB_INDEX_ENTRY_STRUCT_SIZE + BLOB_INDEX_ENTRY_STRUCT_SIZE + BLOB_DATA_BLOCK_HEADER_SIZE);
+            ret = mBuffer->ReadUint32(nextOffset, mIndexOffset + mid * BLOB_INDEX_ENTRY_STRUCT_SIZE +
+                                                      BLOB_INDEX_ENTRY_STRUCT_SIZE + BLOB_DATA_BLOCK_HEADER_SIZE);
             RETURN_NOT_OK(ret);
         }
         if (UNLIKELY(nextOffset <= offset)) {
@@ -105,7 +105,7 @@ BResult BlobDataBlock::BinarySearchBlobValue(uint64_t blobId, BufferAllocator al
 }
 
 BResult BlobDataBlock::GetBlobValueWrapper(BlobValueWrapper &blobValueWrapper, uint32_t index,
-    BufferAllocator allocator)
+                                           BufferAllocator allocator)
 {
     RETURN_NOT_OK_AS_FALSE(UINT32_MAX - index * NO_20 < mIndexOffset, BSS_INNER_ERR);
     uint32_t base = mIndexOffset + index * NO_20;
@@ -141,5 +141,5 @@ BResult BlobDataBlock::GetBlobValueWrapper(BlobValueWrapper &blobValueWrapper, u
     return BSS_OK;
 }
 
-}
-}
+}  // namespace bss
+}  // namespace ock

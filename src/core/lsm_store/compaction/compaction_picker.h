@@ -14,8 +14,8 @@
 
 #include <utility>
 
-#include "include/config.h"
 #include "compaction.h"
+#include "include/config.h"
 #include "lsm_store/file/file_meta_data.h"
 #include "lsm_store/file/group_range.h"
 #include "version/version.h"
@@ -60,7 +60,7 @@ public:
 
 private:
     std::pair<FileMetaDataRef, bool> GetInitialInputFile(const VersionPtr &current, uint32_t levelId,
-                                                             const GroupRangeRef &curGroupRange);
+                                                         const GroupRangeRef &curGroupRange);
 
     std::vector<FileMetaDataRef> ExpandInputFilesIfNeeded(const VersionPtr &current, uint32_t levelId,
                                                           const GroupRangeRef &curGroupRange,
@@ -80,8 +80,7 @@ private:
     }
 
     std::vector<FileMetaDataRef> GetOverlappingInputs(const VersionPtr &current, uint32_t levelId,
-                                                      GroupRangeRef queryGroupRange,
-                                                      FullKeyRef begin, FullKeyRef end);
+                                                      GroupRangeRef queryGroupRange, FullKeyRef begin, FullKeyRef end);
 
     std::pair<FullKeyRef, FullKeyRef> GetKeyRange(const std::vector<std::vector<FileMetaDataRef>> &inputs);
 
@@ -104,6 +103,6 @@ private:
 };
 using CompactionPickerRef = std::shared_ptr<CompactionPicker>;
 
-} // namespace bss
-} // namespace ock
-#endif // BOOST_SS_COMPACTION_PICKER_H
+}  // namespace bss
+}  // namespace ock
+#endif  // BOOST_SS_COMPACTION_PICKER_H

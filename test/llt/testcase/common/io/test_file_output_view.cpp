@@ -8,10 +8,9 @@
  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  * See the Mulan PSL v2 for more details.
  */
-#include "test_utils.h"
-
-#include "common/io/file_output_view.h"
 #include "common/io/file_input_view.h"
+#include "common/io/file_output_view.h"
+#include "test_utils.h"
 
 namespace ock {
 namespace bss {
@@ -29,8 +28,12 @@ public:
 
     TestFileOutputView() = default;
 
-    void SetUp() override {}
-    void TearDown() override {}
+    void SetUp() override
+    {
+    }
+    void TearDown() override
+    {
+    }
 
     static MemManagerRef mDirectMemManager;
 };

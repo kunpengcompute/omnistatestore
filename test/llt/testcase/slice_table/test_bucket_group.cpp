@@ -99,8 +99,8 @@ TEST_F(TestBucketGroup, Initialize_ShouldReturnError_WhenFileStoreIsNull)
 TEST_F(TestBucketGroup, Initialize_ShouldReturnSuccess_WhenAllParamsAreValid)
 {
     uint32_t bucketGroupId = 1;
-    LsmStoreRef lsmStore = std::make_shared<LsmStore>(fileStoreId, config, tableFactory, fileCache,
-                                                      stateFilterManager, memManager);
+    LsmStoreRef lsmStore = std::make_shared<LsmStore>(fileStoreId, config, tableFactory, fileCache, stateFilterManager,
+                                                      memManager);
     SliceBucketIndexRef sliceIndex = std::make_shared<SliceBucketIndex>();
     uint32_t startBucket = 1;
     uint32_t endBucket = 10;
@@ -292,7 +292,7 @@ TEST_F(TestBucketGroup, RestoreFileStore_ShouldReturnBSS_OK_WhenNoBucketGroups)
     manager.mBucketGroups.clear();
     std::vector<SliceTableRestoreMetaRef> sliceTableRestoreMetaList;
     std::unordered_map<std::string, std::string> pathMap;
-    std::unordered_map<std::string, uint32_t > pathFileIdMap;
+    std::unordered_map<std::string, uint32_t> pathFileIdMap;
     BResult result = manager.RestoreFileStore(sliceTableRestoreMetaList, pathMap, pathFileIdMap, false);
     EXPECT_EQ(result, BSS_OK);
 }

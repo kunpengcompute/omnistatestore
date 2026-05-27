@@ -27,8 +27,8 @@ namespace bss {
 class TombstoneService : public std::enable_shared_from_this<TombstoneService>, public Runnable {
 public:
     TombstoneService(const ConfigRef &config, const GroupRangeRef &keyGroupRange, uint64_t version,
-        const ExecutorServicePtr &executorService, const TombstoneFileManagerRef &tombstoneFileManager,
-        const MemManagerRef &memManager)
+                     const ExecutorServicePtr &executorService, const TombstoneFileManagerRef &tombstoneFileManager,
+                     const MemManagerRef &memManager)
         : mConfig(config),
           mKeyGroupRange(keyGroupRange),
           mVersion(version),
@@ -196,6 +196,7 @@ public:
         }
         return count;
     }
+
 private:
     ConfigRef mConfig = nullptr;
     GroupRangeRef mKeyGroupRange = nullptr;

@@ -58,5 +58,5 @@ BlobFileGroupRef BlobFileGroup::DeepCopy(uint64_t version)
     }
     return std::make_shared<BlobFileGroup>(mGroupRange, snapshotFiles);
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

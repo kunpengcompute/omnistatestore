@@ -12,8 +12,8 @@
 #ifndef BOOST_SS_VAR_ENCODING_UTIL_H
 #define BOOST_SS_VAR_ENCODING_UTIL_H
 
-#include "include/bss_types.h"
 #include "common/io/output_view.h"
+#include "include/bss_types.h"
 
 namespace ock {
 namespace bss {

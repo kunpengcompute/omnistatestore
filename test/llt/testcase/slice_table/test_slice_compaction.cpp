@@ -10,6 +10,7 @@
  */
 
 #include "test_slice_compaction.h"
+
 #include "test_utils.h"
 
 ConfigRef TestSliceCompaction::mConfig = nullptr;

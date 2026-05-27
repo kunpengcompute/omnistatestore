@@ -27,13 +27,7 @@ enum class MemoryType : uint8_t {
     MEM_TYPE_BUTT = 6,
 };
 
-enum class BlockType : uint8_t {
-    FILTER = 0,
-    INDEX = 1,
-    DATA = 2,
-    BLOB = 3,
-    BUTT = 4
-};
+enum class BlockType : uint8_t { FILTER = 0, INDEX = 1, DATA = 2, BLOB = 3, BUTT = 4 };
 
 constexpr uint32_t BYTE4_MAX_SLOT_SIZE = 65535;
 constexpr uint32_t VALUE_INDICATOR_OFFSET = 28;
@@ -53,8 +47,8 @@ constexpr uint64_t CURRENTTS_WARNING = 58981;  // 65535 * 0.9
 constexpr uint16_t NO_MAX_VALUE16 = 0xFFFFUL;
 constexpr uint32_t NO_MAX_VALUE32 = 0xFFFFFFFFUL;
 constexpr uint64_t NO_MAX_VALUE64 = 0xFFFFFFFFFFFFFFFFULL;
-constexpr int32_t MAX_PARALLELISM = 32768; // flink中最大并行度为32768
-constexpr int32_t HEAD_BLOCK_SIZE = 9; // lsm block头信息所占字节数
+constexpr int32_t MAX_PARALLELISM = 32768;  // flink中最大并行度为32768
+constexpr int32_t HEAD_BLOCK_SIZE = 9;      // lsm block头信息所占字节数
 
 constexpr int32_t NO_MAX_INT32_VALUE_2G = 2147483647;
 constexpr int32_t NO_67108864 = 67108864;  // 64M
@@ -64,8 +58,8 @@ constexpr int32_t NO_16777215 = 16777215;
 constexpr uint32_t NO_8388608 = 8388608;  // 8M
 constexpr uint32_t NO_1000000 = 1000000;
 constexpr uint32_t IO_SIZE_4MB = 4194304;  // 4M
-constexpr uint32_t NO_4194303 = 4194303;  // 4194303
-constexpr uint32_t NO_1048576 = 1048576;  // 1M
+constexpr uint32_t NO_4194303 = 4194303;   // 4194303
+constexpr uint32_t NO_1048576 = 1048576;   // 1M
 constexpr uint32_t NO_65536 = 65536;
 constexpr uint32_t NO_65535 = 65535;
 constexpr uint32_t NO_10000 = 10000;
@@ -229,7 +223,7 @@ constexpr uint64_t BLOCK_COMMON_MAGIC_NUM = 5126532UL;
 // time constants
 constexpr uint32_t ONE_MINUTE_IN_MS = 60 * 1000;
 constexpr uint32_t TWO_MINUTES_IN_MS = ONE_MINUTE_IN_MS * 2;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

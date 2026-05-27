@@ -13,9 +13,9 @@
 
 namespace ock {
 namespace bss {
-BResult FlushingBucketGroup::Initialize(
-    std::vector<SliceScore> &list, uint32_t bucketGroupId, const FullSortEvictorRef &evictor,
-    const FlushQueueForBucketGroupRef &flushQueueForBucketGroup)
+BResult FlushingBucketGroup::Initialize(std::vector<SliceScore> &list, uint32_t bucketGroupId,
+                                        const FullSortEvictorRef &evictor,
+                                        const FlushQueueForBucketGroupRef &flushQueueForBucketGroup)
 {
     if (evictor == nullptr) {
         LOG_ERROR("evictor is nullptr");
@@ -78,8 +78,8 @@ BResult FlushingBucketGroup::Complete(int32_t flushResult)
             RETURN_ALLOC_FAIL_AS_NULLPTR(scoreEntry.mSliceAddress);
             RETURN_ALLOC_FAIL_AS_NULLPTR(mEvictor->mWaterMarkManager);
             if (!scoreEntry.mSliceAddress->SetStatus(SliceEvent::FLUSH_BACK)) {
-                LOG_ERROR("Rollback slice status from compaction to normal failed, slice address status:" <<
-                          static_cast<uint32_t>(scoreEntry.mSliceAddress->GetSliceStatus()));
+                LOG_ERROR("Rollback slice status from compaction to normal failed, slice address status:"
+                          << static_cast<uint32_t>(scoreEntry.mSliceAddress->GetSliceStatus()));
             }
             mEvictor->mWaterMarkManager->SubEvictingMemory(scoreEntry.mSliceAddress->GetDataLen());
         }

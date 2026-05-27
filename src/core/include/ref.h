@@ -245,7 +245,7 @@ template <class T> struct RefHash {
         return std::hash<T *>()(ref.Get());
     }
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

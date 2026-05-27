@@ -1,5 +1,5 @@
 /*
-* Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -30,7 +30,7 @@ TombstoneFileRef TombstoneFileManager::AllocateFile(uint64_t version)
     BResult ret = tombstoneFile->InitFileOutPutView(fileInfo);
     RETURN_NULLPTR_AS_NOT_OK(ret);
     LOG_INFO("New tombstone file success, file name: " << fileInfo->GetFilePath()->ExtractFileName()
-        << ", fileAddress:" << fileMeta->GetFileAddress());
+                                                       << ", fileAddress:" << fileMeta->GetFileAddress());
     return tombstoneFile;
 }
 
@@ -43,7 +43,7 @@ BResult TombstoneFileManager::TriggerCompaction()
     }
 
     // 触发其它Level compaction
-    for (const auto& level : mHighLevels) {
+    for (const auto &level : mHighLevels) {
         level->TriggerCompaction(mBlobFileManager->GetBlobFileGroupManager());
     }
     CheckTopLevelIsFull();
@@ -90,7 +90,7 @@ uint32_t TombstoneFileManager::CalLevel0CompactionFileNum(uint64_t maxVersion)
 {
     uint32_t canMergeNum = 0;
     for (const auto &item : mLevel0) {
-        for (const auto& file : item.second->GetWrittenFiles()) {
+        for (const auto &file : item.second->GetWrittenFiles()) {
             CONTINUE_LOOP_AS_NULLPTR(file);
             if (file->GetVersion() <= maxVersion) {
                 canMergeNum++;
@@ -186,7 +186,7 @@ BResult TombstoneFileManager::RestoreLevel(const FileInputViewRef &inputView,
     // 1、读取levels信息
     for (uint32_t i = 1; i <= levelSize; ++i) {
         TombstoneLevelRef restoreLevel = std::make_shared<TombstoneLevel>(mConfig, i, shared_from_this(),
-            i == levelSize, mMemManager);
+                                                                          i == levelSize, mMemManager);
         std::vector<TombstoneFileGroupRef> groupVec;
         RETURN_NOT_OK(RestoreFileGroup(inputView, restorePathFileIdMap, groupVec, restoreFileMapping));
         restoreLevel->InsertFileGroups(groupVec);
@@ -204,7 +204,7 @@ BResult TombstoneFileManager::RestoreLevel(const FileInputViewRef &inputView,
         TombstoneLevelRef lastLevel = mHighLevels.at(mHighLevels.size() - NO_1);
         CONTINUE_LOOP_AS_NULLPTR(lastLevel);
         TombstoneLevelRef newLevel = std::make_shared<TombstoneLevel>(mConfig, lastLevel->GetLevelId() + NO_1,
-            shared_from_this(), false, mMemManager);
+                                                                      shared_from_this(), false, mMemManager);
         lastLevel->SetNextLevel(newLevel);
         mHighLevels.push_back(newLevel);
         lastLevel->SetTopLevel(false);
@@ -270,9 +270,8 @@ void TombstoneFileManager::TriggerSnapshot(uint64_t snapshotId, uint64_t blobSto
     }
     TombstoneFileManagerRef self = shared_from_this();
     BlobStoreSnapshotCoordinatorRef coordinator =
-        std::make_shared<BlobStoreSnapshotCoordinator>(mMemManager, level0, blobStoreVersion, seqId,
-                                                       mBlobFileManager, self, blobStoreSnapshotOperator,
-                                                       mFileCacheManager);
+        std::make_shared<BlobStoreSnapshotCoordinator>(mMemManager, level0, blobStoreVersion, seqId, mBlobFileManager,
+                                                       self, blobStoreSnapshotOperator, mFileCacheManager);
     blobStoreSnapshotOperator->SetSnapshotCoordinator(coordinator);
     mSnapshotMap.emplace(snapshotId, coordinator);
     UpdateSnapshotMinVersion();

@@ -10,6 +10,7 @@
  */
 
 #include "fuzz_main.h"
+
 #include "include/boost_state_table.h"
 
 using namespace ock::bss;

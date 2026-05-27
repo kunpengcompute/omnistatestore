@@ -32,8 +32,7 @@ using IndexReaderRef = std::shared_ptr<IndexReader>;
 
 class IndexReader : public std::enable_shared_from_this<IndexReader> {
 public:
-    IndexReader(const MemManagerRef &memManager, FileProcHolder holder,
-        const FileReaderBaseRef &fileReader)
+    IndexReader(const MemManagerRef &memManager, FileProcHolder holder, const FileReaderBaseRef &fileReader)
         : mMemManager(memManager), mHolder(holder), mFileReader(fileReader)
 
     {
@@ -117,12 +116,13 @@ public:
 private:
     inline uint32_t GetEndKeyOffsetAt(uint32_t blockIndex, const ByteBufferRef &buffer) const
     {
-        return static_cast<uint32_t>(FullKeyUtil::ReadValueWithNumberOfBytes(buffer,
-            mEndKeyIndexOffset + blockIndex * mNumBytesForEndKeyIndex, mNumBytesForEndKeyIndex));
+        return static_cast<uint32_t>(
+            FullKeyUtil::ReadValueWithNumberOfBytes(buffer, mEndKeyIndexOffset + blockIndex * mNumBytesForEndKeyIndex,
+                                                    mNumBytesForEndKeyIndex));
     }
 
     uint32_t BinarySearchFirstBlockNoLessThan(const Key &lookupKey, uint32_t startBlockIndex, uint32_t endBlockIndex,
-        const ByteBufferRef &buffer);
+                                              const ByteBufferRef &buffer);
 
 private:
     uint32_t mNumDataBlocks{ 0 };
@@ -137,7 +137,7 @@ private:
 class BlockHandleIterator : public Iterator<BlockHandleRef> {
 public:
     BlockHandleIterator(uint32_t startIndex, uint32_t endIndex, bool reverseOrder, const IndexReaderRef &indexReader,
-         const ByteBufferRef &indexBlockBuffer)
+                        const ByteBufferRef &indexBlockBuffer)
         : mStartIndex(startIndex),
           mEndIndex(endIndex),
           mReverseOrder(reverseOrder),

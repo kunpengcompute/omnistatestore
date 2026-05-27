@@ -103,8 +103,7 @@ public:
                     bool rescale);
 
     BResult RestoreLevel(const FileInputViewRef &inputView,
-                         std::unordered_map<std::string, uint32_t> &restorePathFileIdMap,
-                         bool rescale);
+                         std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale);
 
     void FinishRestore();
 
@@ -138,6 +137,7 @@ public:
     uint64_t GetSnapshotVersion(uint64_t snapshotId);
 
     uint64_t CalTombstoneNum(uint64_t minBlobId);
+
 private:
     ConfigRef mConfig;
     FileCacheManagerRef mFileCacheManager = nullptr;
@@ -157,4 +157,4 @@ using TombstoneFileManagerRef = std::shared_ptr<TombstoneFileManager>;
 }  // namespace bss
 }  // namespace ock
 
-#endif // BOOST_SS_TOMBSTONE_FILE_MANAGER_H
+#endif  // BOOST_SS_TOMBSTONE_FILE_MANAGER_H

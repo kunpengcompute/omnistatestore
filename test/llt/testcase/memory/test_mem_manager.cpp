@@ -9,11 +9,12 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "test_mem_manager.h"
+
 #include "include/bss_types.h"
 #include "include/config.h"
 #include "memory/allocator.h"
 #include "securec.h"
-#include "test_mem_manager.h"
 
 using namespace ock::bss;
 MemManagerRef TestMemManager::mDirectMemManager = nullptr;

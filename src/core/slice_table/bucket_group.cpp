@@ -9,15 +9,16 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "common/bss_log.h"
-#include "bucket_group_range.h"
 #include "bucket_group.h"
+
+#include "bucket_group_range.h"
+#include "common/bss_log.h"
 
 namespace ock {
 namespace bss {
 
 BResult BucketGroup::Initialize(uint32_t bucketGroupId, const LsmStoreRef &lsmStore,
-    const SliceBucketIndexRef &sliceIndex, uint32_t startBucket, uint32_t endBucket)
+                                const SliceBucketIndexRef &sliceIndex, uint32_t startBucket, uint32_t endBucket)
 {
     if (UNLIKELY(sliceIndex == nullptr || lsmStore == nullptr)) {
         LOG_ERROR("Invalid input param.");
@@ -52,8 +53,7 @@ BResult BucketGroup::Restore(const FileInputViewRef &reader, uint32_t totalBucke
     return BSS_OK;
 }
 
-SliceChainIterator::SliceChainIterator(SliceBucketIndexRef sliceBucketIndex,
-                                       BucketGroupRangeRef bucketGroupRange)
+SliceChainIterator::SliceChainIterator(SliceBucketIndexRef sliceBucketIndex, BucketGroupRangeRef bucketGroupRange)
 {
     mSliceBucketIndex = sliceBucketIndex;
     mBucketGroupRange = bucketGroupRange;

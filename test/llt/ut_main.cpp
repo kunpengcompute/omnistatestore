@@ -9,9 +9,10 @@
  * See the Mulan PSL v2 for more details.
  */
 #include <dirent.h>
+#include <gtest/gtest.h>
+
 #include <string>
 
-#include <gtest/gtest.h>
 #include "memory/mem_manager.h"
 
 using namespace ock::bss;

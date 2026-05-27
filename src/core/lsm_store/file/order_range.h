@@ -40,7 +40,7 @@ public:
     {
     }
 
-    HashCodeOrderRange& operator=(const HashCodeOrderRange &other)
+    HashCodeOrderRange &operator=(const HashCodeOrderRange &other)
     {
         if (this != &other) {
             mStartHashCode = other.GetStartHashCode();
@@ -52,9 +52,8 @@ public:
 
     bool operator==(const HashCodeOrderRange &other) const
     {
-        return mStartHashCode == other.GetStartHashCode() &&
-                mEndHashCode == other.GetEndHashCode() &&
-                mHasRedundantData == other.HasRedundantData();
+        return mStartHashCode == other.GetStartHashCode() && mEndHashCode == other.GetEndHashCode() &&
+               mHasRedundantData == other.HasRedundantData();
     }
 
     inline uint32_t GetStartHashCode() const
@@ -138,8 +137,8 @@ public:
     std::string ToString() const
     {
         return "HashCodeOrderRange{mStartHashCode=" + std::to_string(mStartHashCode) +
-            ", mEndHashCode=" + std::to_string(mEndHashCode) +
-            ", hasBeenIntersected=" + std::to_string(mHasRedundantData) + '}';
+               ", mEndHashCode=" + std::to_string(mEndHashCode) +
+               ", hasBeenIntersected=" + std::to_string(mHasRedundantData) + '}';
     }
 
 private:
@@ -148,6 +147,6 @@ private:
     bool mHasRedundantData = false;
 };
 
-} // namespace bss
-} // namespace ock
-#endif // BOOST_SS_ORDER_RANGE_H
+}  // namespace bss
+}  // namespace ock
+#endif  // BOOST_SS_ORDER_RANGE_H

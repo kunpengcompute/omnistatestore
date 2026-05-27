@@ -50,8 +50,7 @@ BResult RestoreOperator::Restore(std::vector<PathRef> &restoredMetaPaths,
         tableDescriptions.push_back(tableDescription);
     }
     for (const auto &item : mPQTables) {
-        auto des = std::make_shared<TableDescription>(PQ, item.second->GetStateName(), -1,
-            TableSerializer(), *mConfig);
+        auto des = std::make_shared<TableDescription>(PQ, item.second->GetStateName(), -1, TableSerializer(), *mConfig);
         tableDescriptions.push_back(des);
     }
     RETURN_ERROR_AS_NULLPTR(mStateIdProvider);
@@ -89,7 +88,7 @@ BResult RestoreOperator::Restore(std::vector<PathRef> &restoredMetaPaths,
     relocatedLocalFileMappings = SnapshotRestoreUtils::RelocateLocalFileMappings(mLocalFileManager->GetBasePath(),
                                                                                  restoredLocalFileMappings);
     RETURN_NOT_OK(CreateHardLinkForRestoredLocalFile(isExcludeSSTFiles, restoredLocalFileMappings,
-        mLocalFileManager->GetBasePath()));
+                                                     mLocalFileManager->GetBasePath()));
 
     auto remoteFileMapping = OrganizeRemoteFileInfo(restoredLocalFileMappings, lazyPathMapping);
     RETURN_INVALID_PARAM_AS_NULLPTR(remoteFileMapping);
@@ -125,8 +124,9 @@ BResult RestoreOperator::Restore(std::vector<PathRef> &restoredMetaPaths,
     return BSS_OK;
 }
 
-BResult RestoreOperator::CreateHardLinkForRestoredLocalFile(bool isExcludeSSTFiles,
-    const std::vector<SnapshotFileMappingRef> &restoredLocalFileMappings, const PathRef &currentBasePath)
+BResult RestoreOperator::CreateHardLinkForRestoredLocalFile(
+    bool isExcludeSSTFiles, const std::vector<SnapshotFileMappingRef> &restoredLocalFileMappings,
+    const PathRef &currentBasePath)
 {
     RETURN_INVALID_PARAM_AS_NULLPTR(currentBasePath);
     if (access(currentBasePath->Name().c_str(), F_OK) != 0) {

@@ -48,18 +48,18 @@ JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_ockdb_OckDBLog_initial(JNIEnv *e
     }
     const char *logPath = env->GetStringUTFChars(jlogPath, nullptr);
     if (UNLIKELY(logPath == nullptr)) {
-        std::cout <<"Path is null." << std::endl;
+        std::cout << "Path is null." << std::endl;
         return 0;
     }
     std::string logPathStr(logPath);
     env->ReleaseStringUTFChars(jlogPath, logPath);
     if (UNLIKELY(!CheckPathValid(PathTransform::ExtractDirectory(logPathStr)))) {
-        std::cout <<"Invalid Log Paths, check whether the log path configuration items comply with the specifications."
-            << std::endl;
+        std::cout << "Invalid Log Paths, check whether the log path configuration items comply with the specifications."
+                  << std::endl;
         return 0;
     }
     const LoggerOptions loggerOption = { 1, static_cast<int32_t>(jloglevel), static_cast<uint32_t>(jsize),
-        static_cast<uint32_t>(jcount), logPathStr };
+                                         static_cast<uint32_t>(jcount), logPathStr };
     jlong logHandle;
     if (Logger::gInstance) {
         logHandle = reinterpret_cast<jlong>(Logger::gInstance);
@@ -67,7 +67,7 @@ JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_ockdb_OckDBLog_initial(JNIEnv *e
     }
     Logger::Instance(loggerOption);
     if (UNLIKELY(Logger::gInstance == nullptr)) {
-        std::cout <<"gInstance is nullptr." << std::endl;
+        std::cout << "gInstance is nullptr." << std::endl;
         return 0;
     }
     Logger::gInstance->Init();

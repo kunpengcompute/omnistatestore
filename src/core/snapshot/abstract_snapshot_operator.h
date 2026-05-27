@@ -15,10 +15,10 @@
 #include <atomic>
 #include <cstdint>
 
-#include "include/bss_err.h"
 #include "common/io/file_output_view.h"
 #include "common/path.h"
 #include "fresh_table/memory/memory_segment.h"
+#include "include/bss_err.h"
 #include "snapshot_meta.h"
 
 namespace ock {
@@ -102,7 +102,7 @@ public:
         }
     }
 
-    inline std::atomic<bool>& GetIsReleased()
+    inline std::atomic<bool> &GetIsReleased()
     {
         return mIsReleased;
     }

@@ -13,10 +13,10 @@
 #define BLOB_COMPRESSOR_H
 #include <set>
 
-#include "include/compress_algo.h"
-#include "include/ref.h"
 #include "bss_log.h"
 #include "compressor.h"
+#include "include/compress_algo.h"
+#include "include/ref.h"
 
 namespace ock {
 namespace bss {
@@ -50,7 +50,7 @@ private:
     static const CompressAlgo mDefaultCodec;
     static const std::set<CompressAlgo> mSupportCodec;
 };
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

@@ -499,7 +499,7 @@ TEST_F(TestSliceTableBrCov, LogicalSliceChain_CreateSlice_ShouldReturnNull_WhenD
  * mSliceAddresses.size()
  */
 TEST_F(TestSliceTableBrCov,
-    LogicalSliceChain_CreateSlice_ShouldReturnNull_WhenChainEndIndexIsGreaterThanSliceAddressesSize)
+       LogicalSliceChain_CreateSlice_ShouldReturnNull_WhenChainEndIndexIsGreaterThanSliceAddressesSize)
 {
     DataSliceRef dataSlice = std::make_shared<DataSlice>();
     uint64_t readAccessNumber = 1;
@@ -550,7 +550,7 @@ TEST_F(TestSliceTableBrCov, LogicalSliceChain_SetBaseSliceIndex_ShouldReturnBSSE
  * @tc.desc  : Test the SliceIterator function when mSliceAddresses is empty.
  */
 TEST_F(TestSliceTableBrCov,
-    LogicalSliceChain_SliceIterator_ShouldReturnEmptySliceAddressIterator_WhenSliceAddressesIsEmpty)
+       LogicalSliceChain_SliceIterator_ShouldReturnEmptySliceAddressIterator_WhenSliceAddressesIsEmpty)
 {
     mLogicalSliceChain->ClearSliceAddresses();
     IteratorRef<SliceAddressRef> iterator = mLogicalSliceChain->SliceIterator();
@@ -682,8 +682,8 @@ TEST_F(TestSliceTableBrCov, LogicalSliceChain_RestoreFilePage_ShouldRestoreFileP
     std::shared_ptr<FileCacheManager> fileCache = std::make_shared<FileCacheManager>();
     std::shared_ptr<StateFilterManager> stateFilterManager = std::make_shared<StateFilterManager>(stateIdProvider,
                                                                                                   config, 1, 1);
-    LsmStoreRef lsmStore = std::make_shared<LsmStore>(fileStoreId, config, tableFactory, fileCache,
-                                                      stateFilterManager, memManager);
+    LsmStoreRef lsmStore = std::make_shared<LsmStore>(fileStoreId, config, tableFactory, fileCache, stateFilterManager,
+                                                      memManager);
 
     mLogicalSliceChain->InsertFilePage(std::make_shared<FilePage>(lsmStore));
     mLogicalSliceChain->RestoreFilePage(lsmStore);
@@ -893,8 +893,7 @@ TEST_F(TestSliceTableBrCov, LogicalSliceChain_Restore_ShouldReturnError_WhenRead
  * @tc.number: LogicalSliceChainTest_006
  * @tc.desc  : 测试当文件页面不为空时，Restore函数应调整mFilePage的大小。
  */
-TEST_F(TestSliceTableBrCov,
-    LogicalSliceChain_Restore_ShouldResizeFilePage_WhenIsFilePageNotEmptyReadFilePageLenFails)
+TEST_F(TestSliceTableBrCov, LogicalSliceChain_Restore_ShouldResizeFilePage_WhenIsFilePageNotEmptyReadFilePageLenFails)
 {
     mOutputView->WriteInt32(NO_1);
     mOutputView->WriteUint32(NO_1);
@@ -922,8 +921,7 @@ TEST_F(TestSliceTableBrCov, Compaction_TryCompaction_ShouldLogErrorAndReturn_Whe
  * @tc.number: TryCompaction_Test_002
  * @tc.desc  : Test that the function logs an error and sets the status to NORMAL when logicalSliceChain is none.
  */
-TEST_F(TestSliceTableBrCov,
-    Compaction_TryCompaction_ShouldLogErrorAndSetStatusToNormal_WhenLogicalSliceChainIsNone)
+TEST_F(TestSliceTableBrCov, Compaction_TryCompaction_ShouldLogErrorAndSetStatusToNormal_WhenLogicalSliceChainIsNone)
 {
     CompactCompletedNotify notify = nullptr;
     mLogicalSliceChain->NotifyNoneFlag(true);
@@ -955,8 +953,8 @@ TEST_F(TestSliceTableBrCov, Compaction_DoCompaction_ShouldReturnInnerErr_WhenLog
 {
     mockAddSlice();
     mSliceIndexContext->mSliceIndexSlot = 0;
-    BResult result = mSliceTable->mCompactManager->mSliceCompactor->DoCompaction(mSliceIndexContext, nullptr,
-        nullptr, nullptr);
+    BResult result = mSliceTable->mCompactManager->mSliceCompactor->DoCompaction(mSliceIndexContext, nullptr, nullptr,
+                                                                                 nullptr);
     EXPECT_EQ(result, BSS_INNER_ERR);
 }
 
@@ -969,8 +967,7 @@ TEST_F(TestSliceTableBrCov, Compaction_DoCompaction_ShouldCallCompactCompletedNo
 {
     LogicalSliceChainRef logicalSliceChain = mockAddSlice();
     mSliceIndexContext = mSliceTable->mSliceBucketIndex->GetSliceIndexContext(0);
-    std::shared_ptr<SelectedSliceContextBuild> choiceBuild =
-        std::make_shared<SelectedSliceContextBuild>();
+    std::shared_ptr<SelectedSliceContextBuild> choiceBuild = std::make_shared<SelectedSliceContextBuild>();
     SliceAddressRef sliceAddress = logicalSliceChain->GetSliceAddress(0);
     DataSliceRef dataSlice = sliceAddress->GetDataSlice();
     choiceBuild->Add(sliceAddress, dataSlice);
@@ -997,8 +994,7 @@ TEST_F(TestSliceTableBrCov, Compaction_DoCompaction_ShouldReturnNonOk_WhenDoComp
 {
     LogicalSliceChainRef logicalSliceChain = mockAddSlice();
     mSliceIndexContext = mSliceTable->mSliceBucketIndex->GetSliceIndexContext(0);
-    std::shared_ptr<SelectedSliceContextBuild> choiceBuild =
-        std::make_shared<SelectedSliceContextBuild>();
+    std::shared_ptr<SelectedSliceContextBuild> choiceBuild = std::make_shared<SelectedSliceContextBuild>();
     SliceAddressRef sliceAddress = logicalSliceChain->GetSliceAddress(0);
     DataSliceRef dataSlice = sliceAddress->GetDataSlice();
     choiceBuild->Add(sliceAddress, dataSlice);
@@ -1028,7 +1024,7 @@ TEST_F(TestSliceTableBrCov, Compaction_DoCompactSlice_ShouldReturnError_WhenInit
     std::vector<DataSliceRef> canCompactSliceListReversed = { logicalSliceChain->GetSliceAddress(0)->mDataSlice };
     DataSliceRef compactedDataSlice;
     BResult result = mSliceTable->mCompactManager->mSliceCompactor->DoCompactSlice(canCompactSliceListReversed,
-        compactedDataSlice, false, 0, false);
+                                                                                   compactedDataSlice, false, 0, false);
     EXPECT_NE(result, BSS_OK);
 }
 
@@ -1039,7 +1035,7 @@ TEST_F(TestSliceTableBrCov, Compaction_DoCompactSlice_ShouldReturnError_WhenInit
  * match.
  */
 TEST_F(TestSliceTableBrCov,
-    Compaction_DoSyncReplaceLogicalSlice_ShouldReturnInvalidParam_WhenLogicalSliceChainNotMatched)
+       Compaction_DoSyncReplaceLogicalSlice_ShouldReturnInvalidParam_WhenLogicalSliceChainNotMatched)
 {
     uint32_t sliceIndexSlot = 0;
     uint32_t compactionStartChainIndex = 0;
@@ -1050,7 +1046,8 @@ TEST_F(TestSliceTableBrCov,
     DataSliceRef compactedDataSlice = nullptr;
     mLogicalSliceChain = mSliceTable->mSliceBucketIndex->CreateLogicalChainedSlice();
     BResult result = replaceLogicalSlice->SyncReplaceChainAndSlice(mLogicalSliceChain, sliceIndexSlot,
-        compactionStartChainIndex, compactionEndChainIndex, compactedDataSlice, invalidSliceAddressList);
+                                                                   compactionStartChainIndex, compactionEndChainIndex,
+                                                                   compactedDataSlice, invalidSliceAddressList);
     EXPECT_EQ(result, BSS_INVALID_PARAM);
 }
 
@@ -1061,19 +1058,20 @@ TEST_F(TestSliceTableBrCov,
  * the compaction start index.
  */
 TEST_F(TestSliceTableBrCov,
-    Compaction_DoSyncReplaceLogicalSlice_ShouldReturnOk_WhenBaseSliceIndexGreaterThanCompactionStart)
+       Compaction_DoSyncReplaceLogicalSlice_ShouldReturnOk_WhenBaseSliceIndexGreaterThanCompactionStart)
 {
     uint32_t sliceIndexSlot = 0;
     uint32_t compactionStartChainIndex = 0;
     uint32_t compactionEndChainIndex = 1;
     std::vector<SliceAddressRef> invalidSliceAddressList;
     ReplaceLogicalSliceRef replaceLogicalSlice = std::make_shared<ReplaceLogicalSlice>(mSliceTable,
-        mSliceTable->mConfig);
+                                                                                       mSliceTable->mConfig);
     DataSliceRef compactedDataSlice = nullptr;
     LogicalSliceChainRef logicalSliceChain = mockAddSlice();
     logicalSliceChain->SetBaseSliceIndex(NO_1);
     BResult result = replaceLogicalSlice->SyncReplaceChainAndSlice(logicalSliceChain, sliceIndexSlot,
-        compactionStartChainIndex, compactionEndChainIndex, compactedDataSlice, invalidSliceAddressList);
+                                                                   compactionStartChainIndex, compactionEndChainIndex,
+                                                                   compactedDataSlice, invalidSliceAddressList);
     EXPECT_EQ(result, BSS_OK);
 }
 
@@ -1094,7 +1092,8 @@ TEST_F(TestSliceTableBrCov, Compaction_DoSyncReplaceLogicalSlice_ShouldReturnInn
     LogicalSliceChainRef logicalSliceChain = mockAddSlice();
     logicalSliceChain->SetSliceAddress(0, nullptr);
     BResult result = replaceLogicalSlice->SyncReplaceChainAndSlice(logicalSliceChain, sliceIndexSlot,
-        compactionStartChainIndex, compactionEndChainIndex, compactedDataSlice, invalidSliceAddressList);
+                                                                   compactionStartChainIndex, compactionEndChainIndex,
+                                                                   compactedDataSlice, invalidSliceAddressList);
 
     EXPECT_EQ(result, BSS_INNER_ERR);
 }
@@ -1116,7 +1115,8 @@ TEST_F(TestSliceTableBrCov, Compaction_DoSyncReplaceLogicalSlice_ShouldReturnInv
     LogicalSliceChainRef logicalSliceChain = mockAddSlice();
     logicalSliceChain->EmplaceSlice(nullptr);
     BResult result = replaceLogicalSlice->SyncReplaceChainAndSlice(logicalSliceChain, sliceIndexSlot,
-        compactionStartChainIndex, compactionEndChainIndex, compactedDataSlice, invalidSliceAddressList);
+                                                                   compactionStartChainIndex, compactionEndChainIndex,
+                                                                   compactedDataSlice, invalidSliceAddressList);
     EXPECT_EQ(result, BSS_INVALID_PARAM);
 }
 
@@ -1137,7 +1137,8 @@ TEST_F(TestSliceTableBrCov, Compaction_DoSyncReplaceLogicalSlice_ShouldReturnInn
     DataSliceRef compactedDataSlice = nullptr;
     LogicalSliceChainRef logicalSliceChain = mockAddSlice();
     BResult result = replaceLogicalSlice->SyncReplaceChainAndSlice(logicalSliceChain, sliceIndexSlot,
-        compactionStartChainIndex, compactionEndChainIndex, compactedDataSlice, invalidSliceAddressList);
+                                                                   compactionStartChainIndex, compactionEndChainIndex,
+                                                                   compactedDataSlice, invalidSliceAddressList);
     EXPECT_EQ(result, BSS_INNER_ERR);
 }
 
@@ -1154,7 +1155,7 @@ TEST_F(TestSliceTableBrCov, Compaction_Run_ShouldLogError_WhenDoSyncReplaceLogic
     std::vector<SliceAddressRef> invalidSliceAddressList;
     mLogicalSliceChain->SetSliceStatus(SliceStatus::COMPACTING);
     RunnablePtr processor = std::make_shared<ReplaceLogicalSliceTask>(replaceLogicalSlice, mLogicalSliceChain, 0, 0, 1,
-                                                                     compactedDataSlice, invalidSliceAddressList);
+                                                                      compactedDataSlice, invalidSliceAddressList);
     mockAddSlice();
     processor->Run();
     EXPECT_EQ(mLogicalSliceChain->GetSliceStatus(), SliceStatus::NORMAL);
@@ -1168,8 +1169,9 @@ TEST_F(TestSliceTableBrCov, Compaction_Run_ShouldLogError_WhenDoSyncReplaceLogic
 TEST_F(TestSliceTableBrCov, Compaction_SelectCompactionSlice_ShouldReturnNull_WhenLogicalSliceChainIsNull)
 {
     mSliceIndexContext->mLogicalSliceChain = nullptr;
-    auto result = mSliceTable->mCompactManager->mSliceCompactor->mSliceCompactionPolicy->SelectCompactionSlice(
-        mSliceIndexContext, 0, 1);
+    auto result =
+        mSliceTable->mCompactManager->mSliceCompactor->mSliceCompactionPolicy->SelectCompactionSlice(mSliceIndexContext,
+                                                                                                     0, 1);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -1181,8 +1183,9 @@ TEST_F(TestSliceTableBrCov, Compaction_SelectCompactionSlice_ShouldReturnNull_Wh
 TEST_F(TestSliceTableBrCov, Compaction_SelectCompactionSlice_ShouldReturnNull_WhenLogicalSliceChainNotMatched)
 {
     mockAddSlice();
-    auto result = mSliceTable->mCompactManager->mSliceCompactor->mSliceCompactionPolicy->SelectCompactionSlice(
-        mSliceIndexContext, 0, 1);
+    auto result =
+        mSliceTable->mCompactManager->mSliceCompactor->mSliceCompactionPolicy->SelectCompactionSlice(mSliceIndexContext,
+                                                                                                     0, 1);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -1196,8 +1199,9 @@ TEST_F(TestSliceTableBrCov, Compaction_SelectCompactionSlice_ShouldReturnNull_Wh
     LogicalSliceChainRef logicalSliceChain = mockAddSlice();
     logicalSliceChain->SetSliceAddress(0, nullptr);
     mSliceIndexContext = mSliceTable->mSliceBucketIndex->GetSliceIndexContext(0);
-    auto result = mSliceTable->mCompactManager->mSliceCompactor->mSliceCompactionPolicy->SelectCompactionSlice(
-        mSliceIndexContext, 0, 1);
+    auto result =
+        mSliceTable->mCompactManager->mSliceCompactor->mSliceCompactionPolicy->SelectCompactionSlice(mSliceIndexContext,
+                                                                                                     0, 1);
     EXPECT_EQ(result, nullptr);
 }
 
@@ -1212,8 +1216,9 @@ TEST_F(TestSliceTableBrCov, Compaction_SelectCompactionSlice_ShouldReturnNull_Wh
     auto sliceAddress = logicalSliceChain->GetSliceAddress(0);
     sliceAddress->mDataSlice = nullptr;
     mSliceIndexContext = mSliceTable->mSliceBucketIndex->GetSliceIndexContext(0);
-    auto result = mSliceTable->mCompactManager->mSliceCompactor->mSliceCompactionPolicy->SelectCompactionSlice(
-        mSliceIndexContext, 0, 1);
+    auto result =
+        mSliceTable->mCompactManager->mSliceCompactor->mSliceCompactionPolicy->SelectCompactionSlice(mSliceIndexContext,
+                                                                                                     0, 1);
     EXPECT_EQ(result, nullptr);
 }
 

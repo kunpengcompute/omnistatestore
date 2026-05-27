@@ -9,10 +9,11 @@
  * See the Mulan PSL v2 for more details.
  */
 
+#include "test_flush_table.h"
+
 #include "flushing_bucket_group.h"
 #include "generator.h"
 #include "slice/data_slice.h"
-#include "test_flush_table.h"
 
 using namespace ock::bss;
 
@@ -33,13 +34,13 @@ TEST_F(TestFlushTable, test_flush_one_slice_with_1_kv_to_level0_table_return_ok)
 
     // flush data slice to level0 table.
     Ref<FlushingBucketGroupIterator> iterator = MakeRef<FlushingBucketGroupIterator>();
-    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{{dataSlice}};
+    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{ { dataSlice } };
     iterator->Initialize(dataSlices);
     auto result = mLsmStore->Put(iterator);
     ASSERT_EQ(result, BSS_OK);
 
     // get value by key from file store and check result.
-    for (const auto &kvPair: kvPairList) {
+    for (const auto &kvPair : kvPairList) {
         GetAndCheckValue(kvPair.first, kvPair.second);
     }
 }
@@ -53,13 +54,13 @@ TEST_F(TestFlushTable, test_flush_one_slice_with_1024_kv_with_namespace_to_level
 
     // flush data slice to level0 table.
     Ref<FlushingBucketGroupIterator> iterator = MakeRef<FlushingBucketGroupIterator>();
-    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{{dataSlice}};
+    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{ { dataSlice } };
     iterator->Initialize(dataSlices);
     auto result = mLsmStore->Put(iterator);
     ASSERT_EQ(result, BSS_OK);
 
     // get value by key from file store and check result.
-    for (const auto &kvPair: kvPairList) {
+    for (const auto &kvPair : kvPairList) {
         GetAndCheckValue(kvPair.first, kvPair.second);
     }
 }
@@ -73,19 +74,19 @@ TEST_F(TestFlushTable, test_flush_one_slice_with_1024_kv_with_the_same_primary_k
 
     // flush data slice to level0 table.
     Ref<FlushingBucketGroupIterator> iterator = MakeRef<FlushingBucketGroupIterator>();
-    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{{dataSlice}};
+    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{ { dataSlice } };
     iterator->Initialize(dataSlices);
     auto result = mLsmStore->Put(iterator);
     ASSERT_EQ(result, BSS_OK);
 
     // get value by key from file store and check result.
-    for (const auto &kvPair: kvPairList) {
+    for (const auto &kvPair : kvPairList) {
         GetAndCheckValue(kvPair.first, kvPair.second);
     }
 }
 
 TEST_F(TestFlushTable,
-    test_flush_one_slice_with_1024_kv_with_the_same_primary_key_and_namespace_to_level0_table_return_ok)
+       test_flush_one_slice_with_1024_kv_with_the_same_primary_key_and_namespace_to_level0_table_return_ok)
 {
     // prepare key and values.
     uint32_t kvCount = 1024;
@@ -94,13 +95,13 @@ TEST_F(TestFlushTable,
 
     // flush data slice to level0 table.
     Ref<FlushingBucketGroupIterator> iterator = MakeRef<FlushingBucketGroupIterator>();
-    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{{dataSlice}};
+    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{ { dataSlice } };
     iterator->Initialize(dataSlices);
     auto result = mLsmStore->Put(iterator);
     ASSERT_EQ(result, BSS_OK);
 
     // get value by key from file store and check result.
-    for (const auto &kvPair: kvPairList) {
+    for (const auto &kvPair : kvPairList) {
         GetAndCheckValue(kvPair.first, kvPair.second);
     }
 }
@@ -114,13 +115,13 @@ TEST_F(TestFlushTable, test_flush_one_slice_with_1024_kv_to_level0_table_return_
 
     // flush data slice to level0 table.
     Ref<FlushingBucketGroupIterator> iterator = MakeRef<FlushingBucketGroupIterator>();
-    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{{dataSlice}};
+    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{ { dataSlice } };
     iterator->Initialize(dataSlices);
     auto result = mLsmStore->Put(iterator);
     ASSERT_EQ(result, BSS_OK);
 
     // get value by key from file store and check result.
-    for (const auto &kvPair: kvPairList) {
+    for (const auto &kvPair : kvPairList) {
         GetAndCheckValue(kvPair.first, kvPair.second);
     }
 }
@@ -134,13 +135,13 @@ TEST_F(TestFlushTable, test_flush_two_slice_with_the_same_1_kv_to_level0_table_r
 
     // flush data slice to level0 table.
     Ref<FlushingBucketGroupIterator> iterator = MakeRef<FlushingBucketGroupIterator>();
-    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{{dataSlice}};
+    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{ { dataSlice } };
     iterator->Initialize(dataSlices);
     auto result = mLsmStore->Put(iterator);
     ASSERT_EQ(result, BSS_OK);
 
     // get value by key from file store and check result.
-    for (const auto &kvPair: kvPairList) {
+    for (const auto &kvPair : kvPairList) {
         GetAndCheckValue(kvPair.first, kvPair.second);
     }
 }
@@ -154,13 +155,13 @@ TEST_F(TestFlushTable, test_flush_two_slice_with_the_same_1024_kv_to_level0_tabl
 
     // flush data slice to level0 table.
     Ref<FlushingBucketGroupIterator> iterator = MakeRef<FlushingBucketGroupIterator>();
-    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{{dataSlice}};
+    std::vector<std::vector<DataSliceRef>> dataSlices = std::vector<std::vector<DataSliceRef>>{ { dataSlice } };
     iterator->Initialize(dataSlices);
     auto result = mLsmStore->Put(iterator);
     ASSERT_EQ(result, BSS_OK);
 
     // get value by key from file store and check result.
-    for (const auto &kvPair: kvPairList) {
+    for (const auto &kvPair : kvPairList) {
         GetAndCheckValue(kvPair.first, kvPair.second);
     }
 }
@@ -185,7 +186,7 @@ TEST_F(TestFlushTable, test_flush_two_slice_with_the_diff_1024_kv_to_level0_tabl
 
     // get value by key from file store and check result.
     kvPairList1.insert(kvPairList1.end(), kvPairList2.begin(), kvPairList2.end());
-    for (const auto &kvPair: kvPairList1) {
+    for (const auto &kvPair : kvPairList1) {
         GetAndCheckValue(kvPair.first, kvPair.second);
     }
 }

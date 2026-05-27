@@ -11,8 +11,8 @@
 
 #include "com_huawei_ock_bss_table_KMapTableImpl.h"
 
-#include "include/boost_state_table.h"
 #include "bss_log.h"
+#include "include/boost_state_table.h"
 
 using namespace ock::bss;
 

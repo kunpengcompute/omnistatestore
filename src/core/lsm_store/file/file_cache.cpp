@@ -15,7 +15,7 @@ namespace ock {
 namespace bss {
 BResult FileCache::Get(uint64_t fileAddress, const Key &key, Value &value)
 {
-    FileProcHolder holder = FileProcHolder::FILE_STORE_GET; // 标记该流程是Get读流程
+    FileProcHolder holder = FileProcHolder::FILE_STORE_GET;  // 标记该流程是Get读流程
     FileAccessRef fileAccess;
     {
         ReadLocker<ReadWriteLock> lk(&mRwLock);

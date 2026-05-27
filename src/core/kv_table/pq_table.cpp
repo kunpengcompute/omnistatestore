@@ -63,7 +63,7 @@ BResult PQTable::RemoveKey(const BinaryData &key, uint32_t hashcode)
     return BSS_OK;
 }
 
-PQKeyIterator* PQTable::KeyIterator(const BinaryData &data)
+PQKeyIterator *PQTable::KeyIterator(const BinaryData &data)
 {
     PQKeyIterator *iterator = new PQKeyIterator();
     std::vector<PQSkipList> list;
@@ -78,5 +78,5 @@ PQKeyIterator* PQTable::KeyIterator(const BinaryData &data)
     iterator->Init(data, list, mLsmStore->IteratorForPQ(mStateIdProvider->GetStateId(mDescription), data));
     return iterator;
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

@@ -11,10 +11,10 @@
 
 #include "com_huawei_ock_bss_common_BoostStateDB.h"
 
+#include "bss_metric.h"
+#include "include/boost_state_db.h"
 #include "include/bss_err.h"
 #include "include/config.h"
-#include "include/boost_state_db.h"
-#include "bss_metric.h"
 #include "jvm_instance.h"
 #include "kv_helper.h"
 
@@ -64,8 +64,7 @@ JNIEXPORT jlong JNICALL Java_com_huawei_ock_bss_common_BoostStateDB_open(JNIEnv 
 JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_common_BoostStateDB_restore(JNIEnv *env, jobject, jlong jDBHandle,
                                                                                jobject jRestorePaths,
                                                                                jobject jRemotePaths,
-                                                                               jobject jLocalPaths,
-                                                                               jboolean isLazy,
+                                                                               jobject jLocalPaths, jboolean isLazy,
                                                                                jboolean isNewjob)
 {
     if (UNLIKELY(env == nullptr || jRestorePaths == nullptr || jRemotePaths == nullptr || jLocalPaths == nullptr)) {
@@ -126,7 +125,7 @@ JNIEXPORT jboolean JNICALL Java_com_huawei_ock_bss_common_BoostStateDB_restore(J
     }
     env->DeleteLocalRef(listClass);
     auto ret = boostStateDB->Restore(metaPaths, lazyPathMapping, static_cast<bool>(isLazy),
-        static_cast<bool>(isNewjob));
+                                     static_cast<bool>(isNewjob));
     return ret == BSS_OK ? JNI_TRUE : JNI_FALSE;
 }
 

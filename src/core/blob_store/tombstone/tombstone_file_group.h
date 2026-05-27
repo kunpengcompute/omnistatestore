@@ -171,7 +171,7 @@ public:
         std::vector<TombstoneFileMetaRef> fileMetas;
         ReadLocker<ReadWriteLock> lock(&mRwLock);
         fileMetas.reserve(mFiles.size());
-        for (const auto& file : mFiles) {
+        for (const auto &file : mFiles) {
             CONTINUE_LOOP_AS_NULLPTR(file);
             TombstoneFileMetaRef tombstoneFileMeta = file->GetFileMeta();
             CONTINUE_LOOP_AS_NULLPTR(tombstoneFileMeta);
@@ -193,7 +193,7 @@ public:
                 fileMeta->GetMaxBlobId() < largestFileMeta->GetMinBlobId()) {
                 ++file;
                 continue;
-                }
+            }
             selectedVec.emplace_back((*file));
             minBlobId = std::min(minBlobId, fileMeta->GetMinBlobId());
             maxBlobId = std::max(maxBlobId, fileMeta->GetMaxBlobId());
@@ -209,4 +209,4 @@ using TombstoneFileGroupRef = std::shared_ptr<TombstoneFileGroup>;
 }  // namespace bss
 }  // namespace ock
 
-#endif // BOOST_SS_TOMBSTONE_FILE_GROUP_H
+#endif  // BOOST_SS_TOMBSTONE_FILE_GROUP_H

@@ -10,6 +10,7 @@
  */
 
 #include "blob_store_snapshot_operator.h"
+
 #include "blob_store_snapshot_coordinator.h"
 
 namespace ock {

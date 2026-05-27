@@ -32,7 +32,7 @@ public:
     BlobStore() = default;
 
     BResult Init(const MemManagerRef &memManager, const FileCacheManagerRef &fileCacheManager, const ConfigRef &config,
-        const BlockCacheRef &blockCache);
+                 const BlockCacheRef &blockCache);
 
     void Close()
     {
@@ -55,7 +55,7 @@ public:
     }
 
     BResult WriteBlobValue(const uint8_t *value, uint32_t length, uint64_t expireTime, uint32_t keyGroup,
-        uint64_t &blobId);
+                           uint64_t &blobId);
 
     BResult GetBlobValue(uint64_t blobId, uint32_t keyGroup, Value &value);
 
@@ -64,7 +64,7 @@ public:
     static uint64_t ToBlobId(const Value &value);
 
     BResult Restore(const std::vector<std::pair<FileInputViewRef, int64_t>> &metaList,
-        std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale);
+                    std::unordered_map<std::string, uint32_t> &restorePathFileIdMap, bool rescale);
 
     BResult FlushCurrentBlobFile(uint64_t snapshotId);
 
@@ -87,7 +87,7 @@ private:
     std::atomic<uint64_t> mVersion{ 0 };
 };
 using BlobStoreRef = std::shared_ptr<BlobStore>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

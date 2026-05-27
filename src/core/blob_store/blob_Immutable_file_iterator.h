@@ -127,7 +127,7 @@ private:
     MemManagerRef mMemManager;
 };
 using BlobImmutableFileIteratorRef = std::shared_ptr<BlobImmutableFileIterator>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

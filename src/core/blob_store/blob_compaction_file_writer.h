@@ -22,7 +22,7 @@ namespace bss {
 class BlobCompactionFileWriter {
 public:
     BlobCompactionFileWriter(ConfigRef config, MemManagerRef memManager, BlobFileManagerRef blobFileGroupManager,
-        uint64_t version)
+                             uint64_t version)
         : mConfig(config),
           mMemManager(memManager),
           mBlobFileManager(blobFileGroupManager),
@@ -48,7 +48,7 @@ public:
             mBlobDataBlockWriter = std::make_shared<BlobDataBlockWriter>(buffer);
         }
         return mBlobDataBlockWriter->Write(blobValueWrapper.mBlobId, value.ValueData(), value.ValueLen(),
-            blobValueWrapper.mSeqId);
+                                           blobValueWrapper.mSeqId);
     }
 
     BResult WriteDataBlock(BlobDataBlockRef dataBlock)
@@ -113,7 +113,7 @@ private:
     uint32_t mDefaultBlockSize;
 };
 using BlobCompactionFileWriterRef = std::shared_ptr<BlobCompactionFileWriter>;
-}
-}
+}  // namespace bss
+}  // namespace ock
 
 #endif

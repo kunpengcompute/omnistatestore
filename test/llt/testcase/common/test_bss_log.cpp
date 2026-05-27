@@ -14,9 +14,15 @@ using namespace ock::bss;
 
 class LogTest : public ::testing::Test {
 public:
-    LogTest() {}
-    void SetUp() {}
-    void TearDown() {}
+    LogTest()
+    {
+    }
+    void SetUp()
+    {
+    }
+    void TearDown()
+    {
+    }
 };
 
 TEST_F(LogTest, TestLog)

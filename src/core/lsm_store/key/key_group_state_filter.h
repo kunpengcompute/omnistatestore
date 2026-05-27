@@ -35,6 +35,6 @@ private:
 };
 using KeyGroupStateFilterRef = std::shared_ptr<KeyGroupStateFilter>;
 
-} // namespace bss
-} // namespace ock
-#endif // BOOST_SS_KEY_GROUP_STATE_FILTER_H
+}  // namespace bss
+}  // namespace ock
+#endif  // BOOST_SS_KEY_GROUP_STATE_FILTER_H

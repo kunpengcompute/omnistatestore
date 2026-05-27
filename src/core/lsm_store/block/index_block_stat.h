@@ -12,14 +12,13 @@
 #ifndef BOOST_SS_INDEX_BLOCK_STAT_H
 #define BOOST_SS_INDEX_BLOCK_STAT_H
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace ock {
 namespace bss {
 class IndexBlockStat {
 public:
-
     inline uint32_t GetTotalIndexBlockSize() const
     {
         return mTotalIndexBlockSize;

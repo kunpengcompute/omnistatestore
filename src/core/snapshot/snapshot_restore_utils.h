@@ -13,6 +13,7 @@
 #define BOOST_SS_SNAPSHOT_RESTORE_UTILS_H
 
 #include <sys/stat.h>
+
 #include <cerrno>
 #include <cstring>
 #include <iostream>
@@ -45,7 +46,7 @@ public:
         return mSliceTableMetaOffset;
     }
 
-    void GetOverlapFileStoreMetaOffset(FileStoreIDRef& fileStoreID, std::vector<uint64_t> &metaOffsetList)
+    void GetOverlapFileStoreMetaOffset(FileStoreIDRef &fileStoreID, std::vector<uint64_t> &metaOffsetList)
     {
         std::vector<uint32_t> rescaleMappingFileStoreId = mRescaleMappingInfo[fileStoreID->GetInternalIndex()];
         if (rescaleMappingFileStoreId.empty()) {
@@ -87,7 +88,7 @@ public:
         mFileStoreMetaMap.emplace(fileStoreID->GetInternalIndex(), metaOffset);
     }
 
-    inline std::unordered_map<uint32_t, std::vector<uint32_t>>& GetRescaleMappingInfo()
+    inline std::unordered_map<uint32_t, std::vector<uint32_t>> &GetRescaleMappingInfo()
     {
         return mRescaleMappingInfo;
     }
@@ -122,8 +123,11 @@ public:
     SnapshotMetaTail(uint32_t snapshotVersion, uint64_t snapshotId, uint32_t startKeyGroup, uint32_t endKeyGroup,
                      uint64_t seqId, uint64_t snapshotOperatorInfoOffset, uint32_t numberOfSnapshotOperators,
                      uint64_t localFileMappingOffset, uint64_t remoteFileMappingOffset, uint64_t stateIdOffset)
-        : mSnapshotVersion(snapshotVersion), mSnapshotId(snapshotId), mStartKeyGroup(startKeyGroup),
-          mEndKeyGroup(endKeyGroup), mSeqId(seqId),
+        : mSnapshotVersion(snapshotVersion),
+          mSnapshotId(snapshotId),
+          mStartKeyGroup(startKeyGroup),
+          mEndKeyGroup(endKeyGroup),
+          mSeqId(seqId),
           mSnapshotOperatorInfoOffset(snapshotOperatorInfoOffset),
           mNumberOfSnapshotOperators(numberOfSnapshotOperators),
           mLocalFileMappingOffset(localFileMappingOffset),
@@ -244,9 +248,12 @@ public:
                    const SnapshotMetaTailRef &mSnapshotMetaTail,
                    std::vector<RestoredSnapshotOperatorInfoRef> &restoredSnapshotOperatorsInfos,
                    const SnapshotFileMappingRef localFileMapping, const SnapshotFileMappingRef &remoteFileMapping)
-        : mSnapshotMetaPath(snapshotMetaPath), mSnapshotMetaInputView(snapshotMetaInputView),
-          mSnapshotMetaTail(mSnapshotMetaTail), mRestoredSnapshotOperatorsInfos(restoredSnapshotOperatorsInfos),
-          mLocalFileMapping(localFileMapping), mRemoteFileMapping(remoteFileMapping)
+        : mSnapshotMetaPath(snapshotMetaPath),
+          mSnapshotMetaInputView(snapshotMetaInputView),
+          mSnapshotMetaTail(mSnapshotMetaTail),
+          mRestoredSnapshotOperatorsInfos(restoredSnapshotOperatorsInfos),
+          mLocalFileMapping(localFileMapping),
+          mRemoteFileMapping(remoteFileMapping)
     {
     }
 
@@ -325,7 +332,8 @@ class SnapshotMetaAndRemoteFileMapping {
 public:
     SnapshotMetaAndRemoteFileMapping(const PathRef &snapshotMetaPath, const SnapshotMetaTailRef &snapshotMetaTail,
                                      const SnapshotFileMappingRef &remoteFileMapping)
-        : mSnapshotMetaPath(snapshotMetaPath), mSnapshotMetaTail(snapshotMetaTail),
+        : mSnapshotMetaPath(snapshotMetaPath),
+          mSnapshotMetaTail(snapshotMetaTail),
           mRemoteFileMapping(remoteFileMapping)
     {
     }
@@ -345,7 +353,7 @@ public:
     {
     }
 
-    static SnapshotMetaFileParserRef Build(const std::string& snapshotMetaPath)
+    static SnapshotMetaFileParserRef Build(const std::string &snapshotMetaPath)
     {
         auto lastSlashPos = snapshotMetaPath.rfind("/");
         if (lastSlashPos == std::string::npos) {
@@ -377,7 +385,7 @@ public:
         return std::make_shared<SnapshotMetaFileParser>(snapshotMetaPath, false, -1L, false);
     }
 
-    static bool isValidInt64(const std::string& str)
+    static bool isValidInt64(const std::string &str)
     {
         if (str.empty()) {
             return false;
@@ -434,8 +442,8 @@ public:
     static std::vector<RestoredDbMeta::RestoredSnapshotOperatorInfoRef> ReadSnapshotOperatorInfo(
         const FileInputViewRef &inputView, uint64_t snapshotOperatorInfoOffset, uint32_t numberOfSnapshotOperators);
 
-    static inline FileMappingInfoRef WriteFileMappingMeta(const FileOutputViewRef &outputView,
-        const PathRef &localSnapshotPath, const FileManagerRef &localFileManager,
+    static inline FileMappingInfoRef WriteFileMappingMeta(
+        const FileOutputViewRef &outputView, const PathRef &localSnapshotPath, const FileManagerRef &localFileManager,
         std::unordered_set<PathRef, PathHash, PathEqual> &localFilePaths, std::vector<uint32_t> localFileIds)
     {
         uint64_t localFileMappingOffset = WriteFileMapping(outputView, localSnapshotPath, localFileManager,
@@ -452,7 +460,7 @@ public:
 
     static SnapshotFileMappingRef ReadFileMapping(const FileInputViewRef &inputView, uint64_t fileMappingOffset);
 
-    static void WriteSnapshotMetaTail(const FileOutputViewRef& outputView, uint64_t snapshotId, uint32_t startKeyGroup,
+    static void WriteSnapshotMetaTail(const FileOutputViewRef &outputView, uint64_t snapshotId, uint32_t startKeyGroup,
                                       uint32_t endKeyGroup, uint32_t seqId, uint32_t snapshotOperatorInfoOffset,
                                       uint32_t numberOfSnapshotOperators, const FileMappingInfoRef &fileMappingInfo,
                                       uint64_t stateIdProviderOffset);

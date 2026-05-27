@@ -10,6 +10,7 @@
  */
 
 #include "logical_slice_chain.h"
+
 #include "blob_store/blob_store.h"
 #include "common/bss_log.h"
 
@@ -84,7 +85,7 @@ BResult LogicalSliceChainImpl::Initialize(
 }
 
 IOResult LogicalSliceChainImpl::Get(const Key &key, Value &value, BlobValueTransformFunc getFromBlobFunc,
-    BoostNativeMetricPtr &metricPtr)
+                                    BoostNativeMetricPtr &metricPtr)
 {
     bool found;
     // 1. get from slice chain.

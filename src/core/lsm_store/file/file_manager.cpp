@@ -9,8 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "common/path_transform.h"
 #include "file_manager.h"
+
+#include "common/path_transform.h"
 
 namespace ock {
 namespace bss {
@@ -83,7 +84,7 @@ void FileManager::IncDbRef(uint32_t fileId, uint32_t dataSize)
         return;
     }
     int32_t ref = fileMeta->AddDbRef(NO_1);
-    if (ref < 0) { // 因为我们用的fetch_add，所以返回的是加之前的计数
+    if (ref < 0) {  // 因为我们用的fetch_add，所以返回的是加之前的计数
         LOG_ERROR("Reference should be positive or 0 before increased.");
         return;
     }
@@ -156,17 +157,17 @@ void FileManager::DeleteFiles(const std::vector<FileMetaRef> &deleteFiles)
         PathRef path = fileMeta->GetFilePath();
         auto ret = unlink(path->Name().c_str());
         if (UNLIKELY(ret != 0)) {
-            LOG_ERROR("Delete file failed, fileId:" << fileMeta->GetFileId()->Get() << ", filePath:" <<
-                      path->ExtractFileName());
+            LOG_ERROR("Delete file failed, fileId:" << fileMeta->GetFileId()->Get()
+                                                    << ", filePath:" << path->ExtractFileName());
         } else {
-            LOG_DEBUG("Delete file success, fileId:" << fileMeta->GetFileId()->Get() << ", filePath:" <<
-                     path->ExtractFileName());
+            LOG_DEBUG("Delete file success, fileId:" << fileMeta->GetFileId()->Get()
+                                                     << ", filePath:" << path->ExtractFileName());
         }
     }
 }
 
 BResult FileManager::StartRestore(const std::vector<SnapshotFileMappingRef> &restoredFileMappings,
-    bool isExcludeSSTFiles)
+                                  bool isExcludeSSTFiles)
 {
     WriteLocker<ReadWriteLock> lk(&mRwLock);
     RETURN_NOT_OK(CheckCloseStatus());
@@ -186,7 +187,7 @@ BResult FileManager::StartRestore(const std::vector<SnapshotFileMappingRef> &res
 }
 
 BResult FileManager::RestoreFileMapping(const std::vector<SnapshotFileMappingRef> &restoredFileMappings,
-    bool isExcludeSSTFiles)
+                                        bool isExcludeSSTFiles)
 {
     mRestoreState = RestoreState::RESTORING;
     for (const SnapshotFileMappingRef &mapping : restoredFileMappings) {
@@ -195,7 +196,7 @@ BResult FileManager::RestoreFileMapping(const std::vector<SnapshotFileMappingRef
         bool canDeleted = mWorkingBasePath->Name() == restoredBasePath->Name();
         for (SnapshotFileInfoRef &fileInfo : mapping->GetFileMapping()) {
             uint32_t fileId = fileInfo->GetFileId();
-            if (UNLIKELY(fileId == 0)) { // fileId是0说明不是sst文件.
+            if (UNLIKELY(fileId == 0)) {  // fileId是0说明不是sst文件.
                 continue;
             }
 
@@ -212,7 +213,7 @@ BResult FileManager::RestoreFileMapping(const std::vector<SnapshotFileMappingRef
             PathRef filePath = std::make_shared<Path>(targetPath, fileName);
             FileMetaRef fileMeta = nullptr;
             auto it = mFileMapping.find(fileId);
-            if (it == mFileMapping.end()) { // 新建一个fileMeta插入到fileMapping中.
+            if (it == mFileMapping.end()) {  // 新建一个fileMeta插入到fileMapping中.
                 FileIdRef fileIdObj = std::make_shared<FileId>();
                 RETURN_NOT_OK(fileIdObj->Init(fileId));
                 fileMeta = std::make_shared<FileMeta>(filePath, fileIdObj, canDeleted);
@@ -222,8 +223,9 @@ BResult FileManager::RestoreFileMapping(const std::vector<SnapshotFileMappingRef
                 //  检查是否是同一个文件, 若文件名相同则打印日志.
                 fileMeta = it->second;
                 if (filePath->Name() != fileMeta->GetFilePath()->Name()) {
-                    LOG_ERROR("Multiple files are found under a fileId:" << fileId << ", " <<
-                              fileMeta->GetFilePath()->ExtractFileName() << ", " << filePath->ExtractFileName());
+                    LOG_ERROR("Multiple files are found under a fileId:" << fileId << ", "
+                                                                         << fileMeta->GetFilePath()->ExtractFileName()
+                                                                         << ", " << filePath->ExtractFileName());
                     return BSS_ERR;
                 }
             }
@@ -231,7 +233,7 @@ BResult FileManager::RestoreFileMapping(const std::vector<SnapshotFileMappingRef
             if (fileMeta->GetFileSize() < fileInfo->GetFileSize()) {
                 fileMeta->AddFileSize(fileInfo->GetFileSize() - fileMeta->GetFileSize());
             }
-            if (mSnapshotStorage) { // 如果是本地fileManager则为false, 如果是远端fileManager的则为true.
+            if (mSnapshotStorage) {  // 如果是本地fileManager则为false, 如果是远端fileManager的则为true.
                 fileMeta->AddSnapshotRef(1);
             }
         }

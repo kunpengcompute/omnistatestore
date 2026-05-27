@@ -15,8 +15,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "common/path.h"
 #include "blob_store/blob_file_meta.h"
+#include "common/path.h"
 
 namespace ock {
 namespace bss {
@@ -35,7 +35,7 @@ public:
     {
     }
 
-    inline std::unordered_set<PathRef, PathHash, PathEqual>& GetLocalFilePaths()
+    inline std::unordered_set<PathRef, PathHash, PathEqual> &GetLocalFilePaths()
     {
         return mLocalFilePaths;
     }

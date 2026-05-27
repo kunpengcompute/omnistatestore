@@ -1,5 +1,5 @@
 /*
-* Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -9,8 +9,9 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#include "common/bss_log.h"
 #include "include/compress_algo.h"
+
+#include "common/bss_log.h"
 
 namespace ock {
 namespace bss {
@@ -38,4 +39,4 @@ std::string CompressAlgoUtil::ReverseCompressAlgoTransform(CompressAlgo &compres
     }
 }
 }  // namespace bss
-}
+}  // namespace ock

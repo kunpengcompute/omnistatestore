@@ -10,12 +10,13 @@
  */
 
 #include "blob_file_reader.h"
+
 #include "compressor_utils.h"
 
 namespace ock {
 namespace bss {
 BlockRef BlobFileReader::GetOrLoadBlock(const BlockHandle &blockHandle, BlockType blockType,
-    BlockBuilderFunc dataBuilder)
+                                        BlockBuilderFunc dataBuilder)
 {
     // 1. 首先从block cache缓存中查询Block.
     uint64_t blockId = GetBlockId(blockHandle);
@@ -26,15 +27,15 @@ BlockRef BlobFileReader::GetOrLoadBlock(const BlockHandle &blockHandle, BlockTyp
         ByteBufferRef byteBuffer;
         BResult result = ReadBlock(blockHandle, byteBuffer);
         if (UNLIKELY(result != BSS_OK)) {
-            LOG_ERROR("Read block failed, ret:" <<result << ", block offset:" << blockHandle.GetOffset()
-                << ", size:" << blockHandle.GetSize());
+            LOG_ERROR("Read block failed, ret:" << result << ", block offset:" << blockHandle.GetOffset()
+                                                << ", size:" << blockHandle.GetSize());
             return nullptr;
         }
         // 3. 将Block加入到block cache缓存中.
         block = dataBuilder(byteBuffer);
         if (UNLIKELY(block == nullptr)) {
             LOG_ERROR("Build block failed, block offset:" << blockHandle.GetOffset()
-                << ", size:" << blockHandle.GetSize());
+                                                          << ", size:" << blockHandle.GetSize());
             return nullptr;
         }
         mBlockCache->Put(blockId, block, blockType);
@@ -47,15 +48,14 @@ BlockRef BlobFileReader::FetchBlock(const BlockHandle &blockHandle, BlockType bl
     ByteBufferRef byteBuffer;
     BResult result = ReadBlock(blockHandle, byteBuffer);
     if (UNLIKELY(result != BSS_OK)) {
-        LOG_ERROR("Read block failed, ret:" <<result << ", block offset:" << blockHandle.GetOffset()
-            << ", size:" << blockHandle.GetSize());
+        LOG_ERROR("Read block failed, ret:" << result << ", block offset:" << blockHandle.GetOffset()
+                                            << ", size:" << blockHandle.GetSize());
         return nullptr;
     }
 
     BlockRef block = dataBuilder(byteBuffer);
     if (UNLIKELY(block == nullptr)) {
-        LOG_ERROR("Build block failed, block offset:" << blockHandle.GetOffset()
-            << ", size:" << blockHandle.GetSize());
+        LOG_ERROR("Build block failed, block offset:" << blockHandle.GetOffset() << ", size:" << blockHandle.GetSize());
         return nullptr;
     }
     return block;
@@ -117,7 +117,7 @@ BResult BlobFileReader::DecompressBlock(ByteBufferRef &buffer, uint32_t originLe
         return BSS_ALLOC_FAIL;
     }
     uint32_t decompressedSize = compressor->Decompress(originBuffer->Data(), originLength, buffer->Data(),
-        buffer->Capacity());
+                                                       buffer->Capacity());
     if (UNLIKELY(decompressedSize == 0 || decompressedSize != originLength)) {
         LOG_ERROR("Decompress failed, originLength: " << originLength << ", decompressedSize: " << decompressedSize);
         buffer = nullptr;
@@ -164,5 +164,5 @@ BResult BlobFileReader::ReadBuffer(uint32_t offset, uint32_t length, ByteBufferR
     }
     return result;
 }
-}
-}
+}  // namespace bss
+}  // namespace ock

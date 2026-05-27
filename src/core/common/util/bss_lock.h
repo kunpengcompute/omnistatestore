@@ -13,6 +13,7 @@
 #define BOOST_SS_LOCK_H
 
 #include <pthread.h>
+
 #include <atomic>
 
 namespace ock {
@@ -30,9 +31,9 @@ public:
     }
 
     ReadWriteLock(const ReadWriteLock &) = delete;
-    ReadWriteLock &operator = (const ReadWriteLock &) = delete;
+    ReadWriteLock &operator=(const ReadWriteLock &) = delete;
     ReadWriteLock(ReadWriteLock &&) = delete;
-    ReadWriteLock &operator = (ReadWriteLock &&) = delete;
+    ReadWriteLock &operator=(ReadWriteLock &&) = delete;
 
     inline void LockRead()
     {
@@ -48,7 +49,7 @@ public:
     }
 
 private:
-    pthread_rwlock_t mLock {};
+    pthread_rwlock_t mLock{};
 };
 
 template <class T> class ReadLocker {
@@ -69,9 +70,9 @@ public:
 
 private:
     ReadLocker(const ReadLocker &) = default;
-    ReadLocker &operator = (const ReadLocker &) = default;
+    ReadLocker &operator=(const ReadLocker &) = default;
     ReadLocker(ReadLocker &&) noexcept = default;
-    ReadLocker &operator = (ReadLocker &&) noexcept = default;
+    ReadLocker &operator=(ReadLocker &&) noexcept = default;
 
     T *mLock;
 };
@@ -94,9 +95,9 @@ public:
 
 private:
     WriteLocker(const WriteLocker &) = default;
-    WriteLocker &operator = (const WriteLocker &) = default;
+    WriteLocker &operator=(const WriteLocker &) = default;
     WriteLocker(WriteLocker &&) noexcept = default;
-    WriteLocker &operator = (WriteLocker &&) noexcept = default;
+    WriteLocker &operator=(WriteLocker &&) noexcept = default;
 
     T *mLock;
 };
@@ -107,9 +108,9 @@ public:
     ~SpinLock() = default;
 
     SpinLock(const SpinLock &) = delete;
-    SpinLock &operator = (const SpinLock &) = delete;
+    SpinLock &operator=(const SpinLock &) = delete;
     SpinLock(SpinLock &&) = delete;
-    SpinLock &operator = (SpinLock &&) = delete;
+    SpinLock &operator=(SpinLock &&) = delete;
 
     inline void TryLock()
     {

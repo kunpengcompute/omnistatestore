@@ -22,7 +22,7 @@ class TestFile : public TestLsmStore {
 public:
     std::vector<std::pair<SliceKey, Value>> GenerateKeyValue(uint64_t size, int32_t seed = -1);
     std::vector<std::pair<SliceKey, Value>> GenerateKeyMapValue(uint64_t size, std::vector<uint32_t> &priKeyHash,
-                                                        KeyVectorValueMap &prefixMap, int32_t seed = -1);
+                                                                KeyVectorValueMap &prefixMap, int32_t seed = -1);
     std::vector<std::pair<SliceKey, Value>> GenerateListKeyValue(uint64_t size, ValueType valueType, int32_t seed = -1);
     Value GenerateDeleteValue();
     std::vector<uint8_t> BuildFilterBlock(std::set<uint32_t> hashVec);

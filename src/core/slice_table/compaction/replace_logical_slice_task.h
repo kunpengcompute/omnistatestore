@@ -28,17 +28,19 @@ public:
     }
 
     BResult SyncReplaceChainAndSlice(LogicalSliceChainRef &logicalSliceChain, uint32_t sliceIndexSlot,
-        uint32_t compactionStartChainIndex, uint32_t compactionEndChainIndex, DataSliceRef &compactedDataSLice,
-        std::vector<SliceAddressRef> &invalidSliceAddressList);
+                                     uint32_t compactionStartChainIndex, uint32_t compactionEndChainIndex,
+                                     DataSliceRef &compactedDataSLice,
+                                     std::vector<SliceAddressRef> &invalidSliceAddressList);
 
     BResult SyncUpdateChain(LogicalSliceChainRef &oldLogicalSliceChain, LogicalSliceChainRef &newLogicalSliceChain,
-        uint32_t sliceIndexSlot);
+                            uint32_t sliceIndexSlot);
 
     BucketGroupRef GetBucketGroup() const
     {
         RETURN_NULLPTR_AS_NULLPTR(mSliceTable->GetBucketGroupManager());
         return mSliceTable->GetBucketGroupManager()->GetBucketGroupVector()[0];
     }
+
 private:
     std::shared_ptr<Config> mConfig;
     SliceTableManagerRef mSliceTable;
@@ -49,8 +51,9 @@ using ReplaceLogicalSliceRef = std::shared_ptr<ReplaceLogicalSlice>;
 class ReplaceLogicalSliceTask : public Runnable {
 public:
     ReplaceLogicalSliceTask(ReplaceLogicalSliceRef &replaceLogicalSlice, LogicalSliceChainRef &logicalSliceChain,
-        uint32_t sliceIndexSlot, uint32_t compactionStartChainIndex, uint32_t compactionEndChainIndex,
-        DataSliceRef &compactedDataSlice, std::vector<SliceAddressRef> &invalidSliceAddressList)
+                            uint32_t sliceIndexSlot, uint32_t compactionStartChainIndex,
+                            uint32_t compactionEndChainIndex, DataSliceRef &compactedDataSlice,
+                            std::vector<SliceAddressRef> &invalidSliceAddressList)
         : mReplaceLogicalSlice(replaceLogicalSlice),
           mLogicalSliceChain(logicalSliceChain),
           mSliceIndexSlot(sliceIndexSlot),

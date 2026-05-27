@@ -12,13 +12,13 @@
 #ifndef FILE_FACTORY_H
 #define FILE_FACTORY_H
 
-#include "include/compress_algo.h"
-#include "include/config.h"
 #include "common/block.h"
 #include "data_slice_flush_iterator.h"
 #include "file_info.h"
 #include "file_reader.h"
 #include "file_writer.h"
+#include "include/compress_algo.h"
+#include "include/config.h"
 #include "slice_table/slice/data_slice.h"
 
 namespace ock {
@@ -54,7 +54,7 @@ public:
             indexCacheRatio = mConfig->GetCacheIndexAndFilterRatio();
         }
         mBlockCache = BlockCacheManager::Instance()->CreateBlockCache(mConfig->GetTaskSlotFlag(), fileMemLimit,
-            indexCacheRatio);
+                                                                      indexCacheRatio);
         mNeedReleaseBlockCache = true;
         mMemManager->RegisterLsmStoreRevoke([this](uint64_t revokeSize) {
             if (UNLIKELY(mBlockCache == nullptr)) {
@@ -78,19 +78,18 @@ public:
     }
 
     inline FileReaderBaseRef CreateFileReader(const FileMetaDataRef &fileMetaData, const FileInfoRef &fileInfo,
-                                                const MemManagerRef &memManager, FileProcHolder holder)
+                                              const MemManagerRef &memManager, FileProcHolder holder)
     {
         if (UNLIKELY(fileInfo == nullptr)) {
             LOG_WARN("input fileInfo is null.");
             return nullptr;
         }
-        return std::make_shared<FileReader>(fileMetaData, mConfig, fileInfo->GetFilePath(), mBlockCache,
-                                             memManager, holder);
+        return std::make_shared<FileReader>(fileMetaData, mConfig, fileInfo->GetFilePath(), mBlockCache, memManager,
+                                            holder);
     }
 
-    inline FileWriterRef CreateFileWriter(const PathRef &path, const ConfigRef &config,
-                                              CompressAlgo compressAlgorithm, const MemManagerRef &memManager,
-                                              FileProcHolder holder)
+    inline FileWriterRef CreateFileWriter(const PathRef &path, const ConfigRef &config, CompressAlgo compressAlgorithm,
+                                          const MemManagerRef &memManager, FileProcHolder holder)
     {
         return std::make_shared<FileWriter>(path, config, compressAlgorithm, memManager, holder);
     }

@@ -11,8 +11,8 @@
 
 #include "com_huawei_ock_bss_common_Checkpoint.h"
 
-#include "include/bss_err.h"
 #include "include/boost_state_db.h"
+#include "include/bss_err.h"
 #include "kv_helper.h"
 
 using namespace ock::bss;

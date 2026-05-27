@@ -53,8 +53,8 @@ public:
 
         if (currentTs < lastTime) {
             if (timeBackCounts.fetch_add(1, std::memory_order_relaxed) % NO_100000 == 0) {
-                LOG_WARN("Current time: " << currentTs <<", last time: " << lastTime << ", timeBackCounts: "
-                    << timeBackCounts.load(std::memory_order_relaxed));
+                LOG_WARN("Current time: " << currentTs << ", last time: " << lastTime
+                                          << ", timeBackCounts: " << timeBackCounts.load(std::memory_order_relaxed));
             }
             currentTs = lastTime;
         }
@@ -63,8 +63,8 @@ public:
         if (currentTs == lastTime) {
             if (lastCounts >= NO_65535) {
                 if (numOverflowCounts.fetch_add(1, std::memory_order_relaxed) % NO_100000 == 0) {
-                    LOG_WARN("LastCounts: " << lastCounts << ", max counts: "<< NO_65535 << " under time: "
-                        << currentTs);
+                    LOG_WARN("LastCounts: " << lastCounts << ", max counts: " << NO_65535
+                                            << " under time: " << currentTs);
                 }
                 if (currentTs >= MAX_TIMESTAMP) {
                     LOG_ERROR("Current time: " << currentTs << ", but max time: " << MAX_TIMESTAMP);
@@ -78,6 +78,7 @@ public:
         }
         return GenerateSeqID(currentTs, counts);
     }
+
 private:
     static std::atomic<uint64_t> timeBackCounts;
     static std::atomic<uint64_t> numOverflowCounts;
