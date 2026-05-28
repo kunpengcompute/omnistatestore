@@ -11,8 +11,10 @@
 
 #ifndef LZ4_INTERFACE_H
 #define LZ4_INTERFACE_H
+#include "bss_log.h"
 #include "compressor.h"
 #include "lz4.h"
+#include "util/bss_def.h"
 
 namespace ock {
 namespace bss {
