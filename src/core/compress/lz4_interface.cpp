@@ -11,9 +11,6 @@
 
 #include "lz4_interface.h"
 
-#include "bss_log.h"
-#include "util/bss_def.h"
-
 namespace ock {
 namespace bss {
 
