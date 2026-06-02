@@ -3,6 +3,7 @@
 ## 最新消息
 <font size=3>
 
+- [2026.06.30] 发布OmniStateStore 1.3.0。通过调整RocksDB不同SST层级的压缩格式，结合软算压缩算法优化，降低状态Compaction过程中的压缩/解压缩开销，提升应用端到端吞吐。
 - [2026.03.30] 发布OmniStateStore 1.2.0。基于对接Flink和RocksDB的插件完成Flink有状态用例性能加速。对Flink进行轻量级修改，基于状态缓存和状态过滤技术，降低Flink对RocksDB的访问频次，提升有状态用例的IO性能。1.2.0版本进行了架构调整，与1.1.0以及1.0.0相互独立。 
 - [2025.12.30] 发布OmniStateStore 1.1.0。新增支持对接Flink Metric框架并实现部分常用的Metric指标；支持Priority Queue持久化存储；支持KV分离存储。 
 - [2025.06.30] 发布OmniStateStore 1.0.0。解决了大数据场景下，针对大状态下IO性能较差的问题，实现了一种新型的状态存储方式，提升了Flink的IO性能。
@@ -14,18 +15,19 @@
 大数据OmniRuntime通过插件化的形式，提升数据加载、数据计算和数据交换性能，从而提升大数据分析端到端性能。<br>
 随着互联网的发展，数据规模出现了爆炸式的增长，需要处理的数据量越来越大，CPU算力的增长远远滞后于数据的增长。大数据开源生态也越来越丰富，但多样化的计算引擎和开源组件也同时带来了全生命周期数据处理性能提升难的问题。不同的大数据引擎采用各自独特的优化策略和技术来提高性能和效率，但有些优化项会在多个引擎中重复应用，可能存在差异或冲突，导致计算性能下降。此外，重复应用相同的优化项可能导致资源竞争和冲突，降低了整体计算性能。<br>
 大数据OmniRuntime是鲲鹏BoostKit大数据面向应用加速推出的一系列特性，通过插件化的形式，提升数据加载、数据计算和数据交换性能，从而提升大数据分析端到端性能。<br>
-OmniStateStore状态优化作为OmniRuntime的特性之一，通过对Flink进行轻量级修改，引入状态缓存、状态过滤等技术减少Flink对RocksDB的访问频次，降低Flink使用RocksDB的IO开销，从而提升Flink有状态用例的端到端性能。已适配的开源组件及版本有：
+OmniStateStore状态优化作为OmniRuntime的特性之一，通过对Flink进行轻量级修改，引入状态缓存、状态过滤、软算压缩优化等技术减少Flink对RocksDB的访问频次，降低Flink使用RocksDB的IO开销，同时降低状态Compaction过程中的压缩/解压缩开销，最终提升Flink有状态用例的端到端性能。已适配的开源组件及版本有：
 
 - Flink1.16.3 + RocksDB6.20.3 (26.0.RC1)
 </font>
 ## 特性介绍
 <font size="3">
-状态存储(state store)是Flink的重要组成部分，主要由状态后端(state backend)来完成。随着状态(state)中数据量的增大，状态存储性能面临挑战。OmniStateStore对Flink进行轻量级修改，通过状态缓存和状态过滤等技术，加速Flink对RocksDB的使用效率，从而提升Flink的端到端性能。<br>
-OmniStateStore是对接Flink和RocksDB的中间层，包含动态Filter技术、Flink语义状态缓存和Merge读写优化，其整体架构设计图如下图所示：<br>
+状态存储(state store)是Flink的重要组成部分，主要由状态后端(state backend)来完成。随着状态(state)中数据量的增大，状态存储性能面临挑战。OmniStateStore对Flink进行轻量级修改，通过状态缓存、状态过滤、软算压缩优化等技术，加速Flink对RocksDB的使用效率，从而提升Flink的端到端性能。<br>
+OmniStateStore是对接Flink和RocksDB的中间层，包含动态Filter技术、Flink语义状态缓存、Merge读写优化和LZ4软算压缩优化，其整体架构设计图如下图所示：<br>
 
 - 动态Filter技术：使用状态前缀filter，过滤mapState范围查询时的冗余磁盘查找操作；对于仅需要点读、点写的状态，将memTable数据结构替换为HashLinkList, 提升状态点读和点写效率。
 - Flink语义状态缓存：通过ValueState状态缓存，同Key状态优先在内存中完成聚合，减少状态对RocksDB的访问频次；通过Join算子数据缓存，减少双流Join操作的状态范围查询次数。
 - Merge读写优化：使用RocksDB的merge接口，替换Flink SQL/DataStream的状态RMW操作。
+- LZ4软算压缩优化：将RocksDB Level0/Level1的压缩格式修改为LZ4，结合LZ4软算压缩算法优化，提升状态压缩/解压缩效率。
 
 **图1** OmniStateStore整体架构设计
 </font>
@@ -45,7 +47,7 @@ OmniStateStore适用于Apache Flink流处理任务中的有状态场景，通常
 - 实时大数据处理任务：如实时ETL、流式聚合、窗口计算等，其中状态规模随数据持续流入不断增长。
 - 复杂事件处理与有状态流计算：需长时间维护大规模状态（例如用户会话跟踪、实时风控模型状态）。
 
-通过状态缓存和状态过滤等技术，OmniStateStore可以有效减少Flink对RocksDB的访问频次，有效提升有状态作业的端到端吞吐。OmniStateStore适用于openEuler 22.03 LTS SP3等操作系统环境，并支持Flink1.16.3 + RocksDB6.20.3架构。
+通过状态缓存、状态过滤、软算压缩优化等技术，OmniStateStore可以有效减少Flink对RocksDB的访问频次，同时降低状态压缩/解压缩开销，从而有效提升有状态作业的端到端吞吐。OmniStateStore适用于openEuler 22.03 LTS SP3等操作系统环境，并支持Flink1.16.3 + RocksDB6.20.3架构。
 </font>
 
 ## 约束与限制
@@ -142,8 +144,9 @@ OmniStateStore/                       # 项目根目录
 </font>
 
 ## 安全声明
-<font size="3">
+
 ## 防病毒软件例行检查
+<font size="3">
 定期开展对集群和Flink组件的防病毒扫描，防病毒例行检查会帮助集群免受病毒、恶意代码、间谍软件以及恶意程序，降低系统瘫痪、信息泄露风险。建议使用业界主流防病毒软件进行防病毒检查。</font>
 
 ## 日志控制
@@ -210,7 +213,7 @@ OmniStateStore/                       # 项目根目录
     </tr>
     <tr>
       <td style="text-align: left;">软件包</td>
-      <td style="text-align: left;">BoostKit-omniruntime-omniStateStore-1.2.0.zip</td>
+      <td style="text-align: left;">BoostKit-omniruntime-omniStateStore-1.3.0.zip</td>
     </tr>
   </tbody>
 </table>
