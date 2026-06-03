@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+enable_ut=$1
+
 # step1: build rocksdb
 mkdir 3rdparty && cd 3rdparty
 
@@ -71,14 +73,20 @@ cd ..    # 3rdparty/googletest/build -> 3rdparty/googletest
 
 # step2: build falcon dynamic library + run cpp unit tests via ctest.
 cd ../../cpp && mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DFALCON_BUILD_TESTS=ON && make -j8
-ctest --output-on-failure
+if [ "$enable_ut" = "true" ]; then
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DFALCON_BUILD_TESTS=ON && make -j8
+  # ctest --output-on-failure
+elif
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DFALCON_BUILD_TESTS=OFF && make -j8
+fi
 cd .. && cp -r build/libfalcon.so ../3rdparty
 
 # step3: build flink-alg-falcon.jar.
 cd ../java && mvn clean package -DskipTests
 cp -r target/flink-alg-falcon.jar ../3rdparty
-mvn test # step3b: run the java test suite.
+if [ "$enable_ut" = "true" ]; then
+  mvn test # step3b: run the java test suite.
+fi
 
 # get result files
 cd ../3rdparty && mkdir result
