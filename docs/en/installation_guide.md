@@ -100,7 +100,7 @@ The following table describes the OS and dependency software installation requir
   <tbody>
     <tr>
       <td style="text-align: left;">OmniStateStore package</td>
-      <td style="text-align: left;">BoostKit-omniruntime-omnistatestore-1.2.0.zip</td>
+      <td style="text-align: left;">BoostKit-omniruntime-omnistatestore-1.3.0.zip</td>
       <td style="text-align: left;">Open source</td>
       <td style="text-align: left;">OmniStateStore software installation package</td>
       <td style="text-align: left;"><a href="https://atomgit.com/openeuler/OmniStateStore">Link</a></td>
@@ -267,19 +267,19 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm2_8c32g # Configure SSH password-f
 ## Installing OmniStateStore
 <font size=3>
 
-1. Obtain the software package **BoostKit-omniruntime-omnistatestore-1.2.0.zip** based on [OmniStateStore software list](#Obtaining the software package).
+1. Obtain the software package **BoostKit-omniruntime-omnistatestore-1.3.0.zip** based on [OmniStateStore software list](#Obtaining the software package).
 
 2. Configure the environment variable by specifying **FLINK_HOME**, **JAVA_HOME**, and **LD_LIBRARY_PATH**.
 
 ```
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
 ```
-3. Log in to the installation node, extract **BoostKit-omniruntime-omnistatestore-1.2.0.zip** to **$FLINK_HOME/lib**, copy **librocksdb.so.6** to **/usr/local/lib**, and save **flink-alg-falcon.jar** to the current directory.
+3. Log in to the installation node, extract **BoostKit-omniruntime-omnistatestore-1.3.0.zip** to **$FLINK_HOME/lib**, copy **librocksdb.so.6** to **/usr/local/lib**, and save **flink-alg-falcon.jar** to the current directory.
 
 ```
-unzip BoostKit-omniruntime-omnistatestore-1.2.0.zip
+unzip BoostKit-omniruntime-omnistatestore-1.3.0.zip
 mv librocksdb.so.6 /usr/local/lib
-rm -rf BoostKit-omniruntime-omnistatestore-1.2.0.zip
+rm -rf BoostKit-omniruntime-omnistatestore-1.3.0.zip
 ```
 </font>
 

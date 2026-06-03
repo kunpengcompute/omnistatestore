@@ -93,6 +93,6 @@ touch version.txt
 echo "Product Name: Kunpeng BoostKit" >> version.txt
 echo "Product Version: ${Product_Version}" >> version.txt
 echo "Component Name: BoostKit-omniStateStore" >> version.txt
-echo "Component Version: 1.2.0" >> version.txt
-zip -r BoostKit-omniruntime-omniStateStore-1.2.0.zip flink-alg-falcon.jar librocksdb.so.6 version.txt
-mv BoostKit-omniruntime-omniStateStore-1.2.0.zip ../
+echo "Component Version: 1.3.0" >> version.txt
+zip -r BoostKit-omniruntime-omniStateStore-1.3.0.zip flink-alg-falcon.jar librocksdb.so.6 version.txt
+mv BoostKit-omniruntime-omniStateStore-1.3.0.zip ../
