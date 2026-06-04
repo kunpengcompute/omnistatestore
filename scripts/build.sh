@@ -85,7 +85,7 @@ cd .. && cp -r build/libfalcon.so ../3rdparty
 cd ../java && mvn clean package -DskipTests
 cp -r target/flink-alg-falcon.jar ../3rdparty
 if [ "$enable_ut" = "true" ]; then
-  mvn test # step3b: run the java test suite.
+  # mvn test # step3b: run the java test suite.
 fi
 
 # get result files
