@@ -76,7 +76,7 @@ cd ../../cpp && mkdir build && cd build
 if [ "$enable_ut" = "true" ]; then
   cmake .. -DCMAKE_BUILD_TYPE=Release -DFALCON_BUILD_TESTS=ON && make -j8
   # ctest --output-on-failure
-elif
+else
   cmake .. -DCMAKE_BUILD_TYPE=Release -DFALCON_BUILD_TESTS=OFF && make -j8
 fi
 cd .. && cp -r build/libfalcon.so ../3rdparty
