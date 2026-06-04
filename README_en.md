@@ -2,7 +2,7 @@
 
 ## What's New
 <font size=3>
-
+- [2026-06-30] Released OmniStateStore 1.3.0. By adjusting the compression formats of different SST levels in RocksDB and optimizing with soft computing compression algorithms, the compression/decompression overhead during state compaction is reduced, improving end-to-end throughput for applications.
 - [2026-03-30] Released OmniStateStore 1.2.0. This version integrates Flink and RocksDB as plugins to improve the performance of Flink stateful test cases. It introduces lightweight modifications to Flink. By leveraging state caching and filtering techniques, it reduces Flink's access to RocksDB and improves I/O performance for stateful workloads. The architecture of version 1.2.0 has been revised and is independent of versions 1.1.0 and 1.0.0.
 - [2025-12-30] Released OmniStateStore 1.1.0. It connects to the Flink metric framework to implement common metrics, as well as persistent storage of priority queues and KV separated storage.
 - [2025-06-30] Released OmniStateStore 1.0.0. It introduces a new state storage technology to improve the I/O performance of Flink in big data scenarios.
@@ -208,7 +208,7 @@ Check the <strong>PermitRootLogin</strong> configuration item in <strong>/etc/ss
     </tr>
     <tr>
       <td style="text-align: left;">Software Package</td>
-      <td style="text-align: left;">BoostKit-omniruntime-omniStateStore-1.2.0.zip</td>
+      <td style="text-align: left;">BoostKit-omniruntime-omniStateStore-1.3.0.zip</td>
     </tr>
   </tbody>
 </table>

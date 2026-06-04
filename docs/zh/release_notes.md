@@ -12,11 +12,11 @@
     </tr>
     <tr>
       <td style="text-align: left;">产品版本</td>
-      <td style="text-align: left;">26.0.0</td>
+      <td style="text-align: left;">26.1.0</td>
     </tr>
     <tr>
       <td style="text-align: left;">软件名称和版本</td>
-      <td style="text-align: left;">OmniStateStore 1.2.0</td>
+      <td style="text-align: left;">OmniStateStore 1.3.0</td>
     </tr>
   </tbody>
 </table>
@@ -269,7 +269,7 @@
   </thead>
   <tbody>
     <tr>
-      <td style="text-align: left;">1.2.0 版本说明书</td>
+      <td style="text-align: left;">1.3.0 版本说明书</td>
       <td style="text-align: left;">提供OmniStateStore的版本更新内容与发布说明。</td>
       <td style="text-align: left;">开源仓</td>
     </tr>

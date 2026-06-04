@@ -102,7 +102,7 @@
   <tbody>
     <tr>
       <td style="text-align: left;">OmniStateStore状态优化压缩包</td>
-      <td style="text-align: left;">BoostKit-omniruntime-omnistatestore-1.2.0.zip</td>
+      <td style="text-align: left;">BoostKit-omniruntime-omnistatestore-1.3.0.zip</td>
       <td style="text-align: left;">开源</td>
       <td style="text-align: left;">OmniStateStore状态优化软件安装包</td>
       <td style="text-align: left;"><a href="https://atomgit.com/openeuler/OmniStateStore">Link</a></td>
@@ -266,18 +266,18 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm2_8c32g # 在flink\_jm\_8c32g容�
 ## 安装OmniStateStore
 <font size=3>
 
-1. 请参见[OmniStateStore状态优化软件获取列表](#获取软件包)获取软件包BoostKit-omniruntime-omnistatestore-1.2.0.zip。
+1. 请参见[OmniStateStore状态优化软件获取列表](#获取软件包)获取软件包BoostKit-omniruntime-omnistatestore-1.3.0.zip。
 
 2. 配置环境变量，指定FLINK_HOME和JAVA_HOME，并配置LD_LIBRARY_PATH。
 ```
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
 ```
-3. 登录安装节点，将BoostKit-omniruntime-omnistatestore-1.2.0.zip解压到$FLINK_HOME/lib目录下，将librocksdb.so.6拷贝到/usr/local/lib目录，将flink-alg-falcon.jar保留至当前目录中。
+3. 登录安装节点，将BoostKit-omniruntime-omnistatestore-1.3.0.zip解压到$FLINK_HOME/lib目录下，将librocksdb.so.6拷贝到/usr/local/lib目录，将flink-alg-falcon.jar保留至当前目录中。
 
 ```
-unzip BoostKit-omniruntime-omnistatestore-1.2.0.zip
+unzip BoostKit-omniruntime-omnistatestore-1.3.0.zip
 mv librocksdb.so.6 /usr/local/lib
-rm -rf BoostKit-omniruntime-omnistatestore-1.2.0.zip
+rm -rf BoostKit-omniruntime-omnistatestore-1.3.0.zip
 ```
 </font>
 

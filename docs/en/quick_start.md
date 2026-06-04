@@ -91,7 +91,7 @@ Set up the OmniStateStore **runtime environment** as described in the following 
 
 1. Download the [OmniStateStore source code](https://gitcode.com/openeuler/OmniStateStore.git) and select the **falcon** branch.
 
-2. Compile the OmniStateStore source code.<br>Use [sh build.sh](../../scripts/build.sh) to compile OmniStateStore and generate **BoostKit-omniruntime-omniStateStore-1.2.0.zip** in the root directory of the project. For details about how to install OmniStateStore, see the [Installation Guide](./installation_guide.md).
+2. Compile the OmniStateStore source code.<br>Use [sh build.sh](../../scripts/build.sh) to compile OmniStateStore and generate **BoostKit-omniruntime-omniStateStore-1.3.0.zip** in the root directory of the project. For details about how to install OmniStateStore, see the [Installation Guide](./installation_guide.md).
 
 3. Deploy the environment.<br>Use Docker to deploy the containerized runtime environment of Flink, including one JobManager container and two TaskManager containers. The container flavor is 8C32GB. The JobManager is allocated 8 GB of memory. Each TaskManager is allocated two task slots and 8 GB of memory.
 
@@ -100,7 +100,7 @@ Set up the OmniStateStore **runtime environment** as described in the following 
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
 ```
 
-5. Install OmniStateStore.<br>Extract **BoostKit-omniruntime-omniStateStore-1.2.0.zip**, copy **librocksdb.so.6** to the **/usr/local/lib** directory, and copy **flink-alg-falcon.jar** to the **$FLINK_HOME/lib** directory.<br>Once the copying operation is complete, the installation is finished. No additional configuration is required.
+5. Install OmniStateStore.<br>Extract **BoostKit-omniruntime-omniStateStore-1.3.0.zip**, copy **librocksdb.so.6** to the **/usr/local/lib** directory, and copy **flink-alg-falcon.jar** to the **$FLINK_HOME/lib** directory.<br>Once the copying operation is complete, the installation is finished. No additional configuration is required.
 
 6. Set the OmniStateStore parameters.<br>Set the OmniStateStore parameters in **$FLINK_HOME/conf/flink-conf.yaml** to enable the acceleration feature and specify the RocksDB state backend. For details, see [flink-conf.yaml](../../conf/flink-conf.yaml).
 

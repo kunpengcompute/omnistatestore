@@ -12,11 +12,11 @@
     </tr>
     <tr>
       <td style="text-align: left;">Product Version</td>
-      <td style="text-align: left;">26.0.0</td>
+      <td style="text-align: left;">26.1.0</td>
     </tr>
     <tr>
       <td style="text-align: left;">Software Name and Version</td>
-      <td style="text-align: left;">OmniStateStore 1.2.0</td>
+      <td style="text-align: left;">OmniStateStore 1.3.0</td>
     </tr>
   </tbody>
 </table>
@@ -235,7 +235,7 @@ The software packages, release documents, and product documents have been scanne
   </thead>
   <tbody>
     <tr>
-      <td style="text-align: left;">1.2.0 Release Notes</td>
+      <td style="text-align: left;">1.3.0 Release Notes</td>
       <td style="text-align: left;">Provides OmniStateStore version update and release information.</td>
       <td style="text-align: left;">Open-source repository</td>
     </tr>

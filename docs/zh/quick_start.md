@@ -97,7 +97,7 @@ OmniStateStore特性的使能过程中，存在以下约束：<br>
 
 1. 下载[OmniStateStore源码](https://gitcode.com/openeuler/OmniStateStore.git)，选择falcon分支。
 
-2. 编译OmniStateStore源码。<br>使用[sh build.sh](../../scripts/build.sh)编译OmniStateStore，在项目根目录生成BoostKit-omniruntime-omniStateStore-1.2.0.zip。OmniStateStore的详细安装流程请参见《[安装指南](./installation_guide.md)》。
+2. 编译OmniStateStore源码。<br>使用[sh build.sh](../../scripts/build.sh)编译OmniStateStore，在项目根目录生成BoostKit-omniruntime-omniStateStore-1.3.0.zip。OmniStateStore的详细安装流程请参见《[安装指南](./installation_guide.md)》。
 
 3. 部署环境。<br>使用Docker部署Flink的容器化运行环境，包括一个JobManager容器和两个TaskManager容器，容器配置均为8C32GB。其中，JobManager分配8GB内存，单个TaskManager分配2个TaskSlot和8GB内存。
 
@@ -106,7 +106,7 @@ OmniStateStore特性的使能过程中，存在以下约束：<br>
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
 ```
 
-5. 安装OmniStateStore。<br>解压BoostKit-omniruntime-omniStateStore-1.2.0.zip，将librocksdb.so.6拷贝到“/usr/local/lib”目录下，将flink-alg-falcon.jar拷贝到“$FLINK_HOME/lib”目录下。<br>拷贝完成后即完成安装，无需额外配置。
+5. 安装OmniStateStore。<br>解压BoostKit-omniruntime-omniStateStore-1.3.0.zip，将librocksdb.so.6拷贝到“/usr/local/lib”目录下，将flink-alg-falcon.jar拷贝到“$FLINK_HOME/lib”目录下。<br>拷贝完成后即完成安装，无需额外配置。
 
 6. 配置OmniStateStore参数。<br>参考[flink-conf.yaml](../../conf/flink-conf.yaml)，在“$FLINK_HOME/conf/flink-conf.yaml”中配置OmniStateStore参数以使能加速特性，并指定使用RocksDB状态后端。
 
