@@ -51,6 +51,7 @@ OmniStateStore适用于Apache Flink流处理任务中的有状态场景，通常
 </font>
 
 ## 约束与限制
+
 <font size="3">
 OmniStateStore的性能提升比依赖于用例的RocksDB占比和状态操作类型，对于RocksDB占比低的场景仅保证性能不劣化。<br>
 OmniStateStore作为Flink的加速组件，目前仅兼容华为鲲鹏计算平台，将在后续支持在通用X86服务器上运行。
