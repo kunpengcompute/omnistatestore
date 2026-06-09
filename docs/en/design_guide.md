@@ -34,7 +34,7 @@ When a state range query operation is performed, the key prefix of the state to 
 
 **Figure 2** Flink filter principle
 
-<a href="./figures/Flink filter principle.png"><img src="./figures/Flink_filter_principle.png" alt="Filter principle" width="700" /></a>
+<a href="./figures/Flink_filter_principle.png"><img src="./figures/Flink_filter_principle.png" alt="Filter principle" width="700" /></a>
 
 The filters provided by RocksDB have the following limitations in Flink scenarios:<br>
 **- In random read/write scenarios, using a Bloom filter can significantly degrade system performance.** For example, frequent compaction operations on RocksDB SSTables cause the in-memory filters to become invalid frequently. As a result, new filters must be repeatedly rebuilt for the updated SSTables. In the Nexmark 0.2 Q15 test case, enabling the Bloom filter increases the filter miss rate by a factor of 10, leading to a roughly 10× decrease in overall system performance.<br>

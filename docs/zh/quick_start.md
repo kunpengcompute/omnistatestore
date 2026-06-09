@@ -20,8 +20,6 @@ OmniStateStore特性的使能过程中，存在以下约束：<br>
 
 </font>
 
-
-
 ## 环境准备
 <font size=3>
 
@@ -90,35 +88,35 @@ OmniStateStore特性的使能过程中，存在以下约束：<br>
 </table>
 </font>
 
-
-
 ## 操作步骤
 <font size=3>
 
 1. 下载[OmniStateStore源码](https://gitcode.com/openeuler/OmniStateStore.git)，选择falcon分支。
+2. 编译OmniStateStore源码。
+  使用[sh build.sh](../../scripts/build.sh)编译OmniStateStore，在项目根目录生成BoostKit-omniruntime-omniStateStore-1.3.0.zip。OmniStateStore的详细安装流程请参见《[安装指南](./installation_guide.md)》。
+3. 部署环境。
+  使用Docker部署Flink的容器化运行环境，包括一个JobManager容器和两个TaskManager容器，容器配置均为8C32GB。其中，JobManager分配8GB内存，单个TaskManager分配2个TaskSlot和8GB内存。
+4. 设置环境变量。<br>在容器中部署指定版本的Flink和Nexmark，并配置JAVA_HOME，FLINK_HOME环境变量。此外，将LD_LIBRARY_PATH配置为：
 
-2. 编译OmniStateStore源码。<br>使用[sh build.sh](../../scripts/build.sh)编译OmniStateStore，在项目根目录生成BoostKit-omniruntime-omniStateStore-1.3.0.zip。OmniStateStore的详细安装流程请参见《[安装指南](./installation_guide.md)》。
+  ```shell
+  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
+  ```
 
-3. 部署环境。<br>使用Docker部署Flink的容器化运行环境，包括一个JobManager容器和两个TaskManager容器，容器配置均为8C32GB。其中，JobManager分配8GB内存，单个TaskManager分配2个TaskSlot和8GB内存。
+5. 安装OmniStateStore。
 
-4. 设置环境变量。<br>在容器中部署指定版本的Flink和Nexmark，并配置JAVA_HOME，FLINK_HOME环境变量。此外，将LD_LIBRARY_PATH配置为：<br>
-```
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
-```
-
-5. 安装OmniStateStore。<br>解压BoostKit-omniruntime-omniStateStore-1.3.0.zip，将librocksdb.so.6拷贝到“/usr/local/lib”目录下，将flink-alg-falcon.jar拷贝到“$FLINK_HOME/lib”目录下。<br>拷贝完成后即完成安装，无需额外配置。
-
-6. 配置OmniStateStore参数。<br>参考[flink-conf.yaml](../../conf/flink-conf.yaml)，在“$FLINK_HOME/conf/flink-conf.yaml”中配置OmniStateStore参数以使能加速特性，并指定使用RocksDB状态后端。
-
+  解压BoostKit-omniruntime-omniStateStore-1.3.0.zip，将librocksdb.so.6拷贝到“/usr/local/lib”目录下，将flink-alg-falcon.jar拷贝到“$FLINK_HOME/lib”目录下。  拷贝完成后即完成安装，无需额外配置。
+6. 配置OmniStateStore参数。
+   参考[flink-conf.yaml](../../conf/flink-conf.yaml)，在“$FLINK_HOME/conf/flink-conf.yaml”中配置OmniStateStore参数以使能加速特性，并指定使用RocksDB状态后端。
 7. 验证加速效果。<br>使用原生Flink运行Nexmark q4用例，记录任务的单核吞吐量。随后使能OmniStateStore运行相同用例，观察任务单核吞吐量相比原生Flink是否有明显提升。<br>用户可以在Flink的运行日志中搜索以下关键字，来确认OmniStateStore特性已启用成功。<br>
 
-```
-[FALCON] enable miniBatch process for StreaminJoinOperator.
-[FALCON] accState is valueState, use HashLinkList as memTable structure.
-[FALCON] left-records is map, use range filter.
-[FALCON] <accState, VALUE> enable falcon cache.
-[FALCON] merge operation is used for left-records.
-[FALCON] enable lz4 compression for rocksdb level0 and level1.
-```
-若成功匹配到相关日志信息，说明OmniStateStore已生效，任务性能已得到优化。
+  ```text
+  [FALCON] enable miniBatch process for StreaminJoinOperator.
+  [FALCON] accState is valueState, use HashLinkList as memTable structure.
+  [FALCON] left-records is map, use range filter.
+  [FALCON] <accState, VALUE> enable falcon cache.
+  [FALCON] merge operation is used for left-records.
+  [FALCON] enable lz4 compression for rocksdb level0 and level1.
+  ```
+
+  若成功匹配到相关日志信息，说明OmniStateStore已生效，任务性能已得到优化。
 </font>

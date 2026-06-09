@@ -10,7 +10,7 @@ When running the Nexmark 0.2 Q4 test case with Flink 1.16.1 and attempting to en
 
 **Figure 1** OmniStateStore error information
 
-<a href="./figures/OmniStateStore faq1.png"><img src="./figures/OmniStateStore_faq1.png" alt="faq" width="1200" /></a>
+<a href="./figures/OmniStateStore_faq1.png"><img src="./figures/OmniStateStore_faq1.png" alt="faq" width="1200" /></a>
 
 **Cause<br>**
 OmniStateStore supports only Flink 1.16.3 with FRocksDB 6.20.3. It requires lightweight modifications to the Flink codebase. However, if a different Flink version is used or the codebase is modified independently, conflicts may arise.<br>
@@ -30,12 +30,12 @@ Adopt one of the following solutions:<br>Solution 1: Roll back to Flink 1.16.3 a
 
 **Figure 2** Job Manager error information
 
-<a href="./figures/OmniStateStore faq2-1.png"><img src="./figures/OmniStateStore_faq2-1.png" alt="faq" width="1200" /></a>
+<a href="./figures/OmniStateStore_faq2-1.png"><img src="./figures/OmniStateStore_faq2-1.png" alt="faq" width="1200" /></a>
 
 
 **Figure 3** Task Manager error information
 
-<a href="./figures/OmniStateStore faq2-2.png"><img src="./figures/OmniStateStore_faq2-2.png" alt="faq" width="1200" /></a>
+<a href="./figures/OmniStateStore_faq2-2.png"><img src="./figures/OmniStateStore_faq2-2.png" alt="faq" width="1200" /></a>
 
 **Cause<br>**
 OmniStateStore depends on **librocksdb.so.6**. Flink tasks load the dynamic library from the **LD_LIBRARY_PATH** directory. If the dynamic library is not deployed in the specified path as required or the **LD_LIBRARY_PATH** environment variable is not correctly set, the task fails to be executed.

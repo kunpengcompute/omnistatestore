@@ -1,6 +1,6 @@
 <font size=3>
 
-- [Project Introduction](./README.md)
+- [Project Introduction](./../README_EN.md)
 - [Quick Start](./quick_start.md)
 - [Release Notes](./release_notes.md)
 - [Installation Guide](./installation_guide.md)
