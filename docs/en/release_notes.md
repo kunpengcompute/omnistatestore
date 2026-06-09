@@ -1,9 +1,10 @@
 # Release Notes
-<font size=3>View OmniStateStore version information and feature updates.</font>
+
+View OmniStateStore version information and feature updates.
 
 ## Version Mapping
 ### Product Version
-<font size=3>
+
 <table>
   <tbody>
     <tr>
@@ -20,10 +21,9 @@
     </tr>
   </tbody>
 </table>
-</font>
 
 ### Software Versions
-<font size=3>
+
 <table>
   <thead>
     <tr>
@@ -54,10 +54,9 @@
     </tr>
   </tbody>
 </table>
-</font>
 
 ### Hardware Version
-<font size=3>
+
 <table>
   <tbody>
     <tr>
@@ -70,10 +69,9 @@
     </tr>
   </tbody>
 </table>
-</font>
 
 ### Virus Scan Result
-<font size=3>
+
 The software packages, release documents, and product documents have been scanned by multiple antivirus software, and no virus is found.  
 <table>
   <tbody>
@@ -147,83 +145,91 @@ The software packages, release documents, and product documents have been scanne
     </tr>
   </tbody>
 </table>
-</font>
 
 ## Version Updates
 ## V1.2.0
 ### Change Description
-<font size=3>The current version aims to address poor I/O performance in big data scenarios by enhancing Flink's efficiency in using RocksDB and overall I/O operations. The architecture of version 1.2.0 has been revised and is independent of versions 1.1.0 and 1.0.0. The new features include:</font>
+
+The current version aims to address poor I/O performance in big data scenarios by enhancing Flink's efficiency in using RocksDB and overall I/O operations. The architecture of version 1.2.0 has been revised and is independent of versions 1.1.0 and 1.0.0. The new features include:
 
 ### New Features
-<font size=3>
 
-- **Flink semantic state caching algorithm**: States with the same key are preferentially aggregated in memory, reducing the frequency of RocksDB accesses.<br>
-- **Flink intelligent multi-stream awareness algorithm**: For states that require only point reads and writes, the MemTable data structure is replaced with a HashLinkList to improve the efficiency of point operations.<br>
-- **Replace RMW with Merge**: Reduces the state update overhead for the Join operator.<br>
-- **Dual-stream Join data cache algorithm**: Minimizes the number of range queries on the state in the StreamJoinOperator.<br>
-- **Dynamic filter**: Eliminates redundant state query operations.<br>
-</font>
+- **Flink semantic state caching algorithm**: States with the same key are preferentially aggregated in memory, reducing the frequency of RocksDB accesses.
+- **Flink intelligent multi-stream awareness algorithm**: For states that require only point reads and writes, the MemTable data structure is replaced with a HashLinkList to improve the efficiency of point operations.
+- **Replace RMW with Merge**: Reduces the state update overhead for the Join operator.
+- **Dual-stream Join data cache algorithm**: Minimizes the number of range queries on the state in the StreamJoinOperator.
+- **Dynamic filter**: Eliminates redundant state query operations.
 
 ### Modified Features
-<font size=3>None</font>
+
+None
 
 ### Removed Features
-<font size=3>Delete some features such as key-value separation and persistent storage of priority queues. </font>
+
+Delete some features such as key-value separation and persistent storage of priority queues.
 
 ### Resolved Issues
-<font size=3>None</font>
+
+None
 
 ### Known Issues
-<font size=3>None</font>
+
+None
 
 ## V1.1.0
 ### Change Description
-<font size=3>In the current version, a new state storage technology is introduced to improve the I/O performance of Flink in big data scenarios.</font>
+
+In the current version, a new state storage technology is introduced to improve the I/O performance of Flink in big data scenarios.
 
 ### New Features
-<font size=3>
 
 - Interconnection with the Flink metric framework to implement some common metrics
 - Persistent storage of priority queues
 - Key-value separated storage
-</font>
 
 ### Modified Features
-<font size=3>None</font>
+
+None
 
 ### Removed Features
-<font size=3>None</font>
+
+None
 
 ### Resolved Issues
-<font size=3>None</font>
+
+None
 
 ### Known Issues
-<font size=3>None</font>
+
+None
 
 ## V1.0.0
-
 ### Change Description
 
-<font size=3>In the current version, a new state storage technology is introduced to improve the I/O performance of Flink in big data scenarios.</font>
+In the current version, a new state storage technology is introduced to improve the I/O performance of Flink in big data scenarios.
 
 ### New Features
-<font size=3>None</font>
+
+None
 
 ### Modified Features
-<font size=3>None</font>
+
+None
 
 ### Removed Features
-<font size=3>None</font>
+
+None
 
 ### Resolved Issues
-<font size=3>None</font>
+
+None
 
 ### Known Issues
-<font size=3>None</font>
+
+None
 
 ## 1.3 Related Documentation
 ### Related Documentation
-<font size=3>
 
 <table>
   <thead>

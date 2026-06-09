@@ -1,10 +1,10 @@
 # OmniStateStore Best Practices
-<font size=3>Learn best practice examples of OmniStateStore. These examples help you quickly understand its application scenarios and performance benefits.</font>
+
+Learn best practice examples of OmniStateStore. These examples help you quickly understand its application scenarios and performance benefits.
 
 ## Operating Environment
-<font size=3>
 
-In this example, the performance benefits of OmniStateStore are verified on a Kunpeng 920 server. The following table lists the hardware and software specifications for task running.<br>
+In this example, the performance benefits of OmniStateStore are verified on a Kunpeng 920 server. The following table lists the hardware and software specifications for task running.
 
 **Table 1** Hardware and software configurations
 
@@ -59,14 +59,13 @@ In this example, the performance benefits of OmniStateStore are verified on a Ku
   </tbody>
 </table>
 
-</font>
-
 ## Flink Deployment Method
-<font size=3>
-In this example, the Flink cluster is deployed using containers. Specifically, one JobManager container and two TaskManager containers are deployed, each with a flavor of 8C32GB. Each TaskManager container hosts four TaskManagers, with each TaskManager configured with two slots. Each of the JobManager and TaskManagers is allocated 8 GB of memory.<br>
-The Flink configuration used in this example is as follows:<br>
 
-```
+In this example, the Flink cluster is deployed using containers. Specifically, one JobManager container and two TaskManager containers are deployed, each with a flavor of 8C32GB. Each TaskManager container hosts four TaskManagers, with each TaskManager configured with two slots. Each of the JobManager and TaskManagers is allocated 8 GB of memory.
+
+The Flink configuration used in this example is as follows:
+
+```text
 taskmanager.memory.process.size: 8G
 jobmanager.rpc.address: 172.19.0.2
 jobmanager.rpc.port: 6123
@@ -79,13 +78,12 @@ state.backend: rocksdb
 state.backend.rocksdb.localdir: /data/rocksdb
 state.backend.incremental: true
 ```
-</font>
 
 ## Test Case
-<font size=3>
 
-This example test is based on the Nexmark 0.2 Q4 case. For instructions on downloading Nexmark, click [Download Link](https://github.com/nexmark/nexmark/releases/tag/v0.2.0). For details about how to use Nexmark, see [Usage Description](#Nexmark Usage Description).<br>
-In this test case, dual-stream Join + AGG is used. The following figure shows the test result.<br>
+This example test is based on the Nexmark 0.2 Q4 case. For instructions on downloading Nexmark, click [Download Link](https://github.com/nexmark/nexmark/releases/tag/v0.2.0). For details about how to use Nexmark, see [Usage Description](#Nexmark Usage Description).
+
+In this test case, dual-stream Join + AGG is used. The following figure shows the test result.
 
 **Figure 1** Running the Nexmark Q4 case
 
@@ -100,14 +98,11 @@ RocksDBMapState is used for the dual-stream join operation, and RocksDBValueStat
 
 To generate a sufficient number of states for evaluating the acceleration effect of OmniStateStore, this example runs Nexmark with 100 million data records. For details about the Nexmark configuration file example, see [nexmark.yaml](#Nexmark usage description).
 
-</font>
-
 ## OmniStateStore Practice
-<font size=3>
 
 In this example, OmniStateStore is installed and enabled based on [Installation Guide](installation_guide.md) and [User Guide](user_guide.md). If the following log information is displayed in the Flink log, OmniStateStore is successfully enabled.
 
-```
+```text
 2026-03-03 16:00:52,972 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - [FALCON] configuring falcon cache heap memory management system. current TM have 2 slots, so each slot can cache 10000 states.
 2026-03-03 16:00:53,057 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - [FALCON] configuring falcon cache heap memory management system. current TM have 2 slots, so each slot can cache 10000 states.
 2026-03-03 16:00:53,068 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - [FALCON] configuring falcon cache heap memory management system. current TM have 2 slots, so each slot can cache 10000 states.
@@ -143,26 +138,23 @@ In this example, OmniStateStore is installed and enabled based on [Installation 
 ```
 When running the Nexmark 0.2 Q4 test case on native Flink, the single-core task throughput is 20.52. After OmniStateStore is enabled, the single-core throughput increases to 37.26. **Using single-core throughput as the performance metric, OmniStateStore improves performance by 81.58%.**
 
-</font>
-
 ## Nexmark Usage Description
-<font size=3>
 
 1. Download the [Nexmark software package](https://github.com/nexmark/nexmark/releases/tag/v0.2.0).
 
 2. Deploy the Nexmark software package in the environment, for example, in the **/opt** directory.
-```
+```shell
 cd /opt
 unzip nexmark-flink.zip
 rm -rf nexmark-flink.zip
 mv nexmark-flink nexmark
 ```
 3. Deploy the Nexmark JAR package to the **lib** directory of Flink.
-```
+```shell
 cp -r /opt/nexmark/lib/nexmark-flink-0.2-SNAPSHOT.jar $FLINK_HOME/lib/
 ```
 4. Modify the Nexmark test configuration, that is, modify the **/opt/nexmark/conf/nexmark.yaml** file. The configuration example is as follows:
-```
+```text
 # The metric reporter server host.
 nexmark.metric.reporter.host: 172.19.0.2
 # The metric reporter server port.
@@ -219,11 +211,10 @@ nexmark.metric.monitor.delay: 8s
 ```
 
 5. Start the Flink cluster and run the specified Nexmark test case.
-```
+```shell
 cd $FLINK_HOME/bin && ./start-cluster.sh
 cd /opt/nexmark/bin && ./setup_cluster.sh
 ./run_query.sh q4
 ./shutdown_cluster.sh
 cd $FLINK_HOME/bin && ./stop-cluster.sh
 ```
-</font>
