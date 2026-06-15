@@ -108,21 +108,26 @@
 ## 安装依赖
 ### 安装JDK
 
-1. 下载[JDK软件包](https://oraclelinux.pkgs.org/8/ol8-appstream-aarch64/java-1.8.0-openjdk-1.8.0.482.b08-1.0.1.el8.aarch64.rpm.html)。
-
-2. 进入安装包的存放目录，执行以下命令安装JDK软件包。
-```shell
-sudo yum localinstall java-1.8.0-openjdk-1.8.0.482.b08-1.0.1.el8.aarch64.rpm
-  
+安装并配置毕昇JDK，为运行Flink集群提供运行时环境。
+ 	 
+1. 进入物理机的`/usr/local`目录并下载bisheng-jdk-8u342-linux-aarch64.tar.gz。
+ 	 
+```bash
+cd /usr/local
+wget --no-check-certificate https://mirror.iscas.ac.cn/kunpeng/archive/compiler/bisheng_jdk/bisheng-jdk-8u342-linux-aarch64.tar.gz
 ```
-  安装完成后，可通过以下命令查看JDK默认安装目录下的文件情况。
- ```shell
-  ls -l /usr/java/ 
+ 	 
+2. 进入`/usr/local`目录并解压bisheng-jdk-8u342-linux-aarch64.tar.gz，且将解压后的JDK目录的所属用户、所属用户组变更为`root`。
+ 	 
+```bash
+tar -zxvf bisheng-jdk-8u342-linux-aarch64.tar.gz
+chown -R root /usr/local/bisheng-jdk1.8.0_342
+chgrp -R root /usr/local/bisheng-jdk1.8.0_342
 ```
-  
+ 	   
 3. 配置环境变量，在“/etc/profile”文件中添加如下信息。
 ```shell
-export JAVA_HOME=/usr/java/jdk-1.8.0
+export JAVA_HOME=/usr/local/bisheng-jdk1.8.0_342
 export JRE_HOME=$JAVA_HOME/jre
 export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
 export PATH=$JAVA_HOME/bin:$PATH
