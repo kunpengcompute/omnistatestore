@@ -1,17 +1,17 @@
 # 用户指南
-<font size=3>提供OmniStateStore的详细使用说明与操作指导，用户可以参阅该文档启动OmniStateStore加速功能。请确保已按照《[安装指南](installation_guide.md)》完成了OmniStateStore安装。</font>
 
-
+提供OmniStateStore的详细使用说明与操作指导，用户可以参阅该文档启动OmniStateStore加速功能。请确保已按照《[安装指南](installation_guide.md)》完成了OmniStateStore安装。
 
 ## 使用OmniStateStore
-<font size=3>
 
-1. 根据业务使用情况和运行环境，设置$FLINK_HOME/conf/flink-conf.yaml文件中的相关配置项。请注意，需要在JobManager和所有TaskManager中同步进行修改。<br>
+1. 根据业务使用情况和运行环境，设置$FLINK_HOME/conf/flink-conf.yaml文件中的相关配置项。请注意，需要在JobManager和所有TaskManager中同步进行修改。
 
-&emsp;&emsp;&emsp;&emsp;配置项格式为[配置项名称] + [英文冒号] + [空格] + [配置项值]，参数配置方法请参阅[配置项说明](#配置项说明)，配置样例如下：<br>
+
+&emsp;&emsp;&emsp;&emsp;配置项格式为[配置项名称] + [英文冒号] + [空格] + [配置项值]，参数配置方法请参阅[配置项说明](#配置项说明)，配置样例如下：
+
 <div style="margin-left: 50px;">
 
-```
+```text
 ## 配置使用Rocksdb状态后端
 state.backend: rocksdb
 state.backend.rocksdb.localdir: /data/rocksdb
@@ -32,12 +32,7 @@ state.backend.rocksdb.falcon.use-merge: true
 
 2. 启动Flink任务，查看日志中配置项是否正确配置，并在Flink日志中观测是否成功使能OmniStateStore。详细观测方式请参阅[OmniStateStore特性使能情况观测方式](#omnistatestore特性使能情况观测方式)。
 
-</font>
-
-
-
 ## 配置项说明
-<font size=3>
 
 **表1** OmniStateStore配置项说明
 <table>
@@ -124,14 +119,10 @@ state.backend.rocksdb.falcon.use-merge: true
     </tr>
   </tbody>
 </table>
-</font>
-
-
 
 ## OmniStateStore特性使能情况观测方式
-<font size=3>
 
-启动Flink任务后，可以在Flink的运行日志中观察OmniStateStore的特性使能情况。各加速特性的适用场景和使能观测方式由下表所示：<br>
+启动Flink任务后，可以在Flink的运行日志中观察OmniStateStore的特性使能情况。各加速特性的适用场景和使能观测方式由下表所示：
 
 **表2** OmniStateStore特性使能情况观测方式
 <table>
@@ -171,11 +162,8 @@ state.backend.rocksdb.falcon.use-merge: true
   </tbody>
 </table>
 
-</font>
-
 ## 维护特性
 
-<font size=3>
-若需要升级OmniStateStore，请参阅《[安装指南](./installation_guide.md/#安装omnistatestore》安装新版本OmniStateStore，无需卸载旧版本。<br>
+若需要升级OmniStateStore，请参阅《[安装指南](./installation_guide.md/#安装omnistatestore》安装新版本OmniStateStore，无需卸载旧版本。
+
 若需要卸载OmniStateStore，请参阅《[安装指南](installation_guide.md/#卸载omnistatestore)》卸载OmniStateStore，并删除`$FLINK_HOME/conf/flink-conf.yaml`文件中的相关配置项。
-</font>

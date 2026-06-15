@@ -1,15 +1,15 @@
 # User Guide
-<font size=3>Learn how to use the OmniStateStore feature effectively with this document. Ensure that OmniStateStore has been installed following instructions in the [Installation Guide](installation_guide.md).</font>
+
+Learn how to use the OmniStateStore feature effectively with this document. Ensure that OmniStateStore has been installed following instructions in the [Installation Guide](installation_guide.md).
 
 ## Using OmniStateStore
-<font size=3>
 
-1. Set the related configuration items in the **$FLINK_HOME/conf/flink-conf.yaml** file based on the service usage and operating environment. Note that the modification must be performed on the JobManager and all TaskManagers.<br>
+1. Set the related configuration items in the **$FLINK_HOME/conf/flink-conf.yaml** file based on the service usage and operating environment. Note that the modification must be performed on the JobManager and all TaskManagers.
 
-&emsp;&emsp;&emsp;&emsp;The configuration item format is [Configuration item name] + [Colon] + [Space] + [Configuration item value]. For details about how to set the parameters, see [Configuration Items](#Configuration Items). The following is a configuration example:<br>
+&emsp;&emsp;&emsp;&emsp;The configuration item format is [Configuration item name] + [Colon] + [Space] + [Configuration item value]. For details about how to set the parameters, see [Configuration Items](#Configuration Items). The following is a configuration example:
 <div style="margin-left: 50px;">
 
-```
+```text
 ## Enable the RocksDB state backend.
 state.backend: rocksdb
 state.backend.rocksdb.localdir: /data/rocksdb
@@ -30,10 +30,7 @@ state.backend.rocksdb.falcon.use-merge: true
 
 2. Start the Flink task, verify that the configuration items in the logs are set correctly, and check the logs to confirm that OmniStateStore is enabled. For details, see [Observing the Enabling Status of OmniStateStore](#Observing the Enabling Status of OmniStateStore).
 
-</font>
-
 ## Configuration Items
-<font size=3>
 
 **Table 1** OmniStateStore configuration items
 <table>
@@ -121,12 +118,9 @@ state.backend.rocksdb.falcon.use-merge: true
   </tbody>
 </table>
 
-</font>
-
 ## Observing the Enabling Status of OmniStateStore
-<font size=3>
 
-After starting a Flink task, check the Flink logs to verify whether the OmniStateStore feature is enabled. The following table shows how to verify whether each OmniStateStore subfeature is enabled in the corresponding application scenario.<br>
+After starting a Flink task, check the Flink logs to verify whether the OmniStateStore feature is enabled. The following table shows how to verify whether each OmniStateStore subfeature is enabled in the corresponding application scenario.
 
 **Table 2** Observing the enabling status of OmniStateStore
 <table>
@@ -166,11 +160,8 @@ After starting a Flink task, check the Flink logs to verify whether the OmniStat
   </tbody>
 </table>
 
-</font>
-
 ## Maintaining the Feature
-<font size=3>
 
-To upgrade OmniStateStore, install the new version following instructions in the [Installation Guide](installation_guide.md/#12-Installing OmniStateStore). You do not need to uninstall the existing version.<br>
+To upgrade OmniStateStore, install the new version following instructions in the [Installation Guide](installation_guide.md/#12-Installing OmniStateStore). You do not need to uninstall the existing version.
+
 To uninstall OmniStateStore, perform operations following instructions in the [Installation Guide](installation_guide.md/#13-Uninstalling OmniStateStore) and delete related configuration items from the **$FLINK_HOME/conf/flink-conf.yaml** file.
-</font>
