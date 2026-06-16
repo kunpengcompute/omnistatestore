@@ -13,7 +13,7 @@
     </tr>
     <tr>
       <td style="text-align: left;">产品版本</td>
-      <td style="text-align: left;">26.1.0</td>
+      <td style="text-align: left;">26.1.RC1</td>
     </tr>
     <tr>
       <td style="text-align: left;">软件名称和版本</td>
