@@ -108,22 +108,24 @@ The following table describes the OS and dependency software installation requir
 ## Installing Dependencies
 ### Installing the JDK
 
-1. Download the [JDK software package](https://oraclelinux.pkgs.org/8/ol8-appstream-aarch64/java-1.8.0-openjdk-1.8.0.482.b08-1.0.1.el8.aarch64.rpm.html).
+ Install and configure the JDK to provide a runtime environment for running the Flink cluster.
+1. Navigate to the `/usr/local` directory of the physical machine and download bisheng-jdk-8u342-linux-aarch64.tar.gz.
 
-2. Go to the directory where the installation package is stored and execute the following command to install the JDK software.
 ```shell
-sudo yum localinstall java-1.8.0-openjdk-1.8.0.482.b08-1.0.1.el8.aarch64.rpm
-  
+cd /usr/local
+wget --no-check-certificate https://mirror.iscas.ac.cn/kunpeng/archive/compiler/bisheng_jdk/bisheng-jdk-8u342-linux-aarch64.tar.gz
 ```
-  After the installation is complete, run the following command to view the files in the default JDK installation directory.
- ```shell
-  ls -l /usr/java/ 
- ```
+2. Enter the `/usr/local` directory and extract the bisheng-jdk-8u342-linux-aarch64.tar.gz file. Then, change the ownership of the extracted JDK directory to `root` user and `root` group.
 
+```shell
+tar -zxvf bisheng-jdk-8u342-linux-aarch64.tar.gz
+chown -R root /usr/local/bisheng-jdk1.8.0_342
+chgrp -R root /usr/local/bisheng-jdk1.8.0_342
+```
 3. Configure the environment variables by adding the following information to the **/etc/profile** file.
 
 ```shell
-export JAVA_HOME=/usr/java/jdk-1.8.0
+export JAVA_HOME=/usr/local/bisheng-jdk1.8.0_342
 export JRE_HOME=$JAVA_HOME/jre
 export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
 export PATH=$JAVA_HOME/bin:$PATH
