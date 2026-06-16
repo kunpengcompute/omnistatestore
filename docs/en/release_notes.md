@@ -13,7 +13,7 @@ View OmniStateStore version information and feature updates.
     </tr>
     <tr>
       <td style="text-align: left;">Product Version</td>
-      <td style="text-align: left;">26.1.0</td>
+      <td style="text-align: left;">26.1.RC1</td>
     </tr>
     <tr>
       <td style="text-align: left;">Software Name and Version</td>

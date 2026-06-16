@@ -8,9 +8,13 @@
   </tr>
   </thead>
   <tbody>
+    <tr>
+    <td>2026-06-30</td>
+    <td>第四次正式发布。<br>发布OmniStateStore 1.3.0：<br>通过调整RocksDB不同SST层级的压缩格式，结合软算压缩算法优化，降低状态Compaction过程中的压缩/解压缩开销，提升应用端到端吞吐。 </td>
+  </tr>
   <tr>
     <td>2026-03-30</td>
-    <td>第三次正式发布。<br>发布发布OmniStateStore 1.2.0：<br>基于对接Flink和RocksDB的插件完成Flink有状态用例性能加速。对Flink进行轻量级修改，基于状态缓存和状态过滤技术，降低Flink对RocksDB的访问频次，提升有状态用例的IO性能。1.2.0版本进行了架构调整，与1.1.0以及1.0.0相互独立。 </td>
+    <td>第三次正式发布。<br>发布OmniStateStore 1.2.0：<br>基于对接Flink和RocksDB的插件完成Flink有状态用例性能加速。对Flink进行轻量级修改，基于状态缓存和状态过滤技术，降低Flink对RocksDB的访问频次，提升有状态用例的IO性能。1.2.0版本进行了架构调整，与1.1.0以及1.0.0相互独立。 </td>
   </tr>
   <tr>
     <td>2025-12-30</td>
