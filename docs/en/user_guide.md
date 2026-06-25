@@ -162,6 +162,6 @@ After starting a Flink task, check the Flink logs to verify whether the OmniStat
 
 ## Maintaining the Feature
 
-To upgrade OmniStateStore, install the new version following instructions in the [Installation Guide](installation_guide.md/#12-Installing OmniStateStore). You do not need to uninstall the existing version.
+To upgrade OmniStateStore, install the new version following instructions in the [Installation Guide](installation_guide.md/#12-Installing-OmniStateStore). You do not need to uninstall the existing version.
 
-To uninstall OmniStateStore, perform operations following instructions in the [Installation Guide](installation_guide.md/#13-Uninstalling OmniStateStore) and delete related configuration items from the **$FLINK_HOME/conf/flink-conf.yaml** file.
+To uninstall OmniStateStore, perform operations following instructions in the [Installation Guide](installation_guide.md/#13-Uninstalling-OmniStateStore) and delete related configuration items from the **$FLINK_HOME/conf/flink-conf.yaml** file.
