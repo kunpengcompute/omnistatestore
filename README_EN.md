@@ -235,6 +235,8 @@ If you do not want your model or dataset to be mentioned in OmniStateStore, or i
 
 For details about the license used for OmniStateStore, see [LICENSE](./LICENSE).
 
+For details about the license used in the documentation of OmniStateStore products, see [LICENSE](./docs/LICENSE).
+
 ## Contribution Statement
 
 1. Submit an error report: If you discover a vulnerability in OmniStateStore that is not a security issue, first search the <strong>Issues</strong> in the OmniStateStore repository to avoid submitting duplicates. If the vulnerability is not listed, create a new issue. If you discover a security-related problem, do not disclose it publicly. Please refer to the security handling guidelines for details. All error reports must include complete information about the issue.
