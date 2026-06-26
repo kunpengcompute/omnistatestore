@@ -77,11 +77,11 @@ public:
 
     BResult Read(uint8_t *buffer, uint64_t count, int64_t offset) override
     {
-        mOffset = offset;
-        if (UNLIKELY(count > INT64_MAX || offset > INT64_MAX)) {
-            LOG_ERROR("count or offset is larger than INT64_MAX, count:" << count << ", offset:" << offset << ".");
+        if (UNLIKELY(count > INT32_MAX || offset > INT32_MAX)) {
+            LOG_ERROR("count or offset is larger than INT32_MAX, count:" << count << ", offset:" << offset << ".");
             return BSS_ERR;
         }
+        mOffset = offset;
         jint jOffset = static_cast<jint>(mOffset);
         jint jCount = static_cast<jint>(count);
         auto byteArray = (jbyteArray)mEnv->CallObjectMethod(mObjectHdfs, mRead, jOffset, jCount);
