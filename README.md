@@ -240,6 +240,8 @@ OmniStateStore/                       # 项目根目录
 
 OmniStateStore产品使用的许可证，具体请参见 [LICENSE](./LICENSE)。
 
+OmniStateStore产品的文档使用的许可证，具体请参见 [LICENSE](./docs/LICENSE)。
+
 ## 贡献声明
 
 1. 提交错误报告：如果您在OmniStateStore中发现了一个不存在安全问题的漏洞，请在OmniStateStore仓库中的Issues中搜索，以防该漏洞被重复提交，如果找不到可以创建一个新的Issue。如果发现了一个安全问题请不要将其公开，请参阅安全问题处理方式。提交错误报告时应包含完整信息。
