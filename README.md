@@ -199,7 +199,7 @@ OmniStateStore/                       # 项目根目录
     </tr>
     <tr>
       <td style="text-align: left;">公网IP地址/公网URL地址/域名/邮箱地址</td>
-      <td style="text-align: left;"><a href="https://gcc.gun.org/bugs/">https://gcc.gun.org/bugs/</a></td>
+      <td style="text-align: left;"><a href="https://gcc.gnu.org/bugs/">https://gcc.gnu.org/bugs</a></td>
     </tr>
     <tr>
       <td style="text-align: left;">所在文件类型</td>

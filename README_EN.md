@@ -199,7 +199,7 @@ Check the `PermitRootLogin` configuration item in `/etc/ssh/sshd_config`.
     </tr>
     <tr>
       <td style="text-align: left;">Public IP Address / Public URL / Domain Name / Email Address</td>
-      <td style="text-align: left;"><a href="https://gcc.gun.org/bugs/">https://gcc.gun.org/bugs/</a></td>
+      <td style="text-align: left;"><a href="https://gcc.gnu.org/bugs/">https://gcc.gnu.org/bugs/</a></td>
     </tr>
     <tr>
       <td style="text-align: left;">File Type</td>

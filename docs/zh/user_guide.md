@@ -163,6 +163,6 @@
 
 ## 维护特性
 
-若需要升级OmniStateStore，请参阅《[安装指南](installation_guide.md#安装omnistatestore)》安装新版本OmniStateStore，无需卸载旧版本。
+若需要升级OmniStateStore，请参阅《[安装指南](./installation_guide.md#安装omnistatestore)》安装新版本OmniStateStore，无需卸载旧版本。
 
 若需要卸载OmniStateStore，请参阅《[安装指南](installation_guide.md#卸载omnistatestore)》卸载OmniStateStore，并删除`$FLINK_HOME/conf/flink-conf.yaml`文件中的相关配置项。
