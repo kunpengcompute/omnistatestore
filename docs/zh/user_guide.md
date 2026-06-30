@@ -6,30 +6,29 @@
 
 1. 根据业务使用情况和运行环境，设置$FLINK_HOME/conf/flink-conf.yaml文件中的相关配置项。请注意，需要在JobManager和所有TaskManager中同步进行修改。
 
+  &emsp;&emsp;&emsp;&emsp;配置项格式为[配置项名称] + [英文冒号] + [空格] + [配置项值]，参数配置方法请参阅[配置项说明](#配置项说明)，配置样例如下：
 
-&emsp;&emsp;&emsp;&emsp;配置项格式为[配置项名称] + [英文冒号] + [空格] + [配置项值]，参数配置方法请参阅[配置项说明](#配置项说明)，配置样例如下：
+  <div style="margin-left: 50px;">
 
-<div style="margin-left: 50px;">
+  ```text
+  ## 配置使用Rocksdb状态后端
+  state.backend: rocksdb
+  state.backend.rocksdb.localdir: /data/rocksdb
 
-```text
-## 配置使用Rocksdb状态后端
-state.backend: rocksdb
-state.backend.rocksdb.localdir: /data/rocksdb
+  ## OmniStateStore配置参数
+  state.backend.rocksdb.options-factory: com.huawei.falcon.state.RocksDBOptOptionsFactory
+  state.backend.rocksdb.falcon.use-partition-filter: true
+  state.backend.rocksdb.falcon.use-range-filter: true
+  state.backend.rocksdb.falcon.prefix-extractor.length: 13
+  state.backend.rocksdb.falcon.use-hash-memtable: true
+  state.backend.rocksdb.falcon.use-opt-join: true
+  state.backend.rocksdb.falcon.use-state-cache: true
+  state.backend.rocksdb.falcon.state-cache-sizeLimit: 20000
+  state.backend.rocksdb.falcon.state-cache-bypass-hitRatio: 0.2
+  state.backend.rocksdb.falcon.use-merge: true
+  ```
 
-## OmniStateStore配置参数
-state.backend.rocksdb.options-factory: com.huawei.falcon.state.RocksDBOptOptionsFactory
-state.backend.rocksdb.falcon.use-partition-filter: true
-state.backend.rocksdb.falcon.use-range-filter: true
-state.backend.rocksdb.falcon.prefix-extractor.length: 13
-state.backend.rocksdb.falcon.use-hash-memtable: true
-state.backend.rocksdb.falcon.use-opt-join: true
-state.backend.rocksdb.falcon.use-state-cache: true
-state.backend.rocksdb.falcon.state-cache-sizeLimit: 20000
-state.backend.rocksdb.falcon.state-cache-bypass-hitRatio: 0.2
-state.backend.rocksdb.falcon.use-merge: true
-```
-</div>
-
+  </div>
 2. 启动Flink任务，查看日志中配置项是否正确配置，并在Flink日志中观测是否成功使能OmniStateStore。详细观测方式请参阅[OmniStateStore特性使能情况观测方式](#omnistatestore特性使能情况观测方式)。
 
 ## 配置项说明
@@ -115,7 +114,7 @@ state.backend.rocksdb.falcon.use-merge: true
       <td style="text-align: left;">state.backend.rocksdb.falcon.state-cache-bypass-hitRatio</td>
       <td style="text-align: left;">0.2</td>
       <td style="text-align: left;">ValueState状态缓存的旁路规避阈值，若缓存命中率低于该配置项，将关闭状态缓存，回退回原生Flink的读写操作。默认值为-1，表示永不关闭状态缓存。</td>
-      <td style="text-align: left;">该值最大建议配置为0.5，以保证大部分场景中使能状态缓存优化特性。该值最小建议配置为0.05，以保证在缓存命中率较低的场景规避掉状态缓存，以免引入额外性能开销。/td>
+      <td style="text-align: left;">该值最大建议配置为0.5，以保证大部分场景中使能状态缓存优化特性。该值最小建议配置为0.05，以保证在缓存命中率较低的场景规避掉状态缓存，以免引入额外性能开销。</td>
     </tr>
   </tbody>
 </table>
@@ -164,6 +163,6 @@ state.backend.rocksdb.falcon.use-merge: true
 
 ## 维护特性
 
-若需要升级OmniStateStore，请参阅《[安装指南](installation_guide.md/#安装omnistatestore)》安装新版本OmniStateStore，无需卸载旧版本。
+若需要升级OmniStateStore，请参阅《[安装指南](installation_guide.md#安装omnistatestore)》安装新版本OmniStateStore，无需卸载旧版本。
 
-若需要卸载OmniStateStore，请参阅《[安装指南](installation_guide.md/#卸载omnistatestore)》卸载OmniStateStore，并删除`$FLINK_HOME/conf/flink-conf.yaml`文件中的相关配置项。
+若需要卸载OmniStateStore，请参阅《[安装指南](installation_guide.md#卸载omnistatestore)》卸载OmniStateStore，并删除`$FLINK_HOME/conf/flink-conf.yaml`文件中的相关配置项。

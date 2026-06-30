@@ -34,7 +34,6 @@ Solution 2: Merge the modifications from Flink 1.16.1 into OmniStateStore, then 
 
 <a href="./figures/OmniStateStore_faq2-1.png"><img src="./figures/OmniStateStore_faq2-1.png" alt="faq" width="1200" /></a>
 
-
 **Figure 3** Task Manager error information
 
 <a href="./figures/OmniStateStore_faq2-2.png"><img src="./figures/OmniStateStore_faq2-2.png" alt="faq" width="1200" /></a>
@@ -46,11 +45,14 @@ OmniStateStore depends on **librocksdb.so.6**. Flink tasks load the dynamic libr
 **Solution**
 
 1. Check the **LD_LIBRARY_PATH** environment variable and copy **librocksdb.so.6** to the specified directory.
-```shell
-echo $LD_LIBRARY_PATH  # Output result example: **/usr/local/lib**
-ll /usr/local/lib  # Check whether **librocksdb.so.6** is included.
-```
+
+    ```shell
+    echo $LD_LIBRARY_PATH  # Output result example: **/usr/local/lib**
+    ll /usr/local/lib  # Check whether **librocksdb.so.6** is included.
+    ```
+
 2. If **librocksdb.so.6** is not contained, copy it to a specified directory.
-```shell
-mv librocksdb.so.6 /usr/local/lib
-```
+
+    ```shell
+    mv librocksdb.so.6 /usr/local/lib
+    ```

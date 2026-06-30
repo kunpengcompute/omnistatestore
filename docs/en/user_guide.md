@@ -4,31 +4,29 @@ Learn how to use the OmniStateStore feature effectively with this document. Ensu
 
 ## Using OmniStateStore
 
-1. Set the related configuration items in the **$FLINK_HOME/conf/flink-conf.yaml** file based on the service usage and operating environment. Note that the modification must be performed on the JobManager and all TaskManagers.
+1. Set the related configuration items in the `$FLINK_HOME/conf/flink-conf.yaml` file based on the service usage and operating environment. Note that the modification must be performed on the JobManager and all TaskManagers.
 
-&emsp;&emsp;&emsp;&emsp;The configuration item format is [Configuration item name] + [Colon] + [Space] + [Configuration item value]. For details about how to set the parameters, see [Configuration Items](#Configuration Items). The following is a configuration example:
-<div style="margin-left: 50px;">
+    The configuration item format is [Configuration item name] + [Colon] + [Space] + [Configuration item value]. For details about how to set the parameters, see [Configuration Items](#configuration-items). The following is a configuration example:
 
-```text
-## Enable the RocksDB state backend.
-state.backend: rocksdb
-state.backend.rocksdb.localdir: /data/rocksdb
+    ```text
+    ## Enable the RocksDB state backend.
+    state.backend: rocksdb
+    state.backend.rocksdb.localdir: /data/rocksdb
 
-## Set the OmniStateStore parameters.
-state.backend.rocksdb.options-factory: com.huawei.falcon.state.RocksDBOptOptionsFactory
-state.backend.rocksdb.falcon.use-partition-filter: true
-state.backend.rocksdb.falcon.use-range-filter: true
-state.backend.rocksdb.falcon.prefix-extractor.length: 13
-state.backend.rocksdb.falcon.use-hash-memtable: true
-state.backend.rocksdb.falcon.use-opt-join: true
-state.backend.rocksdb.falcon.use-state-cache: true
-state.backend.rocksdb.falcon.state-cache-sizeLimit: 20000
-state.backend.rocksdb.falcon.state-cache-bypass-hitRatio: 0.2
-state.backend.rocksdb.falcon.use-merge: true
-```
-</div>
+    ## Set the OmniStateStore parameters.
+    state.backend.rocksdb.options-factory: com.huawei.falcon.state.RocksDBOptOptionsFactory
+    state.backend.rocksdb.falcon.use-partition-filter: true
+    state.backend.rocksdb.falcon.use-range-filter: true
+    state.backend.rocksdb.falcon.prefix-extractor.length: 13
+    state.backend.rocksdb.falcon.use-hash-memtable: true
+    state.backend.rocksdb.falcon.use-opt-join: true
+    state.backend.rocksdb.falcon.use-state-cache: true
+    state.backend.rocksdb.falcon.state-cache-sizeLimit: 20000
+    state.backend.rocksdb.falcon.state-cache-bypass-hitRatio: 0.2
+    state.backend.rocksdb.falcon.use-merge: true
+    ```
 
-2. Start the Flink task, verify that the configuration items in the logs are set correctly, and check the logs to confirm that OmniStateStore is enabled. For details, see [Observing the Enabling Status of OmniStateStore](#Observing the Enabling Status of OmniStateStore).
+2. Start the Flink task, verify that the configuration items in the logs are set correctly, and check the logs to confirm that OmniStateStore is enabled. For details, see [Observing the Enabling Status of OmniStateStore](#observing-the-enabling-status-of-omnistatestore).
 
 ## Configuration Items
 
@@ -58,25 +56,25 @@ state.backend.rocksdb.falcon.use-merge: true
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.options-factory</td>
       <td style="text-align: left;">com.huawei.falcon.state.RocksDBOptOptionsFactory</td>
-      <td style="text-align: left;">Indicates whether to enable dynamic filter. The subfeatures of this technology can be configured separately. The default value is "null".</td>
+      <td style="text-align: left;">Indicates whether to enable dynamic filter. The subfeatures of this technology can be configured separately. The default value is <code>null</code>.</td>
       <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-partition-filter</td>
       <td style="text-align: left;">true</td>
-      <td style="text-align: left;">Subfeature 1 of dynamic filter, used to optimize point read/write operations on state. The default value is "false".</td>
+      <td style="text-align: left;">Subfeature 1 of dynamic filter, used to optimize point read/write operations on state. The default value is <code>false</code>.</td>
       <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-hash-memtable</td>
       <td style="text-align: left;">true</td>
-      <td style="text-align: left;">Subfeature 2 of dynamic filter, used to optimize ValueState read/write operations. The default value is "false".</td>
+      <td style="text-align: left;">Subfeature 2 of dynamic filter, used to optimize ValueState read/write operations. The default value is <code>false</code>.</td>
       <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-range-filter</td>
       <td style="text-align: left;">true</td>
-      <td style="text-align: left;">Subfeature 3 of dynamic filter, used to optimize range queries on MapState. The default value is "false".</td>
+      <td style="text-align: left;">Subfeature 3 of dynamic filter, used to optimize range queries on MapState. The default value is <code>false</code>.</td>
       <td style="text-align: left;">-</td>
     </tr>
     <tr>
@@ -88,19 +86,19 @@ state.backend.rocksdb.falcon.use-merge: true
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-opt-join</td>
       <td style="text-align: left;">true</td>
-      <td style="text-align: left;">Indicates whether to optimize StreamingJoinOperator data caching, used to reduce the frequency of MapState range queries in the operator. The default value is "false".</td>
+      <td style="text-align: left;">Indicates whether to optimize StreamingJoinOperator data caching, used to reduce the frequency of MapState range queries in the operator. The default value is <code>false</code>.</td>
       <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-merge</td>
       <td style="text-align: left;">true</td>
-      <td style="text-align: left;">Indicates whether to enable merge read/write optimization for StreamingJoinOperator, used to reduce the MapState read/write overhead of the operator. The default value is "false".</td>
+      <td style="text-align: left;">Indicates whether to enable merge read/write optimization for StreamingJoinOperator, used to reduce the MapState read/write overhead of the operator. The default value is <code>false</code>.</td>
       <td style="text-align: left;">-</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-state-cache</td>
       <td style="text-align: left;">true</td>
-      <td style="text-align: left;">Indicates whether to optimize ValueState caching, used to reduce the RocksDBValueState read and write overhead. The default value is "false".</td>
+      <td style="text-align: left;">Indicates whether to optimize ValueState caching, used to reduce the RocksDBValueState read and write overhead. The default value is <code>false</code>.</td>
       <td style="text-align: left;">-</td>
     </tr>
     <tr>
@@ -112,8 +110,8 @@ state.backend.rocksdb.falcon.use-merge: true
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.state-cache-bypass-hitRatio</td>
       <td style="text-align: left;">0.2</td>
-      <td style="text-align: left;">Threshold for bypassing ValueState caching. If the cache hit ratio falls below this value, state caching is disabled, and read/write operations revert to the native Flink mechanism. The default value is -1, indicating that state caching is never disabled.</td>
-      <td style="text-align: left;">The recommended maximum value is 0.5 to ensure that state caching optimization is enabled in most scenarios. The recommended maximum value is 0.05 to prevent state caching when the cache hit ratio is low, avoiding additional performance overhead./td>
+      <td style="text-align: left;">Threshold for bypassing ValueState caching. If the cache hit ratio falls below this value, state caching is disabled, and read/write operations revert to the native Flink mechanism. The default value is <code>-1</code>, indicating that state caching is never disabled.</td>
+      <td style="text-align: left;">The recommended maximum value is 0.5 to ensure that state caching optimization is enabled in most scenarios. The recommended maximum value is 0.05 to prevent state caching when the cache hit ratio is low, avoiding additional performance overhead.</td>
     </tr>
   </tbody>
 </table>
@@ -134,34 +132,34 @@ After starting a Flink task, check the Flink logs to verify whether the OmniStat
   <tbody>
     <tr>
       <td style="text-align: left;">Dynamic filter–Flink intelligent multi-stream awareness algorithm</td>
-      <td style="text-align: left;">For ValueState, the MemTable structure is changed from a SkipList to a HashLinkList to improve point read/write performance.</td>
-      <td style="text-align: left;">If "[FALCON] {StateName} is valueState, use HashLinkList as memTable structure" is displayed, the subfeature is enabled.</td>
+      <td style="text-align: left;">For ValueState, the MemTable structure is changed from a SkipList to a HashLinkedList to improve point read/write performance.</td>
+      <td style="text-align: left;">If <code>[FALCON] {StateName} is valueState, use HashLinkedList as memTable structure</code> is displayed, the subfeature is enabled.</td>
     </tr>
     <tr>
       <td style="text-align: left;">Dynamic filter–Prefix filtering</td>
       <td style="text-align: left;">For MapState, prefix filtering is used to eliminate redundant drive lookups, improving state range query performance.</td>
-      <td style="text-align: left;">If "[FALCON] {StateName} is map, use range filter" is displayed, the subfeature is enabled.</td>
+      <td style="text-align: left;">If <code>[FALCON] {StateName} is map, use range filter</code> is displayed, the subfeature is enabled.</td>
     </tr>
     <tr>
       <td style="text-align: left;">Flink semantic state caching–Join operator data caching</td>
       <td style="text-align: left;">For StreamingJoinOperator, data caching is used to reduce the number of mapState range queries.</td>
-      <td style="text-align: left;">If "[FALCON] enable miniBatch process for StreaminJoinOperator" is displayed, the subfeature is enabled.</td>
+      <td style="text-align: left;">If <code>[FALCON] enable miniBatch process for StreamingJoinOperator</code> is displayed, the subfeature is enabled.</td>
     </tr>
     <tr>
       <td style="text-align: left;">Flink semantic state caching–ValueState caching</td>
       <td style="text-align: left;">For ValueState, state caching is used to reduce the overhead of point query and point write.</td>
-      <td style="text-align: left;">If "[FALCON] <{StateName}, VALUE> enable falcon cache" is displayed, the subfeature is enabled.</td>
+      <td style="text-align: left;">If <code>[FALCON] <{StateName}, VALUE> enable falcon cache</code> is displayed, the subfeature is enabled.</td>
     </tr>
     <tr>
       <td style="text-align: left;">Merge read/write optimization</td>
       <td style="text-align: left;">For StreamingJoinOperator, the Merge interface of RocksDB is used to replace the RMW operation.</td>
-      <td style="text-align: left;">If "[FALCON] merge operation is used for left-records" is displayed, the subfeature is enabled.</td>
+      <td style="text-align: left;">If <code>[FALCON] merge operation is used for left-records</code> is displayed, the subfeature is enabled.</td>
     </tr>
   </tbody>
 </table>
 
 ## Maintaining the Feature
 
-To upgrade OmniStateStore, install the new version following instructions in the 《[Installation Guide](installation_guide.md/#12-Installing-OmniStateStore)》. You do not need to uninstall the existing version.
+To upgrade OmniStateStore, install the new version following instructions in [Installation Guide](./installation_guide.md#installing-omnistatestore). You do not need to uninstall the existing version.
 
-To uninstall OmniStateStore, perform operations following instructions in the 《[Installation Guide](installation_guide.md/#13-Uninstalling-OmniStateStore)》 and delete related configuration items from the **$FLINK_HOME/conf/flink-conf.yaml** file.
+To uninstall OmniStateStore, perform operations following instructions in [Installation Guide](./installation_guide.md#installing-omnistatestore) and delete related configuration items from the **$FLINK_HOME/conf/flink-conf.yaml** file.

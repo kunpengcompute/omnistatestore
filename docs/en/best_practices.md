@@ -89,7 +89,6 @@ In this test case, dual-stream Join + AGG is used. The following figure shows th
 
 <a href="./figures/Nexmark_task_screenshot.png"><img src="./figures/Nexmark_task_screenshot.png" alt="WebUI" width="1000" /></a>
 
-
 RocksDBMapState is used for the dual-stream join operation, and RocksDBValueState is used for the AGG operation. Based on the collected flame graph data, RocksDB accounts for over 60% of the execution time, making it the primary performance bottleneck in this test case.  
 
 **Figure 2** CPU flame graph of the Nexmark Q4 case
@@ -136,6 +135,7 @@ In this example, OmniStateStore is installed and enabled based on [Installation 
 2026-03-03 16:00:54,838 INFO  org.apache.flink.contrib.streaming.state.RocksDBKeyedStateBackend [] - [FALCON] <accState, VALUE> enable falcon cache, and update falcon cache size of each state to 2500.
 2026-03-03 16:00:54,855 INFO  org.apache.flink.contrib.streaming.state.RocksDBKeyedStateBackend [] - [FALCON] <accState, VALUE> enable falcon cache, and update falcon cache size of each state to 2500.
 ```
+
 When running the Nexmark 0.2 Q4 test case on native Flink, the single-core task throughput is 20.52. After OmniStateStore is enabled, the single-core throughput increases to 37.26. **Using single-core throughput as the performance metric, OmniStateStore improves performance by 81.58%.**
 
 ## Nexmark Usage Description
@@ -143,78 +143,84 @@ When running the Nexmark 0.2 Q4 test case on native Flink, the single-core task 
 1. Download the [Nexmark software package](https://github.com/nexmark/nexmark/releases/tag/v0.2.0).
 
 2. Deploy the Nexmark software package in the environment, for example, in the **/opt** directory.
-```shell
-cd /opt
-unzip nexmark-flink.zip
-rm -rf nexmark-flink.zip
-mv nexmark-flink nexmark
-```
+
+    ```shell
+    cd /opt
+    unzip nexmark-flink.zip
+    rm -rf nexmark-flink.zip
+    mv nexmark-flink nexmark
+    ```
+
 3. Deploy the Nexmark JAR package to the **lib** directory of Flink.
-```shell
-cp -r /opt/nexmark/lib/nexmark-flink-0.2-SNAPSHOT.jar $FLINK_HOME/lib/
-```
+
+    ```shell
+    cp -r /opt/nexmark/lib/nexmark-flink-0.2-SNAPSHOT.jar $FLINK_HOME/lib/
+    ```
+
 4. Modify the Nexmark test configuration, that is, modify the **/opt/nexmark/conf/nexmark.yaml** file. The configuration example is as follows:
-```text
-# The metric reporter server host.
-nexmark.metric.reporter.host: 172.19.0.2
-# The metric reporter server port.
-nexmark.metric.reporter.port: 9098
 
-#==============================================================================
-# Benchmark workload configuration (events.num)
-#==============================================================================
+    ```text
+    # The metric reporter server host.
+    nexmark.metric.reporter.host: 172.19.0.2
+    # The metric reporter server port.
+    nexmark.metric.reporter.port: 9098
 
-nexmark.workload.suite.100m.events.num: 100000000
-nexmark.workload.suite.100m.tps: 10000000
-nexmark.workload.suite.100m.queries: "q0,q1,q2,q3,q4,q5,q7,q8,q9,q10,q11,q12,q13,q14,q15,q16,q17,q18,q19,q20,q21,q22"
-nexmark.workload.suite.100m.queries.cep: "q0,q1,q2,q3"
-nexmark.workload.suite.100m.warmup.duration: 120s
-nexmark.workload.suite.100m.warmup.events.num: 50000000
-nexmark.workload.suite.100m.warmup.tps: 10000000
+    #==============================================================================
+    # Benchmark workload configuration (events.num)
+    #==============================================================================
 
-#==============================================================================
-# Benchmark workload configuration (tps, legacy mode)
-# Without events.num and with monitor.duration
-# NOTE: The numerical value of TPS is unstable
-#==============================================================================
+    nexmark.workload.suite.100m.events.num: 100000000
+    nexmark.workload.suite.100m.tps: 10000000
+    nexmark.workload.suite.100m.queries: "q0,q1,q2,q3,q4,q5,q7,q8,q9,q10,q11,q12,q13,q14,q15,q16,q17,q18,q19,q20,q21,q22"
+    nexmark.workload.suite.100m.queries.cep: "q0,q1,q2,q3"
+    nexmark.workload.suite.100m.warmup.duration: 120s
+    nexmark.workload.suite.100m.warmup.events.num: 50000000
+    nexmark.workload.suite.100m.warmup.tps: 10000000
 
-# When to monitor the metrics, default 3min after job is started
-# nexmark.metric.monitor.delay: 3min
-# How long to monitor the metrics, default 3min, i.e. monitor from 3min to 6min after job is started
-# nexmark.metric.monitor.duration: 3min
+    #==============================================================================
+    # Benchmark workload configuration (tps, legacy mode)
+    # Without events.num and with monitor.duration
+    # NOTE: The numerical value of TPS is unstable
+    #==============================================================================
 
-# nexmark.workload.suite.10m.tps: 10000000
-# nexmark.workload.suite.10m.queries: "q0,q1,q2,q3,q4,q5,q7,q8,q9,q10,q11,q12,q13,q14,q15,q16,q17,q18,q19,q20,q21,q22"
+    # When to monitor the metrics, default 3min after job is started
+    # nexmark.metric.monitor.delay: 3min
+    # How long to monitor the metrics, default 3min, i.e. monitor from 3min to 6min after job is started
+    # nexmark.metric.monitor.duration: 3min
 
-#==============================================================================
-# Workload for data generation
-#==============================================================================
+    # nexmark.workload.suite.10m.tps: 10000000
+    # nexmark.workload.suite.10m.queries: "q0,q1,q2,q3,q4,q5,q7,q8,q9,q10,q11,q12,q13,q14,q15,q16,q17,q18,q19,q20,q21,q22"
 
-nexmark.workload.suite.datagen.tps: 10000000
-nexmark.workload.suite.datagen.queries: "insert_kafka"
-nexmark.workload.suite.datagen.queries.cep: "insert_kafka"
+    #==============================================================================
+    # Workload for data generation
+    #==============================================================================
 
-#==============================================================================
-# Flink REST
-#==============================================================================
+    nexmark.workload.suite.datagen.tps: 10000000
+    nexmark.workload.suite.datagen.queries: "insert_kafka"
+    nexmark.workload.suite.datagen.queries.cep: "insert_kafka"
 
-flink.rest.address: 172.19.0.2
-flink.rest.port: 8081
+    #==============================================================================
+    # Flink REST
+    #==============================================================================
 
-#==============================================================================
-# Kafka config
-#==============================================================================
+    flink.rest.address: 172.19.0.2
+    flink.rest.port: 8081
 
-# kafka.bootstrap.servers: ***:9092
+    #==============================================================================
+    # Kafka config
+    #==============================================================================
 
-nexmark.metric.monitor.delay: 8s
-```
+    # kafka.bootstrap.servers: ***:9092
+
+    nexmark.metric.monitor.delay: 8s
+    ```
 
 5. Start the Flink cluster and run the specified Nexmark test case.
-```shell
-cd $FLINK_HOME/bin && ./start-cluster.sh
-cd /opt/nexmark/bin && ./setup_cluster.sh
-./run_query.sh q4
-./shutdown_cluster.sh
-cd $FLINK_HOME/bin && ./stop-cluster.sh
-```
+
+    ```shell
+    cd $FLINK_HOME/bin && ./start-cluster.sh
+    cd /opt/nexmark/bin && ./setup_cluster.sh
+    ./run_query.sh q4
+    ./shutdown_cluster.sh
+    cd $FLINK_HOME/bin && ./stop-cluster.sh
+    ```
