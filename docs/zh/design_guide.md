@@ -13,6 +13,7 @@ OmniStateStore适用于Flink + RocksDB架构，作为Flink和RocksDB之间的中
 <a href="./figures/OmniStateStore整体架构设计.png"><img src="./figures/OmniStateStore整体架构设计.png" alt="OmniStateStore整体架构设计" width="800" /></a>
 
 ## OmniStateStore特性关键技术
+
 ### Flink智能多流感知算法
 
 RocksDB的memTable提供了两种数据结构，一种是跳表，一种是哈希链表，且默认使用跳表作为memTable的数据结构。
@@ -54,7 +55,6 @@ RocksDB提供的filter在Flink场景应用主要存在以下两个问题：
 
 **- 自适应range filter策略** 
 当数据集中key的长度不一致时，进行key长度的动态判断。当范围查询key的长度大于filter长度时，启用prefix优化；当范围查询key的长度小于filter长度时，禁用prefix优化。
-
 
 **图3** OmniStateStore partition filter原理示意图
 
@@ -111,7 +111,6 @@ Flink的状态计数操作需多次读写RocksDB，例如在nexmark0.2-Q9用例�
 **OmniStateStore的Merge优化原理**
 
 Merge优化的原理图如下图所示。其主要原理是，使用rocksdb的merge接口替换状态更新的读写操作，将写入状态值修改为写入状态累加操作。通过这种方式，可以将一次状态读一次状态写缩减为一次状态写。当状态被第二次读时，或是触发compaction操作时，在后台触发状态的实际合并操作。
-
 
 **图5** Merge读写优化算法原理示意图
 

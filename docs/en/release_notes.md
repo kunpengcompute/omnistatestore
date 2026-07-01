@@ -3,6 +3,7 @@
 View OmniStateStore version information and feature updates.
 
 ## Version Mapping
+
 ### Product Version
 
 <table>
@@ -13,7 +14,7 @@ View OmniStateStore version information and feature updates.
     </tr>
     <tr>
       <td style="text-align: left;">Product Version</td>
-      <td style="text-align: left;">26.1.RC1</td>
+      <td style="text-align: left;">26.1.0</td>
     </tr>
     <tr>
       <td style="text-align: left;">Software Name and Version</td>
@@ -70,9 +71,9 @@ View OmniStateStore version information and feature updates.
   </tbody>
 </table>
 
-### Virus Scan Result
+### Virus Scan Results
 
-The software packages, release documents, and product documents have been scanned by multiple antivirus software, and no virus is found.  
+The software packages, release documents, and product documents have been scanned by multiple antivirus software, and no virus is found.
 <table>
   <tbody>
     <tr>
@@ -147,7 +148,37 @@ The software packages, release documents, and product documents have been scanne
 </table>
 
 ## Version Updates
+
+## V1.3.0
+
+### Change History
+
+This version addresses the high CPU overhead of state compression and decompression in big data scenarios, reducing the cost of state compaction and improving the end-to-end throughput of Flink applications. Version 1.3.0 evolves from version 1.2.0 and has the following feature updates:
+
+### New Features
+
+- **LZ4-based software compression optimization**: Switches the compression format of RocksDB L0/L1 levels to LZ4 and, combined with optimized LZ4-based software algorithms, improves state compression/decompression performance and enhances end-to-end application throughput.
+
+### Modified Features
+
+None
+
+### Removed Features
+
+None
+
+### Resolved Issues
+
+- **State loss in hashMemTable during savepoint operations**: When creating an iterator over the in-memory memTable for a savepoint, set `total_order_seek` to `true` in the read options to prevent state loss during iterator initialization.
+
+- **State loss in the dual-stream join data caching algorithm during checkpointing**: Ensures buffered data is processed before the join operator triggers a checkpoint, preventing data loss after state recovery.
+
+### Known Issues
+
+None
+
 ## V1.2.0
+
 ### Change Description
 
 The current version aims to address poor I/O performance in big data scenarios by enhancing Flink's efficiency in using RocksDB and overall I/O operations. The architecture of version 1.2.0 has been revised and is independent of versions 1.1.0 and 1.0.0. The new features include:
@@ -155,9 +186,13 @@ The current version aims to address poor I/O performance in big data scenarios b
 ### New Features
 
 - **Flink semantic state caching algorithm**: States with the same key are preferentially aggregated in memory, reducing the frequency of RocksDB accesses.
-- **Flink intelligent multi-stream awareness algorithm**: For states that require only point reads and writes, the MemTable data structure is replaced with a HashLinkList to improve the efficiency of point operations.
+
+- **Flink intelligent multi-stream awareness algorithm**: For states that require only point reads and writes, the MemTable data structure is replaced with a HashLinkedList to improve the efficiency of point operations.
+
 - **Replace RMW with Merge**: Reduces the state update overhead for the Join operator.
+
 - **Dual-stream Join data cache algorithm**: Minimizes the number of range queries on the state in the StreamJoinOperator.
+
 - **Dynamic filter**: Eliminates redundant state query operations.
 
 ### Modified Features
@@ -177,6 +212,7 @@ None
 None
 
 ## V1.1.0
+
 ### Change Description
 
 In the current version, a new state storage technology is introduced to improve the I/O performance of Flink in big data scenarios.
@@ -204,6 +240,7 @@ None
 None
 
 ## V1.0.0
+
 ### Change Description
 
 In the current version, a new state storage technology is introduced to improve the I/O performance of Flink in big data scenarios.
@@ -212,7 +249,7 @@ In the current version, a new state storage technology is introduced to improve 
 
 None
 
-### Modified Features
+### Changed Features
 
 None
 
@@ -229,7 +266,8 @@ None
 None
 
 ## 1.3 Related Documentation
-### Related Documentation
+
+### Documentation
 
 <table>
   <thead>
@@ -278,6 +316,6 @@ None
   </tbody>
 </table>
 
-### Obtaining Documentation<a name="EN-US_TOPIC_0000002547210757"></a>
+**Obtaining Documentation**
 
-Visit the [Open-source repository](https://gitcode.com/openeuler/OmniStateStore/tree/falcon) to view or download related documents.
+Visit the [open-source repository](https://atomgit.com/openeuler/OmniStateStore/tree/falcon) to view or download required documents.

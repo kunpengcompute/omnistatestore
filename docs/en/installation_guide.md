@@ -3,11 +3,12 @@
 Learn how to install and deploy OmniStateStore.
 
 ## Environment Requirements
+
 ### Hardware Requirements
 
-Before installing OmniStateStore, ensure that the hardware environment meets the requirements described in the following table.
+Before installing OmniStateStore, ensure that the hardware environment meets the requirements described in Table 1.
 
-Table 1 Hardware requirements
+**Table 1** Hardware requirements
 <table>
   <tbody>
     <tr>
@@ -35,9 +36,9 @@ Table 1 Hardware requirements
 
 ### Software Requirements
 
-The following table describes the OS and dependency software installation requirements.
+Table 2 describes the OS and dependency software installation requirements.
 
-**Table  2**  Software requirements
+**Table  2** Software requirements
 <table>
   <thead>
     <tr>
@@ -50,7 +51,7 @@ The following table describes the OS and dependency software installation requir
     <tr>
       <td style="text-align: left;">OS</td>
       <td style="text-align: left;">openEuler 22.03 LTS SP3</td>
-      <td style="text-align: left;"><a href="https://www.openeuler.org/en/download/archive/detail/?version=openEuler%2022.03%20LTS%20SP3">Link</a></td>
+      <td style="text-align: left;"><a href="https://www.openeuler.openatom.cn/zh/download/archive/detail/?version=openEuler%2022.03%20LTS%20SP3">Link</a></td>
     </tr>
     <tr>
       <td style="text-align: left;">JDK</td>
@@ -71,19 +72,19 @@ The following table describes the OS and dependency software installation requir
     <tr>
       <td style="text-align: left;">Flink</td>
       <td style="text-align: left;">1.16.3</td>
-      <td style="text-align: left;"><a href="https://flink.apache.org/downloads/">Link</a></td>
+      <td style="text-align: left;"><a href="https://flink.apache.org/zh/downloads/">Link</a></td>
     </tr>
     <tr>
       <td style="text-align: left;">Docker</td>
       <td style="text-align: left;">18.09.0</td>
-      <td style="text-align: left;">-</td>
+      <td style="text-align: left;">/</td>
     </tr>
   </tbody>
 </table>
 
-### Obtaining the Software Package
+### Obtaining Software Packages
 
-**Table 3** OmniStateStore software list
+**Table 3** OmniStateStore software package
 <table>
   <thead>
     <tr>
@@ -106,107 +107,130 @@ The following table describes the OS and dependency software installation requir
 </table>
 
 ## Installing Dependencies
+
 ### Installing the JDK
 
- Install and configure the JDK to provide a runtime environment for running the Flink cluster.
-1. Navigate to the `/usr/local` directory of the physical machine and download bisheng-jdk-8u342-linux-aarch64.tar.gz.
+Install and configure the BiSheng JDK to provide a runtime environment for the Flink cluster.
 
-```shell
-cd /usr/local
-wget --no-check-certificate https://mirror.iscas.ac.cn/kunpeng/archive/compiler/bisheng_jdk/bisheng-jdk-8u342-linux-aarch64.tar.gz
-```
-2. Enter the `/usr/local` directory and extract the bisheng-jdk-8u342-linux-aarch64.tar.gz file. Then, change the ownership of the extracted JDK directory to `root` user and `root` group.
+1. Go to the `/usr/local` path on the physical machine and download the `bisheng-jdk-8u342-linux-aarch64.tar.gz` file.
 
-```shell
-tar -zxvf bisheng-jdk-8u342-linux-aarch64.tar.gz
-chown -R root /usr/local/bisheng-jdk1.8.0_342
-chgrp -R root /usr/local/bisheng-jdk1.8.0_342
-```
-3. Configure the environment variables by adding the following information to the **/etc/profile** file.
+    ```bash
+    cd /usr/local
+    wget --no-check-certificate https://mirror.iscas.ac.cn/kunpeng/archive/compiler/bisheng_jdk/bisheng-jdk-8u342-linux-aarch64.tar.gz
+    ```
 
-```shell
-export JAVA_HOME=/usr/local/bisheng-jdk1.8.0_342
-export JRE_HOME=$JAVA_HOME/jre
-export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
-export PATH=$JAVA_HOME/bin:$PATH
-```
+2. Extract `bisheng-jdk-8u342-linux-aarch64.tar.gz` in the `/usr/local` path and change the owner and owner group of the extracted JDK directory to `root`.
+
+    ```bash
+    tar -zxvf bisheng-jdk-8u342-linux-aarch64.tar.gz
+    chown -R root /usr/local/bisheng-jdk1.8.0_342
+    chgrp -R root /usr/local/bisheng-jdk1.8.0_342
+    ```
+
+3. Add the following code to `/etc/profile` to configure environment variables:
+
+    ```shell
+    export JAVA_HOME=/usr/local/bisheng-jdk1.8.0_342
+    export JRE_HOME=$JAVA_HOME/jre
+    export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
+    export PATH=$JAVA_HOME/bin:$PATH
+    ```
+
 4. Update the environment variables.
 
-```shell
-source /etc/profile
-java -version    
-javac -version   # View the JDK version.
-```
+    ```shell
+    source /etc/profile
+    java -version    
+    javac -version   # View the JDK version.
+    ```
+
 If the correct version is displayed, the installation is successful.
 
 ### Installing Maven
 
 1. Download the [Maven software package](https://link.csdn.net/?from_id=119428896&target=https%3A%2F%2Farchive.apache.org%2Fdist%2Fmaven%2Fmaven-3%2F3.6.3%2Fbinaries%2Fapache-maven-3.6.3-bin.zip).
 
-2. Place the Maven software package in the installation directory (for example, **/opt**) and deploy the software package.
-```shell
-cd /opt
-unzip apache-maven-3.6.3-bin.zip
-rm -rf apache-maven-3.6.3-bin.zip
-```
-3. Configure the environment variables by adding the following information to the **/etc/profile** file.
-```shell
-export MAVEN_HOME=/opt/apache-maven-3.6.3
-export PATH=$MAVEN_HOME/bin:$PATH
-```
-4. Update and verify the environment variables.
-```shell
-source /etc/profile
-mvn -version # View the Maven version.
-```
+2. Place the Maven software package in the installation directory (for example, `/opt`) and deploy the software package.
+
+    ```shell
+    cd /opt
+    unzip apache-maven-3.6.3-bin.zip
+    rm -rf apache-maven-3.6.3-bin.zip
+    ```
+
+3. Add the following code to `/etc/profile` to configure environment variables:
+
+    ```shell
+    export MAVEN_HOME=/opt/apache-maven-3.6.3
+    export PATH=$MAVEN_HOME/bin:$PATH
+    ```
+
+4. Update and verify environment variables.
+
+    ```shell
+    source /etc/profile
+    mvn -version # View the Maven version.
+    ```
+
 If the correct version is displayed, the installation is successful.
 
 ### Installing the GCC
 
 1. Download the [GCC binary installation package](https://mirrors.huaweicloud.com/kunpeng/archive/compiler/kunpeng_gcc/gcc-10.3.1-2021.09-aarch64-linux.tar.gz).
 
-2. Place the software package in the installation directory (for example, **/opt**) and deploy the software package.
-```shell
-cd /opt
-tar -zxvf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
-mv gcc-10.3.1-2021.09-aarch64-linux gcc-10.3.1
-rm -rf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
-```
-3. Configure the environment variables by adding the following information to the **/etc/profile** file.
-```shell
-export GCC_HOME=/opt/gcc-10.3.1
-export PATH=$GCC_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$GCC_HOME/lib64:$GCC_HOME/lib:$LD_LIBRARY_PATH
-export CPLUS_INCLUDE_PATH=$GCC_HOME/include/c++/10.3.1:$GCC_HOME/include:$CPLUS_INCLUDE_PATH
-```
+2. Place the software package in the installation directory (for example, `/opt`) and deploy the software package.
+
+    ```shell
+    cd /opt
+    tar -zxvf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
+    mv gcc-10.3.1-2021.09-aarch64-linux gcc-10.3.1
+    rm -rf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
+    ```
+
+3. Add the following code to `/etc/profile` to configure environment variables:
+
+    ```shell
+    export GCC_HOME=/opt/gcc-10.3.1
+    export PATH=$GCC_HOME/bin:$PATH
+    export LD_LIBRARY_PATH=$GCC_HOME/lib64:$GCC_HOME/lib:$LD_LIBRARY_PATH
+    export CPLUS_INCLUDE_PATH=$GCC_HOME/include/c++/10.3.1:$GCC_HOME/include:$CPLUS_INCLUDE_PATH
+    ```
+
 4. Update the environment variables.
-```shell
-source /etc/profile
-gcc --version
-g++ --version  # View the GCC and G++ version.
-```
+
+    ```shell
+    source /etc/profile
+    gcc --version
+    g++ --version  # View the GCC and G++ version.
+    ```
+
 If the correct version is displayed, the installation is successful.
 
 ### Installing Flink
 
-1. Download [Flink](https://archive.apache.org/dist/flink/flink-1.16.3), for example, **flink-1.16.3-bin-scala_2.12.tgz** for Scala 2.12.
+1. Download [Flink](https://archive.apache.org/dist/flink/flink-1.16.3), for example, `flink-1.16.3-bin-scala_2.12.tgz` for Scala 2.12.
 
-2. Place the software package in the installation directory (for example, **/opt**) and deploy the software package.
-```shell
-cd /opt
-tar -zxvf flink-1.16.3-bin-scala_2.12.tgz
-mv flink-1.16.3-bin-scala_2.12 flink-1.16.3
-rm -rf flink-1.16.3-bin-scala_2.12.tgz
-```
-3. Configure the environment variables by adding the following information to the **/etc/profile** file.
-```shell
-export FLINK_HOME=/opt/flink-1.16.3
-export PATH=$FLINK_HOME/bin:$PATH
-```
+2. Place the software package in the installation directory (for example, `/opt`) and deploy the software package.
+
+    ```shell
+    cd /opt
+    tar -zxvf flink-1.16.3-bin-scala_2.12.tgz
+    mv flink-1.16.3-bin-scala_2.12 flink-1.16.3
+    rm -rf flink-1.16.3-bin-scala_2.12.tgz
+    ```
+
+3. Add the following code to `/etc/profile` to configure environment variables:
+
+    ```shell
+    export FLINK_HOME=/opt/flink-1.16.3
+    export PATH=$FLINK_HOME/bin:$PATH
+    ```
+
 4. Update the environment variables.
-```shell
-source /etc/profile
-```
+
+    ```shell
+    source /etc/profile
+    ```
 
 ### Installing Docker
 
@@ -214,63 +238,68 @@ Install Docker and deploy multiple containers to set up the Flink environment. I
 
 1. Install Docker and import the base image. For details, see the [Docker Installation Guide (CentOS & openEuler)](https://www.hikunpeng.com/document/detail/en/kunpengcpfs/ecosystemEnable/Docker/kunpengdocker_03_0001.html).
 
-```shell
-cd /opt
-wget --no-check-certificate https://mirrors.huaweicloud.com/openeuler/openEuler-22.03-LTS-SP4/docker_img/aarch64/openEuler-docker.aarch64.tar.xz
-docker load < openEuler-docker.aarch64.tar.xz
-```
+    ```shell
+    cd /opt
+    wget --no-check-certificate https://mirrors.huaweicloud.com/openeuler/openEuler-22.03-LTS-SP4/docker_img/aarch64/openEuler-docker.aarch64.tar.xz
+    docker load < openEuler-docker.aarch64.tar.xz
+    ```
 
-2. Create a network in bridge mode and check whether the network is successfully created.
-```shell
-docker network create -d bridge flink-network
-docker network ls
-```
+2. Create a network in bridge mode and check whether the network is created successfully.
 
-3. Create and start three Docker containers. The container flavor is 8C32G, and the containers are named **flink\_jm\_8c32g**, **flink\_tm1\_8c32g**, and **flink\_tm2\_8c32g**. After all containers are started, the command execution process automatically exits.
-```shell
-docker run -it -d --name flink_jm_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
-docker run -it -d --name flink_tm1_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
-docker run -it -d --name flink_tm2_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash
-docker ps 
-```
+    ```shell
+    docker network create -d bridge flink-network
+    docker network ls
+    ```
+
+3. Create and start three Docker containers. The container flavor is 8C32G, and the containers are named `flink\_jm\_8c32g`, `flink\_tm1\_8c32g`, and `flink\_tm2\_8c32g`. After all containers are started, the command execution process automatically exits.
+
+    ```shell
+    docker run -it -d --name flink_jm_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
+    docker run -it -d --name flink_tm1_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
+    docker run -it -d --name flink_tm2_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash
+    docker ps 
+    ```
 
 4. Log in to all containers, enable the SSH service in the containers, and configure password-free login.
-```shell
-docker exec -it flink_jm_8c32g /bin/bash
-docker exec -it flink_tm1_8c32g /bin/bash
-docker exec -it flink_tm2_8c32g /bin/bash
-yum -y install openssh-clients openssh-server passwd vim findutils net-tools libXext libXrender gcc cmake make gcc-c++ unzip wget libXtst # Install the dependencies for the SSH service.
-ssh-keygen -A # Generate the RSA key.
-/usr/sbin/sshd -D & # Start the SSH service in the container.
-passwd [user password] # Set a password for the container.
-ssh-keygen -t rsa # Generate the RSA key again. Press "Enter" when prompted.
-exit # Exit the container.
-docker exec -it flink_jm_8c32g /bin/bash
-ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm1_8c32g
-ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm2_8c32g # Configure SSH password-free login from the "flink\_jm\_8c32g" container to the other containers.
-```
+
+    ```shell
+    docker exec -it flink_jm_8c32g /bin/bash
+    docker exec -it flink_tm1_8c32g /bin/bash
+    docker exec -it flink_tm2_8c32g /bin/bash
+    yum -y install openssh-clients openssh-server passwd vim findutils net-tools libXext libXrender gcc cmake make gcc-c++ unzip wget libXtst # Install the dependencies for the SSH service.
+    ssh-keygen -A # Generate the RSA key.
+    /usr/sbin/sshd -D & # Start the SSH service in the container.
+    passwd [user password] # Set a password for the container.
+    ssh-keygen -t rsa # Generate the RSA key again. Press Enter when prompted.
+    exit # Exit the container.
+    docker exec -it flink_jm_8c32g /bin/bash
+    ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm1_8c32g
+    ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm2_8c32g # Configure SSH password-free login from the flink_jm_8c32g container to the other containers.
+    ```
 
 ## Installing OmniStateStore
 
-1. Obtain the software package **BoostKit-omniruntime-omnistatestore-1.3.0.zip** based on [OmniStateStore software list](#Obtaining the software package).
+1. Obtain the software package `BoostKit-omniruntime-omnistatestore-1.3.0.zip` based on [OmniStateStore software list](#Obtaining the software package).
 
-2. Configure the environment variable by specifying **FLINK_HOME**, **JAVA_HOME**, and **LD_LIBRARY_PATH**.
+2. Configure the environment variable by specifying `FLINK_HOME`, `JAVA_HOME`, and `LD_LIBRARY_PATH`.
 
-```shell
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
-```
-3. Log in to the installation node, extract **BoostKit-omniruntime-omnistatestore-1.3.0.zip** to **$FLINK_HOME/lib**, copy **librocksdb.so.6** to **/usr/local/lib**, and save **flink-alg-falcon.jar** to the current directory.
+    ```shell
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
+    ```
 
-```shell
-unzip BoostKit-omniruntime-omnistatestore-1.3.0.zip
-mv librocksdb.so.6 /usr/local/lib
-rm -rf BoostKit-omniruntime-omnistatestore-1.3.0.zip
-```
+3. Log in to the installation node, extract `BoostKit-omniruntime-omnistatestore-1.3.0.zip` to `$FLINK_HOME/lib`, copy `librocksdb.so.6` to `/usr/local/lib`, and save `flink-alg-falcon.jar` to the current directory.
+
+    ```shell
+    unzip BoostKit-omniruntime-omnistatestore-1.3.0.zip
+    mv librocksdb.so.6 /usr/local/lib
+    rm -rf BoostKit-omniruntime-omnistatestore-1.3.0.zip
+    ```
 
 ## Uninstalling OmniStateStore
 
-If you need to uninstall OmniStateStore, go to the **$FLINK_HOME/lib** directory to uninstall related software packages.
-```shell
-rm -rf /usr/local/lib/librocksdb.so.6
-rm -rf flink-alg-falcon.jar
-```
+If you need to uninstall OmniStateStore, go to the `$FLINK_HOME/lib` directory to uninstall related software packages.
+
+    ```shell
+    rm -rf /usr/local/lib/librocksdb.so.6
+    rm -rf flink-alg-falcon.jar
+    ```

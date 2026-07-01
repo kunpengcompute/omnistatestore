@@ -3,6 +3,7 @@
 提供OmniStateStore的安装说明，指导用户如何安装和部署OmniStateStore。
 
 ## 环境要求
+
 ### 硬件要求
 
 在安装OmniStateStore之前，请确保硬件环境已经满足安装部署的要求，硬件配置要求如表1所示。
@@ -106,86 +107,103 @@
 </table>
 
 ## 安装依赖
+
 ### 安装JDK
 
-安装并配置毕昇JDK，为运行Flink集群提供运行时环境。
- 	 
+安装并配置毕昇JDK，为运行Flink集群提供运行时环境。  
+
 1. 进入物理机的`/usr/local`目录并下载bisheng-jdk-8u342-linux-aarch64.tar.gz。
- 	 
-```bash
-cd /usr/local
-wget --no-check-certificate https://mirror.iscas.ac.cn/kunpeng/archive/compiler/bisheng_jdk/bisheng-jdk-8u342-linux-aarch64.tar.gz
-```
- 	 
+      
+    ```bash
+    cd /usr/local
+    wget --no-check-certificate https://mirror.iscas.ac.cn/kunpeng/archive/compiler/bisheng_jdk/bisheng-jdk-8u342-linux-aarch64.tar.gz
+    ```
+      
 2. 进入`/usr/local`目录并解压bisheng-jdk-8u342-linux-aarch64.tar.gz，且将解压后的JDK目录的所属用户、所属用户组变更为`root`。
- 	 
-```bash
-tar -zxvf bisheng-jdk-8u342-linux-aarch64.tar.gz
-chown -R root /usr/local/bisheng-jdk1.8.0_342
-chgrp -R root /usr/local/bisheng-jdk1.8.0_342
-```
- 	   
+      
+    ```bash
+    tar -zxvf bisheng-jdk-8u342-linux-aarch64.tar.gz
+    chown -R root /usr/local/bisheng-jdk1.8.0_342
+    chgrp -R root /usr/local/bisheng-jdk1.8.0_342
+    ```
+        
 3. 配置环境变量，在“/etc/profile”文件中添加如下信息。
-```shell
-export JAVA_HOME=/usr/local/bisheng-jdk1.8.0_342
-export JRE_HOME=$JAVA_HOME/jre
-export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
-export PATH=$JAVA_HOME/bin:$PATH
-```
+
+    ```shell
+    export JAVA_HOME=/usr/local/bisheng-jdk1.8.0_342
+    export JRE_HOME=$JAVA_HOME/jre
+    export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
+    export PATH=$JAVA_HOME/bin:$PATH
+    ```
+
 4. 更新环境变量。
-```shell
-source /etc/profile
-java -version    
-javac -version   # 查看JDK版本信息
-```
-若能正确显示版本信息，则表明JDK安装成功。
+
+    ```shell
+    source /etc/profile
+    java -version    
+    javac -version   # 查看JDK版本信息
+    ```
+
+    若能正确显示版本信息，则表明JDK安装成功。
 
 ### 安装Maven
 
 1. 下载[Maven软件包](https://link.csdn.net/?from_id=119428896&target=https%3A%2F%2Farchive.apache.org%2Fdist%2Fmaven%2Fmaven-3%2F3.6.3%2Fbinaries%2Fapache-maven-3.6.3-bin.zip)。
 
 2. 将Maven软件包放置于安装目录中(以“/opt”目录为例)，并完成软件包部署：
-```shell
-cd /opt
-unzip apache-maven-3.6.3-bin.zip
-rm -rf apache-maven-3.6.3-bin.zip
-```
+
+    ```shell
+    cd /opt
+    unzip apache-maven-3.6.3-bin.zip
+    rm -rf apache-maven-3.6.3-bin.zip
+    ```
+
 3. 配置环境变量，在“/etc/profile”文件中添加以下内容：
-```shell
-export MAVEN_HOME=/opt/apache-maven-3.6.3
-export PATH=$MAVEN_HOME/bin:$PATH
-```
+
+    ```shell
+    export MAVEN_HOME=/opt/apache-maven-3.6.3
+    export PATH=$MAVEN_HOME/bin:$PATH
+    ```
+
 4. 更新并验证环境变量。
-```shell
-source /etc/profile
-mvn -version # 查看Maven版本信息
-```
-若能正确显示版本信息，则表明Maven安装成功。
+
+    ```shell
+    source /etc/profile
+    mvn -version # 查看Maven版本信息
+    ```
+
+    若能正确显示版本信息，则表明Maven安装成功。
 
 ### 安装GCC
 
 1. 下载[GCC二进制安装包](https://mirrors.huaweicloud.com/kunpeng/archive/compiler/kunpeng_gcc/gcc-10.3.1-2021.09-aarch64-linux.tar.gz)。
 
 2. 将软件包放置于安装目录中（这里以“/opt”目录为例），完成软件包部署：
-```shell
-cd /opt
-tar -zxvf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
-mv gcc-10.3.1-2021.09-aarch64-linux gcc-10.3.1
-rm -rf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
-```
+
+    ```shell
+    cd /opt
+    tar -zxvf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
+    mv gcc-10.3.1-2021.09-aarch64-linux gcc-10.3.1
+    rm -rf gcc-10.3.1-2021.09-aarch64-linux.tar.gz
+    ```
+
 3. 配置环境变量，在“/etc/profile”文件中添加以下内容：
-```shell
-export GCC_HOME=/opt/gcc-10.3.1
-export PATH=$GCC_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$GCC_HOME/lib64:$GCC_HOME/lib:$LD_LIBRARY_PATH
-export CPLUS_INCLUDE_PATH=$GCC_HOME/include/c++/10.3.1:$GCC_HOME/include:$CPLUS_INCLUDE_PATH
-```
+
+    ```shell
+    export GCC_HOME=/opt/gcc-10.3.1
+    export PATH=$GCC_HOME/bin:$PATH
+    export LD_LIBRARY_PATH=$GCC_HOME/lib64:$GCC_HOME/lib:$LD_LIBRARY_PATH
+    export CPLUS_INCLUDE_PATH=$GCC_HOME/include/c++/10.3.1:$GCC_HOME/include:$CPLUS_INCLUDE_PATH
+    ```
+
 4. 更新环境变量。
-```shell
-source /etc/profile
-gcc --version
-g++ --version  # 查看GCC和G++版本信息
-```
+
+    ```shell
+    source /etc/profile
+    gcc --version
+    g++ --version  # 查看GCC和G++版本信息
+    ```
+
 若能正确显示版本信息，则表明GCC安装成功。
 
 ### 安装Flink
@@ -193,82 +211,94 @@ g++ --version  # 查看GCC和G++版本信息
 1. 下载[Flink](https://archive.apache.org/dist/flink/flink-1.16.3)，此处以 Scala 2.12 版本为例，即flink-1.16.3-bin-scala_2.12.tgz。
 
 2. 将软件包放置于安装目录中（这里以/opt目录为例），完成软件包部署：
-```shell
-cd /opt
-tar -zxvf flink-1.16.3-bin-scala_2.12.tgz
-mv flink-1.16.3-bin-scala_2.12 flink-1.16.3
-rm -rf flink-1.16.3-bin-scala_2.12.tgz
-```
+
+    ```shell
+    cd /opt
+    tar -zxvf flink-1.16.3-bin-scala_2.12.tgz
+    mv flink-1.16.3-bin-scala_2.12 flink-1.16.3
+    rm -rf flink-1.16.3-bin-scala_2.12.tgz
+    ```
+
 3. 配置环境变量，在/etc/profile文件中添加：
-```shell
-export FLINK_HOME=/opt/flink-1.16.3
-export PATH=$FLINK_HOME/bin:$PATH
-```
+
+    ```shell
+    export FLINK_HOME=/opt/flink-1.16.3
+    export PATH=$FLINK_HOME/bin:$PATH
+    ```
+
 4. 更新环境变量。
-```shell
-source /etc/profile
-```
+
+    ```shell
+    source /etc/profile
+    ```
 
 ### 安装Docker
 
 安装Docker并部署多个容器以搭建Flink环境。如果服务器无法连接外网，请根据实际情况配置本地Yum源，确保安装过程顺利。
 
 1. 请参见《[Docker 安装指南（CentOS&openEuler）](https://www.hikunpeng.com/document/detail/zh/kunpengcpfs/ecosystemEnable/Docker/kunpengdocker_03_0001.html)》安装Docker，并导入基础镜像。
-```shell
-cd /opt
-wget --no-check-certificate https://mirrors.huaweicloud.com/openeuler/openEuler-22.03-LTS-SP4/docker_img/aarch64/openEuler-docker.aarch64.tar.xz
-docker load < openEuler-docker.aarch64.tar.xz
-```
+
+    ```shell
+    cd /opt
+    wget --no-check-certificate https://mirrors.huaweicloud.com/openeuler/openEuler-22.03-LTS-SP4/docker_img/aarch64/openEuler-docker.aarch64.tar.xz
+    docker load < openEuler-docker.aarch64.tar.xz
+    ```
 
 2. 创建bridge模式网络，确认网络是否创建成功。
-```shell
-docker network create -d bridge flink-network
-docker network ls
-```
+
+    ```shell
+    docker network create -d bridge flink-network
+    docker network ls
+    ```
 
 3. 创建并启动3个Docker容器。创建的容器规格为8c32g，分别命名为flink\_jm\_8c32g、flink\_tm1\_8c32g、flink\_tm2\_8c32g。所有容器启动完成后自动退出命令执行流程。
-```shell
-docker run -it -d --name flink_jm_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
-docker run -it -d --name flink_tm1_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
-docker run -it -d --name flink_tm2_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash
-docker ps 
-```
+
+    ```shell
+    docker run -it -d --name flink_jm_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
+    docker run -it -d --name flink_tm1_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash 
+    docker run -it -d --name flink_tm2_8c32g --cpus=8 --memory=32g --network flink-network openeuler-22.03-lts-sp4 /bin/bash
+    docker ps 
+    ```
 
 4. 登录所有容器，容器内启动SSH服务，并配置免密登录。
-```shell
-docker exec -it flink_jm_8c32g /bin/bash
-docker exec -it flink_tm1_8c32g /bin/bash
-docker exec -it flink_tm2_8c32g /bin/bash
-yum -y install openssh-clients openssh-server passwd vim findutils net-tools libXext libXrender gcc cmake make gcc-c++ unzip wget libXtst # 安装SSH服务依赖
-ssh-keygen -A # 生成RSA密钥
-/usr/sbin/sshd -D & # 启动容器内SSH服务
-passwd [user password] # 为容器设置密码
-ssh-keygen -t rsa # 再次生成RSA密钥，遇到提示时，按“Enter“
-exit # 退出容器
-docker exec -it flink_jm_8c32g /bin/bash
-ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm1_8c32g
-ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm2_8c32g # 在flink\_jm\_8c32g容器上配置对其他容器的SSH免密登录
-```
+
+    ```shell
+    docker exec -it flink_jm_8c32g /bin/bash
+    docker exec -it flink_tm1_8c32g /bin/bash
+    docker exec -it flink_tm2_8c32g /bin/bash
+    yum -y install openssh-clients openssh-server passwd vim findutils net-tools libXext libXrender gcc cmake make gcc-c++ unzip wget libXtst # 安装SSH服务依赖
+    ssh-keygen -A # 生成RSA密钥
+    /usr/sbin/sshd -D & # 启动容器内SSH服务
+    passwd [user password] # 为容器设置密码
+    ssh-keygen -t rsa # 再次生成RSA密钥，遇到提示时，按“Enter“
+    exit # 退出容器
+    docker exec -it flink_jm_8c32g /bin/bash
+    ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm1_8c32g
+    ssh-copy-id -i ~/.ssh/id_rsa.pub root@flink_tm2_8c32g # 在flink\_jm\_8c32g容器上配置对其他容器的SSH免密登录
+    ```
 
 ## 安装OmniStateStore
 
 1. 请参见[OmniStateStore状态优化软件获取列表](#获取软件包)获取软件包BoostKit-omniruntime-omnistatestore-1.3.0.zip。
 
 2. 配置环境变量，指定FLINK_HOME和JAVA_HOME，并配置LD_LIBRARY_PATH。
-```shell
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
-```
+
+    ```shell
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib/aarch64:$JAVA_HOME/jre/lib/aarch64/server:/usr/local/lib
+    ```
+
 3. 登录安装节点，将BoostKit-omniruntime-omnistatestore-1.3.0.zip解压到$FLINK_HOME/lib目录下，将librocksdb.so.6拷贝到/usr/local/lib目录，将flink-alg-falcon.jar保留至当前目录中。
 
-```shell
-unzip BoostKit-omniruntime-omnistatestore-1.3.0.zip
-mv librocksdb.so.6 /usr/local/lib
-rm -rf BoostKit-omniruntime-omnistatestore-1.3.0.zip
-```
+    ```shell
+    unzip BoostKit-omniruntime-omnistatestore-1.3.0.zip
+    mv librocksdb.so.6 /usr/local/lib
+    rm -rf BoostKit-omniruntime-omnistatestore-1.3.0.zip
+    ```
 
 ## 卸载OmniStateStore
 
 使用完成OmniStateStore后，如果需要卸载OmniStateStore，请进入“$FLINK_HOME/lib”目录卸载相关软件包。
+
 ```shell
 rm -rf /usr/local/lib/librocksdb.so.6
 rm -rf flink-alg-falcon.jar

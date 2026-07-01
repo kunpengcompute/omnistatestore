@@ -34,7 +34,6 @@ Flink任务运行时未成功加载librocksdb.so.6，导致任务运行失败。
 
 <a href="./figures/OmniStateStore faq2-1.png"><img src="./figures/OmniStateStore faq2-1.png" alt="faq" width="1200" /></a>
 
-
 **图3** OmniStateStore TaskManager运行报错截图
 
 <a href="./figures/OmniStateStore faq2-2.png"><img src="./figures/OmniStateStore faq2-2.png" alt="faq" width="1200" /></a>
@@ -46,11 +45,14 @@ OmniStateStore运行时依赖librocksdb.so.6，而Flink任务会从LD_LIBRARY_PA
 **解决方案**
 
 **步骤1**&emsp;检查LD_LIBRARY_PATH环境变量，并将librocksdb.so.6拷贝到指定目录下。
+
 ```shell
 echo $LD_LIBRARY_PATH  # 输出结果实例：/usr/local/lib
 ll /usr/local/lib  # 查看是否包含librocksdb.so.6
 ```
+
 **步骤2**&emsp;如果没有包含librocksdb.so.6，则需要拷贝到指定目录下。
+
 ```shell
 mv librocksdb.so.6 /usr/local/lib
 ```

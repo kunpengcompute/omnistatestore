@@ -1,4 +1,5 @@
 # OmniStateStore介绍
+
 ## 最新消息
 
 - [2026.06.30] 发布OmniStateStore 1.3.0。通过调整RocksDB不同SST层级的压缩格式，结合软算压缩算法优化，降低状态Compaction过程中的压缩/解压缩开销，提升应用端到端吞吐。
@@ -7,6 +8,7 @@
 - [2025.06.30] 发布OmniStateStore 1.0.0。解决了大数据场景下，针对大状态下IO性能较差的问题，实现了一种新型的状态存储方式，提升了Flink的IO性能。
 
 ## 项目简介
+
 ### 简介
 
 大数据OmniRuntime通过插件化的形式，提升数据加载、数据计算和数据交换性能，从而提升大数据分析端到端性能。
@@ -24,7 +26,6 @@ OmniStateStore状态优化作为OmniRuntime的特性之一，通过对Flink进�
 状态存储(state store)是Flink的重要组成部分，主要由状态后端(state backend)来完成。随着状态(state)中数据量的增大，状态存储性能面临挑战。OmniStateStore对Flink进行轻量级修改，通过状态缓存、状态过滤、软算压缩优化等技术，加速Flink对RocksDB的使用效率，从而提升Flink的端到端性能。
 
 OmniStateStore是对接Flink和RocksDB的中间层，包含动态Filter技术、Flink语义状态缓存、Merge读写优化和LZ4软算压缩优化，其整体架构设计图如下图所示：
-
 
 - 动态Filter技术：使用状态前缀filter，过滤mapState范围查询时的冗余磁盘查找操作；对于仅需要点读、点写的状态，将memTable数据结构替换为HashLinkList, 提升状态点读和点写效率。
 - Flink语义状态缓存：通过ValueState状态缓存，同Key状态优先在内存中完成聚合，减少状态对RocksDB的访问频次；通过Join算子数据缓存，减少双流Join操作的状态范围查询次数。
@@ -83,7 +84,6 @@ OmniStateStore/                       # 项目根目录
 |—— LICENSE                           # LICENSE
 └── README.md                         # README
 ```
-
 
 ## 版本说明
 
@@ -199,7 +199,7 @@ OmniStateStore/                       # 项目根目录
     </tr>
     <tr>
       <td style="text-align: left;">公网IP地址/公网URL地址/域名/邮箱地址</td>
-      <td style="text-align: left;"><a href="https://gcc.gun.org/bugs/">https://gcc.gun.org/bugs/</a></td>
+      <td style="text-align: left;"><a href="https://gcc.gnu.org/bugs/">https://gcc.gnu.org/bugs</a></td>
     </tr>
     <tr>
       <td style="text-align: left;">所在文件类型</td>
@@ -279,7 +279,6 @@ OmniStateStore产品的文档使用的许可证，具体请参见 [LICENSE](./do
 ## 致谢
 
 OmniStateStore由华为公司的下列部门联合贡献：
-
 
 - 计算技术开发部
 - 鲲鹏计算Boostkit产品部
