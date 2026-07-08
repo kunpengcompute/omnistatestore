@@ -15,9 +15,120 @@
 
 #include "slice_table/bucket_group_range.h"
 #include "slice_table/bucket_group_rescale_util.h"
+#include "snapshot_compression_utils.h"
 
 namespace ock {
 namespace bss {
+namespace {
+BResult ValidateSliceSnapshotCompressionMeta(const SliceAddressRef &sliceAddress)
+{
+    RETURN_INVALID_PARAM_AS_NULLPTR(sliceAddress);
+    uint32_t rawLength = sliceAddress->GetDataLen();
+    uint32_t storedLength = sliceAddress->GetStoredDataLen();
+    CompressAlgo compressAlgo = sliceAddress->GetCompressAlgo();
+    if (UNLIKELY(rawLength == 0)) {
+        LOG_ERROR("Invalid slice snapshot raw length, sliceId:" << sliceAddress->GetSliceId()
+                                                                << ", rawLength:" << rawLength);
+        return BSS_INVALID_PARAM;
+    }
+    if (compressAlgo == CompressAlgo::NONE) {
+        if (storedLength == rawLength) {
+            return BSS_OK;
+        }
+        LOG_ERROR("Invalid slice snapshot none compression meta, sliceId:"
+                  << sliceAddress->GetSliceId() << ", rawLength:" << rawLength << ", storedLength:" << storedLength);
+        return BSS_INVALID_PARAM;
+    }
+    if (compressAlgo == CompressAlgo::LZ4) {
+        if (storedLength > 0 && storedLength < rawLength) {
+            return BSS_OK;
+        }
+        LOG_ERROR("Invalid slice snapshot lz4 compression meta, sliceId:"
+                  << sliceAddress->GetSliceId() << ", rawLength:" << rawLength << ", storedLength:" << storedLength);
+        return BSS_INVALID_PARAM;
+    }
+    LOG_ERROR("Unsupported slice snapshot compression algo, sliceId:" << sliceAddress->GetSliceId() << ", algo:"
+                                                                      << static_cast<uint32_t>(compressAlgo));
+    return BSS_NOT_SUPPORTED;
+}
+
+BResult AllocateSliceRestoreSegment(const MemManagerRef &memManager, uint32_t length, MemorySegmentRef &segment)
+{
+    RETURN_INVALID_PARAM_AS_NULLPTR(memManager);
+    uint64_t maxSliceRestoreSize = memManager->GetMemoryTypeMaxSize(MemoryType::SLICE_TABLE);
+    if (UNLIKELY(length == 0 || length > maxSliceRestoreSize)) {
+        LOG_ERROR("Invalid slice restore memory length:" << length << ", maxSliceRestoreSize:" << maxSliceRestoreSize);
+        return BSS_INVALID_PARAM;
+    }
+    uintptr_t addr = 0;
+    RETURN_NOT_OK_NO_LOG(memManager->GetMemory(MemoryType::SLICE_TABLE, length, addr));
+    segment = MakeRef<MemorySegment>(length, reinterpret_cast<uint8_t *>(addr), memManager);
+    if (UNLIKELY(segment == nullptr)) {
+        memManager->ReleaseMemory(addr);
+        LOG_ERROR("Make slice restore segment failed, memorySegment is null.");
+        return BSS_ALLOC_FAIL;
+    }
+    return BSS_OK;
+}
+
+BResult ReadSliceSnapshotPayload(const FileInputViewRef &inputView, const SliceAddressRef &sliceAddress,
+                                 const ByteBufferRef &rawBuffer, const MemManagerRef &memManager)
+{
+    RETURN_INVALID_PARAM_AS_NULLPTR(inputView);
+    RETURN_INVALID_PARAM_AS_NULLPTR(rawBuffer);
+    RETURN_INVALID_PARAM_AS_NULLPTR(memManager);
+    RETURN_NOT_OK(ValidateSliceSnapshotCompressionMeta(sliceAddress));
+
+    uint32_t rawLength = sliceAddress->GetDataLen();
+    uint32_t storedLength = sliceAddress->GetStoredDataLen();
+    CompressAlgo compressAlgo = sliceAddress->GetCompressAlgo();
+    if (UNLIKELY(!rawBuffer->Valid() || rawLength > rawBuffer->Capacity())) {
+        LOG_ERROR("Invalid slice restore raw buffer, sliceId:" << sliceAddress->GetSliceId() << ", rawLength:"
+                                                               << rawLength << ", capacity:" << rawBuffer->Capacity());
+        return BSS_INVALID_PARAM;
+    }
+    uint64_t startOffset = sliceAddress->GetStartOffset();
+    if (UNLIKELY(startOffset > UINT32_MAX)) {
+        LOG_ERROR("Invalid slice snapshot start offset, sliceId:" << sliceAddress->GetSliceId()
+                                                                  << ", startOffset:" << startOffset);
+        return BSS_INVALID_PARAM;
+    }
+    uint32_t readOffset = static_cast<uint32_t>(startOffset);
+    if (compressAlgo == CompressAlgo::NONE) {
+        auto ret = inputView->ReadByteBuffer(0, rawBuffer, readOffset, rawLength);
+        if (UNLIKELY(ret != BSS_OK)) {
+            LOG_ERROR("Read raw slice snapshot failed, ret:" << ret << ", sliceId:" << sliceAddress->GetSliceId()
+                                                             << ", rawLength:" << rawLength);
+            return BSS_ERR;
+        }
+        return BSS_OK;
+    }
+
+    MemorySegmentRef storedSegment = nullptr;
+    RETURN_NOT_OK(AllocateSliceRestoreSegment(memManager, storedLength, storedSegment));
+    auto ret = inputView->ReadMemorySegment(0, storedSegment, readOffset, storedLength);
+    if (UNLIKELY(ret != BSS_OK)) {
+        LOG_ERROR("Read compressed slice snapshot failed, ret:" << ret << ", sliceId:" << sliceAddress->GetSliceId()
+                                                                << ", storedLength:" << storedLength);
+        return BSS_ERR;
+    }
+    ret = SnapshotCompressionUtils::Decompress(compressAlgo, storedSegment->GetSegment(), storedLength,
+                                               rawBuffer->Data(), rawLength);
+    if (UNLIKELY(ret != BSS_OK)) {
+        LOG_ERROR("Decompress slice snapshot failed, ret:"
+                  << ret << ", sliceId:" << sliceAddress->GetSliceId() << ", rawLength:" << rawLength
+                  << ", storedLength:" << storedLength << ", algo:" << static_cast<uint32_t>(compressAlgo));
+        return ret;
+    }
+    double ratio = rawLength == 0 ? 0.0 : static_cast<double>(storedLength) * 100.0 / rawLength;
+    LOG_DEBUG("SliceTable restore compression, sliceId:"
+              << sliceAddress->GetSliceId() << ", algo:" << static_cast<uint32_t>(compressAlgo)
+              << ", rawLength:" << rawLength << ", storedLength:" << storedLength << ", startOffset:" << readOffset
+              << ", file:" << inputView->GetFilePath()->ExtractFileName() << ", ratio:" << ratio << "%");
+    return BSS_OK;
+}
+}  // namespace
+
 BResult SliceTableRestoreOperation::RestoreSliceBucketIndex(std::vector<RestoredDbMetaRef> &restoredDbMetas,
                                                             std::vector<SliceTableRestoreMetaRef> &restoreMetaList)
 {
@@ -224,16 +335,26 @@ BResult SliceTableRestoreOperation::LoadSlicesIntoLogicalSliceChain(const Logica
         }
 
         // 1. 读取dataSlice数据.
+        RETURN_NOT_OK(ValidateSliceSnapshotCompressionMeta(sliceAddress));
         auto buffer = MakeRef<ByteBuffer>(sliceAddress->GetDataLen(), MemoryType::SLICE_TABLE, mMemManager);
-        RETURN_ALLOC_FAIL_AS_NULLPTR(buffer);
+        if (UNLIKELY(buffer == nullptr || !buffer->Valid())) {
+            LOG_ERROR("Alloc slice restore byte buffer failed, sliceId:" << sliceAddress->GetSliceId()
+                                                                         << ", dataLen:" << sliceAddress->GetDataLen());
+            return BSS_ALLOC_FAIL;
+        }
         auto restoreFilePath = std::make_shared<Path>(sliceAddress->GetLocalAddress());
         FileInputViewRef inputView = std::make_shared<FileInputView>();
-        inputView->Init(FileSystemType::LOCAL, restoreFilePath);
-        auto ret = inputView->ReadByteBuffer(0, buffer, sliceAddress->GetStartOffset(), sliceAddress->GetDataLen());
+        auto ret = inputView->Init(FileSystemType::LOCAL, restoreFilePath);
         if (UNLIKELY(ret != BSS_OK)) {
-            LOG_ERROR("Load slice chain failed, because of read file failed, ret:"
+            LOG_ERROR("Load slice chain failed, because of init restore input view failed, ret:"
                       << ret << ", filePath:" << restoreFilePath->ExtractFileName());
-            return BSS_ERR;
+            return ret;
+        }
+        ret = ReadSliceSnapshotPayload(inputView, sliceAddress, buffer, mMemManager);
+        if (UNLIKELY(ret != BSS_OK)) {
+            LOG_ERROR("Load slice chain failed, because of read snapshot payload failed, ret:"
+                      << ret << ", filePath:" << restoreFilePath->ExtractFileName());
+            return ret;
         }
 
         // 2. 构建dataSlice.

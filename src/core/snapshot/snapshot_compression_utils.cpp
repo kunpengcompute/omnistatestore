@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -66,7 +66,7 @@ BResult SnapshotCompressionUtils::TryCompressInto(CompressAlgo policy, const uin
     uint32_t outputSize = compressor->Compress(storedData, storedCapacity, rawData, rawLength);
     if (outputSize == 0 || outputSize >= rawLength) {
         LOG_DEBUG("Snapshot compression has no benefit, fallback raw, rawLength:" << rawLength
-                                                                                 << ", outputSize:" << outputSize);
+                                                                                  << ", outputSize:" << outputSize);
         return CopyRaw(rawData, rawLength, storedData, storedCapacity, storedAlgo, storedLength);
     }
     storedAlgo = codec;
@@ -82,14 +82,14 @@ BResult SnapshotCompressionUtils::Decompress(CompressAlgo storedAlgo, const uint
     }
     if (UNLIKELY(storedData == nullptr || rawData == nullptr)) {
         LOG_ERROR("Snapshot decompression invalid null buffer, algo:" << static_cast<uint32_t>(storedAlgo)
-                                                                     << ", rawLength:" << rawLength
-                                                                     << ", storedLength:" << storedLength);
+                                                                      << ", rawLength:" << rawLength
+                                                                      << ", storedLength:" << storedLength);
         return BSS_INVALID_PARAM;
     }
     if (storedAlgo == CompressAlgo::NONE) {
         if (UNLIKELY(storedLength != rawLength)) {
             LOG_ERROR("Snapshot decompression invalid none length, rawLength:" << rawLength
-                                                                              << ", storedLength:" << storedLength);
+                                                                               << ", storedLength:" << storedLength);
             return BSS_INVALID_PARAM;
         }
         auto ret = memcpy_s(rawData, rawLength, storedData, storedLength);
@@ -113,10 +113,9 @@ BResult SnapshotCompressionUtils::Decompress(CompressAlgo storedAlgo, const uint
     }
     uint32_t decompressedSize = compressor->Decompress(rawData, rawLength, storedData, storedLength);
     if (UNLIKELY(decompressedSize != rawLength)) {
-        LOG_ERROR("Snapshot decompression failed, algo:" << static_cast<uint32_t>(storedAlgo)
-                                                        << ", rawLength:" << rawLength
-                                                        << ", storedLength:" << storedLength
-                                                        << ", decompressedSize:" << decompressedSize);
+        LOG_ERROR("Snapshot decompression failed, algo:" << static_cast<uint32_t>(storedAlgo) << ", rawLength:"
+                                                         << rawLength << ", storedLength:" << storedLength
+                                                         << ", decompressedSize:" << decompressedSize);
         return BSS_ERR;
     }
     return BSS_OK;

@@ -57,8 +57,7 @@ TEST(SnapshotCompressionUtilsTest, TryCompressIntoUsesLz4WhenBeneficial)
     uint32_t storedLength = 0;
 
     ASSERT_EQ(SnapshotCompressionUtils::TryCompressInto(CompressAlgo::LZ4, input.data(), input.size(),
-                                                        compressed.data(), compressed.size(), storedAlgo,
-                                                        storedLength),
+                                                        compressed.data(), compressed.size(), storedAlgo, storedLength),
               BSS_OK);
 
     ASSERT_EQ(storedAlgo, CompressAlgo::LZ4);
@@ -75,8 +74,8 @@ TEST(SnapshotCompressionUtilsTest, TryCompressIntoEmptyInputUsesNoCompression)
     CompressAlgo storedAlgo = CompressAlgo::LZ4;
     uint32_t storedLength = NO_1;
 
-    ASSERT_EQ(SnapshotCompressionUtils::TryCompressInto(CompressAlgo::LZ4, placeholder.data(), NO_0,
-                                                        placeholder.data(), NO_0, storedAlgo, storedLength),
+    ASSERT_EQ(SnapshotCompressionUtils::TryCompressInto(CompressAlgo::LZ4, placeholder.data(), NO_0, placeholder.data(),
+                                                        NO_0, storedAlgo, storedLength),
               BSS_OK);
     ASSERT_EQ(storedAlgo, CompressAlgo::NONE);
     ASSERT_EQ(storedLength, NO_0);
@@ -98,7 +97,7 @@ TEST_F(TestFreshSliceTableSnapshot, TestFreshRestoreCompressedScratchUsesTempora
     uint64_t snapshotUsed = mMemManager->GetMemoryUseSize(MemoryType::SNAPSHOT);
     MemorySegmentRef scratchSegment = nullptr;
 
-    ASSERT_EQ(AllocateFreshRestoreCompressedSegment(IO_SIZE_1K, scratchSegment), BSS_OK);
+    ASSERT_EQ(AllocateFreshRestoreCompressedSegment(IO_SIZE_1K, IO_SIZE_4K, scratchSegment), BSS_OK);
     ASSERT_TRUE(scratchSegment != nullptr);
     ASSERT_EQ(mMemManager->GetMemoryUseSize(MemoryType::RESTORE), restoreUsed);
     ASSERT_EQ(mMemManager->GetMemoryUseSize(MemoryType::SNAPSHOT), snapshotUsed);
@@ -106,6 +105,14 @@ TEST_F(TestFreshSliceTableSnapshot, TestFreshRestoreCompressedScratchUsesTempora
     scratchSegment = nullptr;
     ASSERT_EQ(mMemManager->GetMemoryUseSize(MemoryType::RESTORE), restoreUsed);
     ASSERT_EQ(mMemManager->GetMemoryUseSize(MemoryType::SNAPSHOT), snapshotUsed);
+}
+
+TEST_F(TestFreshSliceTableSnapshot, TestFreshRestoreCompressedScratchRejectsLengthAboveLimit)
+{
+    MemorySegmentRef scratchSegment = nullptr;
+
+    ASSERT_EQ(AllocateFreshRestoreCompressedSegment(IO_SIZE_4K, IO_SIZE_1K, scratchSegment), BSS_INVALID_PARAM);
+    ASSERT_EQ(scratchSegment, nullptr);
 }
 
 TEST_F(TestFreshSliceTableSnapshot, TestFreshTableCheckpointWritesCompressedBytes)
@@ -140,7 +147,8 @@ TEST_F(TestFreshSliceTableSnapshot, TestFreshTableCheckpointWritesCompressedByte
     ASSERT_EQ(mBoostStateDB->CreateAsyncCheckpoint(mCheckpointId, false), BSS_OK);
 
     std::string freshTableFile = "/tmp/" + std::to_string(mCheckpointId) + "/fresh_table.dat";
-    struct stat fileStat {};
+    struct stat fileStat {
+    };
     ASSERT_EQ(stat(freshTableFile.c_str(), &fileStat), 0);
     ASSERT_LT(static_cast<uint64_t>(fileStat.st_size), rawLength);
 }
@@ -435,6 +443,131 @@ TEST_F(TestFreshSliceTableSnapshot, TestSnapshotFuncInSliceTable)
 
     // 判断恢复后能在slice中找到写入的key，保证数据正确
     TestAllKeysFindInSliceAndLsm();
+}
+
+TEST_F(TestFreshSliceTableSnapshot, TestSliceTableCheckpointWritesCompressedBytes)
+{
+    mConfig->SetSliceTableSnapshotCompressionPolicy("lz4");
+    std::vector<std::vector<uint8_t>> keyStorage;
+    std::vector<std::vector<uint8_t>> valueStorage;
+    keyStorage.reserve(NO_1000);
+    valueStorage.reserve(NO_1000);
+    uint16_t stateId = VALUE << NO_13;
+
+    for (uint32_t index = 0; index < NO_1000; ++index) {
+        keyStorage.emplace_back(NO_32, 0);
+        valueStorage.emplace_back(NO_1024, 4);
+        auto &keyData = keyStorage.back();
+        keyData[0] = static_cast<uint8_t>(index & NO_U8_255);
+        keyData[1] = static_cast<uint8_t>((index >> NO_8) & NO_U8_255);
+        uint32_t hashCode = test::HashForTest(keyData.data(), keyData.size());
+        BinaryData priKey(keyData.data(), keyData.size());
+        QueryKey queryKey(stateId, hashCode, priKey);
+
+        Value putVal;
+        putVal.Init(ValueType::PUT, valueStorage.back().size(), valueStorage.back().data(), index);
+        ASSERT_EQ(mBoostStateDB->GetFreshTable()->Put(queryKey, putVal), BSS_OK);
+    }
+
+    ASSERT_EQ(mBoostStateDB->GetFreshTable()->TriggerSegmentFlush(), BSS_OK);
+    while (!mBoostStateDB->GetFreshTable()->IsSnapshotQueueEmpty()) {
+        sleep(NO_1);
+    }
+    ASSERT_NE(TestFreshSliceTableSnapshot::mBoostStateDB->CreateSyncCheckpoint("/tmp/" + std::to_string(mCheckpointId),
+                                                                               mCheckpointId),
+              nullptr);
+    ASSERT_EQ(mBoostStateDB->CreateAsyncCheckpoint(mCheckpointId, false), BSS_OK);
+
+    uint64_t rawTotalSize = 0;
+    uint64_t storedTotalSize = 0;
+    uint32_t bucketNum = mBoostStateDB->GetSliceTable()->GetSliceBucketIndex()->GetIndexCapacity();
+    for (uint32_t i = 0; i < bucketNum; ++i) {
+        auto chain = mBoostStateDB->GetSliceTable()->GetSliceBucketIndex()->GetLogicChainedSlice(i);
+        if (chain == nullptr || chain->IsEmpty()) {
+            continue;
+        }
+        auto iterator = chain->SliceIterator();
+        while (iterator->HasNext()) {
+            auto sliceAddress = iterator->Next();
+            if (sliceAddress == nullptr || sliceAddress->IsEvicted()) {
+                continue;
+            }
+            rawTotalSize += sliceAddress->GetDataLen();
+            storedTotalSize += sliceAddress->GetStoredDataLen();
+        }
+    }
+    ASSERT_GT(rawTotalSize, NO_U64_0);
+    ASSERT_LT(storedTotalSize, rawTotalSize);
+}
+
+TEST_F(TestFreshSliceTableSnapshot, TestSliceTableRestoreReadsCompressedCheckpointByMeta)
+{
+    mConfig->SetSliceTableSnapshotCompressionPolicy("lz4");
+    std::vector<std::vector<uint8_t>> keyStorage;
+    std::vector<std::vector<uint8_t>> valueStorage;
+    std::vector<QueryKey> keys;
+    keyStorage.reserve(NO_1000);
+    valueStorage.reserve(NO_1000);
+    keys.reserve(NO_1000);
+    uint16_t stateId = VALUE << NO_13;
+
+    for (uint32_t index = 0; index < NO_1000; ++index) {
+        keyStorage.emplace_back(NO_32, 0);
+        valueStorage.emplace_back(NO_1024, 5);
+        auto &keyData = keyStorage.back();
+        keyData[0] = static_cast<uint8_t>(index & NO_U8_255);
+        keyData[1] = static_cast<uint8_t>((index >> NO_8) & NO_U8_255);
+        uint32_t hashCode = test::HashForTest(keyData.data(), keyData.size());
+        BinaryData priKey(keyData.data(), keyData.size());
+        keys.emplace_back(stateId, hashCode, priKey);
+
+        Value putVal;
+        putVal.Init(ValueType::PUT, valueStorage.back().size(), valueStorage.back().data(), index);
+        ASSERT_EQ(mBoostStateDB->GetFreshTable()->Put(keys.back(), putVal), BSS_OK);
+    }
+
+    ASSERT_EQ(mBoostStateDB->GetFreshTable()->TriggerSegmentFlush(), BSS_OK);
+    while (!mBoostStateDB->GetFreshTable()->IsSnapshotQueueEmpty()) {
+        sleep(NO_1);
+    }
+    ASSERT_NE(TestFreshSliceTableSnapshot::mBoostStateDB->CreateSyncCheckpoint("/tmp/" + std::to_string(mCheckpointId),
+                                                                               mCheckpointId),
+              nullptr);
+    ASSERT_EQ(mBoostStateDB->CreateAsyncCheckpoint(mCheckpointId, false), BSS_OK);
+
+    if (mBoostStateDB != nullptr) {
+        mBoostStateDB->Close();
+        delete mBoostStateDB;
+        mBoostStateDB = nullptr;
+    }
+
+    ConfigRef config = std::make_shared<Config>();
+    config->Init(NO_0, NO_15, NO_16);
+    config->SetSliceStandardSizePerBucket(IO_SIZE_1M);
+    config->mMemorySegmentSize = IO_SIZE_16K;
+    config->SetEvictMinSize(IO_SIZE_2G);
+    config->SetLocalPath("/tmp/" + std::to_string(mCheckpointId) + "/sst");
+    config->SetSliceTableSnapshotCompressionPolicy("none");
+    mConfig = config;
+    mMemManager = std::make_shared<MemManager>(AllocatorType::DIRECT);
+    mMemManager->Initialize(config);
+    mBoostStateDB = (BoostStateDBImpl *)BoostStateDBFactory::Create();
+    ASSERT_EQ(mBoostStateDB->Open(config), BSS_OK);
+    mBoostStateDB->GetSliceTable()->SetMemHighMark(IO_SIZE_2G);
+
+    std::string restorePath = "/tmp/" + std::to_string(mCheckpointId);
+    std::unordered_map<std::string, std::string> pathMap;
+    std::vector<std::string> restorePaths;
+    restorePaths.emplace_back(restorePath);
+    ASSERT_EQ(mBoostStateDB->Restore(restorePaths, pathMap, false, true), BSS_OK);
+
+    for (const auto &key : keys) {
+        Value value{};
+        ASSERT_TRUE(mBoostStateDB->GetSliceTable()->Get(key, value));
+        ASSERT_TRUE(!value.IsNull());
+        ASSERT_EQ(value.ValueLen(), NO_1024);
+        ASSERT_EQ(value.ValueData()[0], 5);
+    }
 }
 
 TEST_F(TestFreshSliceTableSnapshot, TestSnapshotFuncInFileStore)

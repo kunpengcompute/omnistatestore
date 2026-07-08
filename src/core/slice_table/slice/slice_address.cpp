@@ -23,6 +23,8 @@ void SliceAddress::Init(const DataSliceRef &dataSlice, uint64_t accessNumber)
     }
     mDataSlice = dataSlice;
     mOriDataLen = dataSlice->GetSize();
+    mStoredDataLen = mOriDataLen;
+    mCompressAlgo = CompressAlgo::NONE;
     mBorn = accessNumber;
     mHitCount = 0;
 }
@@ -55,19 +57,25 @@ void SliceAddress::SnapshotMeta(FileOutputViewRef localOutputView, SnapshotMetaR
 {
     // sliceAddress的元数据内容: 数据长度+checksum+snapshot文件地址+snapshot文件偏移+sliceId.
     localOutputView->WriteUint32(mOriDataLen);
+    localOutputView->WriteUint32(mStoredDataLen);
+    localOutputView->WriteUint8(mCompressAlgo);
     localOutputView->WriteUint32(mCheckSum);
     localOutputView->WriteUTF(mLocalAddress);
     localOutputView->WriteUint64(mStartOffset);
     localOutputView->WriteUint64(mSliceId);
 
     snapshotMeta->AddLocalFilePaths(std::make_shared<Path>(mLocalAddress));
-    snapshotMeta->AddLocalFullSize(mOriDataLen);
+    snapshotMeta->AddLocalFullSize(mStoredDataLen);
 }
 
 BResult SliceAddress::Restore(const FileInputViewRef &reader, SliceAddressRef &sliceAddress)
 {
     uint32_t sliceLen = 0;
     RETURN_NOT_OK_AS_READ_ERROR(reader->Read(sliceLen));
+    uint32_t storedLen = 0;
+    RETURN_NOT_OK_AS_READ_ERROR(reader->Read(storedLen));
+    CompressAlgo compressAlgo = CompressAlgo::NONE;
+    RETURN_NOT_OK_AS_READ_ERROR(reader->Read(compressAlgo));
     uint32_t checkSum = 0;
     RETURN_NOT_OK_AS_READ_ERROR(reader->Read(checkSum));
     std::string localAddress;
@@ -79,9 +87,11 @@ BResult SliceAddress::Restore(const FileInputViewRef &reader, SliceAddressRef &s
     sliceAddress = std::make_shared<SliceAddress>(sliceLen, checkSum, 0, startOffset, sliceId);
     RETURN_ALLOC_FAIL_AS_NULLPTR(sliceAddress);
     sliceAddress->SetLocalAddress(localAddress);
+    sliceAddress->SetSnapshotCompressionMeta(storedLen, compressAlgo);
     LOG_DEBUG("Restore slice address success, checkSum:" << checkSum << ", sliceId:" << sliceId << ", startOffset:"
                                                          << startOffset << ", localAddress:" << localAddress
-                                                         << ", sliceLen:" << sliceLen);
+                                                         << ", sliceLen:" << sliceLen << ", storedLen:" << storedLen
+                                                         << ", compressAlgo:" << static_cast<uint32_t>(compressAlgo));
     return BSS_OK;
 }
 

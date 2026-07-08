@@ -59,6 +59,8 @@ public class BoostConfig {
 
     private String freshTableSnapshotCompressionPolicy = "none";
 
+    private String sliceTableSnapshotCompressionPolicy = "none";
+
     private boolean isEnableBloomFilter = true;
 
     private int taskSlotFlag;
@@ -193,6 +195,10 @@ public class BoostConfig {
         this.freshTableSnapshotCompressionPolicy = freshTableSnapshotCompressionPolicy.toLowerCase(Locale.ROOT);
     }
 
+    public void setSliceTableSnapshotCompressionPolicy(String sliceTableSnapshotCompressionPolicy) {
+        this.sliceTableSnapshotCompressionPolicy = sliceTableSnapshotCompressionPolicy.toLowerCase(Locale.ROOT);
+    }
+
     public String getLsmStoreCompressionPolicy() {
         return lsmStoreCompressionPolicy;
     }
@@ -203,6 +209,10 @@ public class BoostConfig {
 
     public String getFreshTableSnapshotCompressionPolicy() {
         return freshTableSnapshotCompressionPolicy;
+    }
+
+    public String getSliceTableSnapshotCompressionPolicy() {
+        return sliceTableSnapshotCompressionPolicy;
     }
 
     public boolean isEnableBloomFilter() {

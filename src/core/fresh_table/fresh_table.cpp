@@ -23,9 +23,10 @@
 
 namespace ock {
 namespace bss {
-BResult AllocateFreshRestoreCompressedSegment(uint32_t length, MemorySegmentRef &segment)
+BResult AllocateFreshRestoreCompressedSegment(uint32_t length, uint32_t maxLength, MemorySegmentRef &segment)
 {
-    if (UNLIKELY(length == 0)) {
+    if (UNLIKELY(length == 0 || length > maxLength)) {
+        LOG_ERROR("Invalid Fresh restore compressed scratch length:" << length << ", maxLength:" << maxLength);
         return BSS_INVALID_PARAM;
     }
     auto *temporary = static_cast<uint8_t *>(malloc(length));
@@ -51,16 +52,16 @@ BResult ValidateFreshSnapshotCompressionMeta(CompressAlgo compressAlgo, uint32_t
         if (storedLength == rawLength) {
             return BSS_OK;
         }
-        LOG_ERROR("Invalid fresh table snapshot none compression meta, rawLength:"
-                  << rawLength << ", storedLength:" << storedLength);
+        LOG_ERROR("Invalid fresh table snapshot none compression meta, rawLength:" << rawLength << ", storedLength:"
+                                                                                   << storedLength);
         return BSS_INVALID_PARAM;
     }
     if (compressAlgo == CompressAlgo::LZ4) {
         if (storedLength > 0 && storedLength < rawLength) {
             return BSS_OK;
         }
-        LOG_ERROR("Invalid fresh table snapshot lz4 compression meta, rawLength:"
-                  << rawLength << ", storedLength:" << storedLength);
+        LOG_ERROR("Invalid fresh table snapshot lz4 compression meta, rawLength:" << rawLength
+                                                                                  << ", storedLength:" << storedLength);
         return BSS_INVALID_PARAM;
     }
     LOG_ERROR("Unsupported fresh table snapshot compression algo:" << static_cast<uint32_t>(compressAlgo));
@@ -77,9 +78,8 @@ MemoryType GetFreshRestoreMemoryType(const MemManagerRef &memManager, uint32_t l
 
 BResult AllocateFreshRestoreSegment(const MemManagerRef &memManager, uint32_t length, MemorySegmentRef &segment)
 {
-    uint64_t maxFreshRestoreSize =
-        std::max(memManager->GetMemoryTypeMaxSize(MemoryType::SNAPSHOT),
-                 memManager->GetMemoryTypeMaxSize(MemoryType::RESTORE));
+    uint64_t maxFreshRestoreSize = std::max(memManager->GetMemoryTypeMaxSize(MemoryType::SNAPSHOT),
+                                            memManager->GetMemoryTypeMaxSize(MemoryType::RESTORE));
     if (UNLIKELY(length == 0 || length > maxFreshRestoreSize)) {
         LOG_ERROR("Invalid fresh table restore memory length:" << length
                                                                << ", maxFreshRestoreSize:" << maxFreshRestoreSize);
@@ -116,7 +116,7 @@ BResult ReadFreshSnapshotSegment(const FileInputViewRef &fileInputView, const Me
     }
 
     MemorySegmentRef storedSegment = nullptr;
-    RETURN_NOT_OK(AllocateFreshRestoreCompressedSegment(storedLength, storedSegment));
+    RETURN_NOT_OK(AllocateFreshRestoreCompressedSegment(storedLength, rawLength, storedSegment));
     auto ret = fileInputView->ReadMemorySegment(0, storedSegment, 0, storedLength);
     if (UNLIKELY(ret != BSS_OK)) {
         LOG_ERROR("Read fresh table compressed snapshot failed, ret:" << ret << ", storedLength:" << storedLength);
@@ -443,11 +443,10 @@ BResult FreshTable::Restore(const std::vector<RestoredDbMetaRef> &restoredDbMeta
                 }
                 FileInputViewRef fileInputView = std::make_shared<FileInputView>();
                 RETURN_NOT_OK(fileInputView->Init(FileSystemType::LOCAL, std::make_shared<Path>(Uri(address))));
-                LOG_DEBUG("Restore fresh table snapshot, algo:" << static_cast<uint32_t>(compressAlgo)
-                                                               << ", rawLength:" << length
-                                                               << ", storedLength:" << compressLength
-                                                               << ", fastBulkLoad:" << fastBulkLoad
-                                                               << ", file:" << PathTransform::ExtractFileName(address));
+                LOG_DEBUG("Restore fresh table snapshot, algo:"
+                          << static_cast<uint32_t>(compressAlgo) << ", rawLength:" << length
+                          << ", storedLength:" << compressLength << ", fastBulkLoad:" << fastBulkLoad
+                          << ", file:" << PathTransform::ExtractFileName(address));
                 if (fastBulkLoad) {  // 执行快速批量加载.
                     MemorySegmentRef memorySegment = mActive->GetMemorySegment();
                     auto ret = ReadFreshSnapshotSegment(fileInputView, memorySegment, length, compressAlgo,

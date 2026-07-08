@@ -22,6 +22,7 @@
 #include "common/io/file_output_view.h"
 #include "data_slice.h"
 #include "include/bss_err.h"
+#include "include/compress_algo.h"
 #include "include/ref.h"
 #include "slice_status.h"
 #include "snapshot/snapshot_meta.h"
@@ -39,12 +40,19 @@ public:
 
     SliceAddress(uint32_t dataLen, uint32_t checkSum, uint64_t accessNumber, uint64_t startOffset = 0,
                  uint64_t sliceId = GenerateRandomNumber())
-        : mOriDataLen(dataLen), mCheckSum(checkSum), mBorn(accessNumber), mStartOffset(startOffset), mSliceId(sliceId)
+        : mOriDataLen(dataLen),
+          mStoredDataLen(dataLen),
+          mCheckSum(checkSum),
+          mBorn(accessNumber),
+          mStartOffset(startOffset),
+          mSliceId(sliceId)
     {
     }
 
     SliceAddress(SliceAddress &other)
         : mOriDataLen(other.mOriDataLen),
+          mStoredDataLen(other.mStoredDataLen),
+          mCompressAlgo(other.mCompressAlgo),
           mCheckSum(other.mCheckSum),
           mBorn(other.mBorn),
           mHitCount(other.mHitCount),
@@ -69,6 +77,8 @@ public:
         }
         mSliceStatus.store(other.mSliceStatus.load());
         mOriDataLen = other.mOriDataLen;
+        mStoredDataLen = other.mStoredDataLen;
+        mCompressAlgo = other.mCompressAlgo;
         mCheckSum = other.mCheckSum;
         mBorn = other.mBorn;
         mHitCount = other.mHitCount;
@@ -91,6 +101,16 @@ public:
     inline uint32_t GetDataLen() const
     {
         return mOriDataLen;
+    }
+
+    inline uint32_t GetStoredDataLen() const
+    {
+        return mStoredDataLen;
+    }
+
+    inline CompressAlgo GetCompressAlgo() const
+    {
+        return mCompressAlgo;
     }
 
     inline uint32_t GetCheckSum() const
@@ -178,6 +198,20 @@ public:
         return mStartOffset;
     }
 
+    inline void SetSnapshotCompressionMeta(uint32_t storedDataLen, CompressAlgo compressAlgo)
+    {
+        mStoredDataLen = storedDataLen;
+        mCompressAlgo = compressAlgo;
+    }
+
+    inline void SetRawSnapshotCompressionMeta(uint32_t storedDataLen, CompressAlgo compressAlgo)
+    {
+        if (mFatherSlice != nullptr) {
+            mFatherSlice->SetSnapshotCompressionMeta(storedDataLen, compressAlgo);
+        }
+        SetSnapshotCompressionMeta(storedDataLen, compressAlgo);
+    }
+
     inline bool SetStatus(SliceEvent event)
     {
         std::lock_guard<std::mutex> lk(mStatusLock);
@@ -248,6 +282,8 @@ private:
     std::atomic<SliceStatus> mSliceStatus{ SliceStatus::NORMAL };
     static std::atomic<uint64_t> mGenerateSliceId;
     uint32_t mOriDataLen = 0;
+    uint32_t mStoredDataLen = 0;
+    CompressAlgo mCompressAlgo = CompressAlgo::NONE;
     uint32_t mCheckSum = 12568;  // 当前设置为魔术字:12568.
     uint64_t mBorn = 0;
     uint32_t mHitCount = 0;

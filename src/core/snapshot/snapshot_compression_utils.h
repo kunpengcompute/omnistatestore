@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
  * You can use this software according to the terms and conditions of the Mulan PSL v2.
  * You may obtain a copy of Mulan PSL v2 at:
  *          http://license.coscl.org.cn/MulanPSL2
@@ -21,9 +21,8 @@ namespace ock {
 namespace bss {
 class SnapshotCompressionUtils {
 public:
-    static BResult TryCompressInto(CompressAlgo policy, const uint8_t *rawData, uint32_t rawLength,
-                                   uint8_t *storedData, uint32_t storedCapacity, CompressAlgo &storedAlgo,
-                                   uint32_t &storedLength);
+    static BResult TryCompressInto(CompressAlgo policy, const uint8_t *rawData, uint32_t rawLength, uint8_t *storedData,
+                                   uint32_t storedCapacity, CompressAlgo &storedAlgo, uint32_t &storedLength);
 
     static BResult Decompress(CompressAlgo storedAlgo, const uint8_t *storedData, uint32_t storedLength,
                               uint8_t *rawData, uint32_t rawLength);

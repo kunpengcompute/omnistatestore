@@ -79,9 +79,8 @@ BResult FreshTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
 
     LOG_DEBUG("Fresh table sync checkpoint end, active memory data size:"
               << activeSegment->GetBinaryData()->Size()
-              << ", bucketCount:" << activeSegment->GetBinaryData()->BucketCount()
-              << ", rawLength:" << mByteLength << ", storedLength:" << mCompressLength
-              << ", algo:" << static_cast<uint32_t>(mCompressAlgo));
+              << ", bucketCount:" << activeSegment->GetBinaryData()->BucketCount() << ", rawLength:" << mByteLength
+              << ", storedLength:" << mCompressLength << ", algo:" << static_cast<uint32_t>(mCompressAlgo));
     return BSS_OK;
 }
 
@@ -133,11 +132,9 @@ BResult FreshTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
     mSnapshotMeta->AddLocalIncrementalSize(uploadingLength);
     mSnapshotMeta->AddLocalFullSize(uploadingLength);
     double ratio = mByteLength == 0 ? 0.0 : static_cast<double>(mCompressLength) * 100.0 / mByteLength;
-    LOG_DEBUG("FreshTable snapshot compression, checkpointId:" << snapshotId
-                                                              << ", algo:" << static_cast<uint32_t>(mCompressAlgo)
-                                                              << ", rawLength:" << mByteLength
-                                                              << ", storedLength:" << mCompressLength
-                                                              << ", ratio:" << ratio << "%");
+    LOG_DEBUG("FreshTable snapshot compression, checkpointId:"
+              << snapshotId << ", algo:" << static_cast<uint32_t>(mCompressAlgo) << ", rawLength:" << mByteLength
+              << ", storedLength:" << mCompressLength << ", ratio:" << ratio << "%");
     LOG_DEBUG("FreshTable write snapshot meta success, checkpointId:" << snapshotId << ", fileAddress:"
                                                                       << freshTableFile->ExtractFileName()
                                                                       << ", dataSize:" << uploadingLength);
