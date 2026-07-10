@@ -132,6 +132,7 @@ public class BoostSavepointRestoreOperation<K> extends AbstractBoostRestoreOpera
 
     public BoostSavepointRestoreOperation(
         KeyGroupRange keyGroupRange,
+        int keyGroupPrefixBytes,
         ClassLoader userCodeClassLoader,
         StateSerializerProvider<K> serializerProvider,
         BoostStateDB db,
@@ -147,8 +148,7 @@ public class BoostSavepointRestoreOperation<K> extends AbstractBoostRestoreOpera
                 serializerProvider);
         this.keyedStateMap = new HashMap<>();
         this.nsKeyedStateMap = new HashMap<>();
-        this.keyGroupPrefixBytes =
-            CompositeKeySerializationUtils.computeRequiredBytesInKeyGroupPrefix(keyGroupRange.getNumberOfKeyGroups());
+        this.keyGroupPrefixBytes = keyGroupPrefixBytes;
         this.serializerProvider = serializerProvider;
         this.keyDeserializer = new DataInputDeserializer();
         this.valueDeserializer = new DataInputDeserializer();
