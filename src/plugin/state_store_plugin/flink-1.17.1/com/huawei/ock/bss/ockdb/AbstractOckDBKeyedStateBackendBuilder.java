@@ -353,6 +353,8 @@ public abstract class AbstractOckDBKeyedStateBackendBuilder<K> extends AbstractK
         boostConfig.setCacheFilterAndIndexRatio(this.config.get(OckDBOptions.OCKDB_FILTER_AND_INDEX_OWN_CACHE_RATIO));
         boostConfig.setLsmStoreCompressionPolicy(this.config.get(OckDBOptions.OCKDB_LSM_COMPRESSION_POLICY));
         boostConfig.setLsmStoreCompressionLevelPolicy(this.config.get(OckDBOptions.OCKDB_LSM_COMPRESSION_LEVEL_POLICY));
+        boostConfig.setFreshTableSnapshotCompressionPolicy(
+            this.config.get(OckDBOptions.OCKDB_FRESH_TABLE_SNAPSHOT_COMPRESSION_POLICY));
         boostConfig.setEnableBloomFilter(this.config.get(OckDBOptions.OCKDB_BLOOM_FILTER_SWITCH));
         int dbFilterExpectedKeyCount = this.config.get(OckDBOptions.OCKDB_BLOOM_FILTER_EXPECTED_KEY_COUNT);
         if (dbFilterExpectedKeyCount < MIN_DB_FILTER_EXPECTED_KEY_COUNT

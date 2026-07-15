@@ -57,6 +57,8 @@ public class BoostConfig {
 
     private String lsmStoreCompressionLevelPolicy;
 
+    private String freshTableSnapshotCompressionPolicy = "none";
+
     private boolean isEnableBloomFilter = true;
 
     private int taskSlotFlag;
@@ -187,12 +189,20 @@ public class BoostConfig {
         this.lsmStoreCompressionLevelPolicy = lsmStoreCompressionLevelPolicy.toLowerCase(Locale.ROOT);
     }
 
+    public void setFreshTableSnapshotCompressionPolicy(String freshTableSnapshotCompressionPolicy) {
+        this.freshTableSnapshotCompressionPolicy = freshTableSnapshotCompressionPolicy.toLowerCase(Locale.ROOT);
+    }
+
     public String getLsmStoreCompressionPolicy() {
         return lsmStoreCompressionPolicy;
     }
 
     public String getLsmStoreCompressionLevelPolicy() {
         return lsmStoreCompressionLevelPolicy;
+    }
+
+    public String getFreshTableSnapshotCompressionPolicy() {
+        return freshTableSnapshotCompressionPolicy;
     }
 
     public boolean isEnableBloomFilter() {

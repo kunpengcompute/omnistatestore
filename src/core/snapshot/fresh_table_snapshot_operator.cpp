@@ -11,6 +11,8 @@
 
 #include "fresh_table_snapshot_operator.h"
 
+#include "snapshot_compression_utils.h"
+
 namespace ock {
 namespace bss {
 BResult FreshTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
@@ -67,14 +69,19 @@ BResult FreshTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
     }
     mToUpload = newSegment;
     mByteLength = origin->GetCurPos();
-    ret = origin->CopyTo(newSegment);  // 复制到新的MemorySegment
+    CompressAlgo policy = mConfig == nullptr ? CompressAlgo::NONE : mConfig->GetFreshTableSnapshotCompressionPolicy();
+    ret = SnapshotCompressionUtils::TryCompressInto(policy, origin->GetSegment(), mByteLength, newSegment->GetSegment(),
+                                                    mByteLength, mCompressAlgo, mCompressLength);
     if (UNLIKELY(ret != BSS_OK)) {
         return ret;
     }
+    newSegment->UpdatePosition(mCompressLength);
 
     LOG_DEBUG("Fresh table sync checkpoint end, active memory data size:"
               << activeSegment->GetBinaryData()->Size()
-              << ", bucketCount:" << activeSegment->GetBinaryData()->BucketCount());
+              << ", bucketCount:" << activeSegment->GetBinaryData()->BucketCount()
+              << ", rawLength:" << mByteLength << ", storedLength:" << mCompressLength
+              << ", algo:" << static_cast<uint32_t>(mCompressAlgo));
     return BSS_OK;
 }
 
@@ -111,12 +118,11 @@ BResult FreshTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
     }
 
     // 3. 将copyMemorySegment中的数据写入到snapshot文件中.
-    uint32_t uploadingLength = mByteLength;
-    mCompressLength = mByteLength;  // 默认freshTable不使用压缩算法.
-    ret = fileOutputView->WriteBuffer(mToUpload->GetSegment(), 0, mToUpload->GetCurPos());
+    uint32_t uploadingLength = mCompressLength;
+    ret = fileOutputView->WriteBuffer(mToUpload->GetSegment(), 0, uploadingLength);
     fileOutputView->Close();
     if (UNLIKELY(ret != BSS_OK)) {
-        LOG_ERROR("Fresh table snapshot write file failed, ret:" << ret << ", writeSize:" << mToUpload->GetCurPos());
+        LOG_ERROR("Fresh table snapshot write file failed, ret:" << ret << ", writeSize:" << uploadingLength);
         mToUpload = nullptr;
         return ret;
     }
@@ -126,6 +132,12 @@ BResult FreshTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
     mSnapshotMeta->AddLocalFilePath(freshTableFile);
     mSnapshotMeta->AddLocalIncrementalSize(uploadingLength);
     mSnapshotMeta->AddLocalFullSize(uploadingLength);
+    double ratio = mByteLength == 0 ? 0.0 : static_cast<double>(mCompressLength) * 100.0 / mByteLength;
+    LOG_DEBUG("FreshTable snapshot compression, checkpointId:" << snapshotId
+                                                              << ", algo:" << static_cast<uint32_t>(mCompressAlgo)
+                                                              << ", rawLength:" << mByteLength
+                                                              << ", storedLength:" << mCompressLength
+                                                              << ", ratio:" << ratio << "%");
     LOG_DEBUG("FreshTable write snapshot meta success, checkpointId:" << snapshotId << ", fileAddress:"
                                                                       << freshTableFile->ExtractFileName()
                                                                       << ", dataSize:" << uploadingLength);
@@ -143,7 +155,7 @@ SnapshotMetaRef FreshTableSnapshotOperator::OutputMeta(uint64_t snapshotId, cons
     // 文件中的元数据内容: 文件名+数据长度+压缩标记+压缩长度.
     RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUTF(mLocalAddress));
     RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUint32(mByteLength));
-    RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUint8(CompressAlgo::NONE));  // 默认不压缩
+    RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUint8(mCompressAlgo));
     RETURN_NULLPTR_AS_NOT_OK(localOutputView->WriteUint32(mCompressLength));
     return mSnapshotMeta;
 }

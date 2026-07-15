@@ -1238,6 +1238,7 @@ public:
         std::string currentDir = GetCurrentWorkingDirectory();
         std::string cpPath = currentDir + "/cp/";
         RemoveDirectoryRecursive(cpPath.c_str());
+        return true;
     }
 
     bool RemoveDirectoryRecursive(const std::string &path)
