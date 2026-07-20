@@ -14,30 +14,37 @@
 
 #include <cstdint>
 
+#include "include/bss_err.h"
+
 namespace ock {
 namespace bss {
 
 class KeyGroupUtil {
 public:
-    static inline void Init(uint32_t maxParallelism)
+    static BResult Init(uint32_t maxParallelism);
+
+    static inline uint32_t ComputeKeyGroupForKeyHash(uint32_t orderHash)
     {
-        if (maxParallelism < 129) {
-            mSetKeyGroupFunc = &KeyGroupUtil::SetOneByteKeyGroup;
-            mComputeKeyGroupFunc = &KeyGroupUtil::ComputeOneByteKeyGroup;
+        return (*mComputeKeyGroupFunc)(orderHash);
+    }
+
+    static inline void SetKeyGroup(uint32_t &rawHash, uint32_t keyGroup)
+    {
+        (*mSetKeyGroupFunc)(rawHash, keyGroup);
+    }
+
+    static inline uint32_t ComputePQKeyGroupForKeyHash(uint32_t keyHash)
+    {
+        return mMaxParallelism < 129 ? ComputeOneByteKeyGroup(keyHash) : ComputeTwoBytesKeyGroup(keyHash);
+    }
+
+    static inline void SetPQKeyGroup(uint32_t &keyHashCode, uint32_t keyGroup)
+    {
+        if (mMaxParallelism < 129) {
+            SetOneByteKeyGroup(keyHashCode, keyGroup);
         } else {
-            mSetKeyGroupFunc = &KeyGroupUtil::SetTwoBytesKeyGroup;
-            mComputeKeyGroupFunc = &KeyGroupUtil::ComputeTwoBytesKeyGroup;
+            SetTwoBytesKeyGroup(keyHashCode, keyGroup);
         }
-    }
-
-    static inline uint32_t ComputeKeyGroupForKeyHash(uint32_t keyHash)
-    {
-        return (*mComputeKeyGroupFunc)(keyHash);
-    }
-
-    static inline void SetKeyGroup(uint32_t &keyHashCode, uint32_t keyGroup)
-    {
-        (*mSetKeyGroupFunc)(keyHashCode, keyGroup);
     }
 
     static inline uint32_t ComputeOneByteKeyGroup(uint32_t keyHash)
@@ -61,9 +68,45 @@ public:
     }
 
 private:
+    static inline void SetPowerOfTwoKeyGroup(uint32_t &rawHash, uint32_t keyGroup)
+    {
+        rawHash = (keyGroup << mQuotientBits) | (rawHash >> mGroupBits);
+    }
+
+    static inline uint32_t ComputePowerOfTwoKeyGroup(uint32_t orderHash)
+    {
+        return orderHash >> mQuotientBits;
+    }
+
+    static inline void SetGeneralKeyGroup(uint32_t &rawHash, uint32_t keyGroup)
+    {
+        uint64_t quotient = rawHash / mMaxParallelism;
+        uint64_t extraBefore = keyGroup < mExtra ? keyGroup : mExtra;
+        uint64_t prefix = static_cast<uint64_t>(keyGroup) * mBase + extraBefore;
+        rawHash = static_cast<uint32_t>(prefix + quotient);
+    }
+
+    static inline uint32_t ComputeGeneralKeyGroup(uint32_t orderHash)
+    {
+        uint64_t value = orderHash;
+        if (value < mLongSpan) {
+            return static_cast<uint32_t>(value / (mBase + 1));
+        }
+        return static_cast<uint32_t>(mExtra + (value - mLongSpan) / mBase);
+    }
+
+    static constexpr uint32_t VALID_HASH_BITS = 31;
+    static constexpr uint64_t HASH_SPACE = 1ULL << VALID_HASH_BITS;
+
     using SetKeyGroupFuncPtr = void (*)(uint32_t &, uint32_t);
     using ComputeKeyGroupFuncPtr = uint32_t (*)(uint32_t);
 
+    static uint32_t mMaxParallelism;
+    static uint32_t mGroupBits;
+    static uint32_t mQuotientBits;
+    static uint64_t mBase;
+    static uint64_t mExtra;
+    static uint64_t mLongSpan;
     static SetKeyGroupFuncPtr mSetKeyGroupFunc;
     static ComputeKeyGroupFuncPtr mComputeKeyGroupFunc;
 };

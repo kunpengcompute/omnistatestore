@@ -45,17 +45,18 @@ TEST_F(TestFreshTable, test_write_big_value_and_get_ok)
     memset_s(data, IO_SIZE_16M, 0xFF, IO_SIZE_16M);
     uint16_t stateId = VALUE << NO_13;
     BinaryData val(reinterpret_cast<uint8_t *>(data), IO_SIZE_16M);
-    uint32_t keyHashCode = 1234;
-    uint32_t keyGroupIndex = keyHashCode % NO_128;
+    uint32_t rawHash = 1234;
+    uint32_t orderHash = rawHash;
+    uint32_t keyGroupIndex = rawHash % NO_128;
     // 先计算stateId，再修改hash，避免修改hash影响计算stateId
-    KeyGroupUtil::SetKeyGroup(keyHashCode, keyGroupIndex);
-    QueryKey queryKey(stateId, keyHashCode, priKey);
+    KeyGroupUtil::SetKeyGroup(orderHash, keyGroupIndex);
+    QueryKey queryKey(stateId, orderHash, priKey);
     Value putVal;
     putVal.Init(ValueType::PUT, val.Length(), val.Data(), 1);
     BResult result = mFreshTable->Put(queryKey, putVal);
     ASSERT_TRUE(result == BSS_OK);
     BinaryData getVal;
-    result = kVTable->Get(keyHashCode, priKey, getVal);
+    result = kVTable->Get(rawHash, priKey, getVal);
     ASSERT_TRUE(result == BSS_OK);
     ASSERT_TRUE(putVal.ValueLen() == getVal.Length());
     ASSERT_TRUE(memcmp(putVal.ValueData(), getVal.Data(), IO_SIZE_16M) == 0);

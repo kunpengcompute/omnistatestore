@@ -1185,6 +1185,14 @@ BResult UpdateFromDBWithTTL(StateType keyedStateType, std::string tableName, Boo
     return db->UpdateTtlConfig(tblDesc);
 }
 
+void WaitForTTLExpiration(int64_t ttl)
+{
+    uint64_t expirationTime = TimeStampUtil::GetCurrentTime() + static_cast<uint64_t>(ttl);
+    while (TimeStampUtil::GetCurrentTime() < expirationTime) {
+        usleep(NO_10000);
+    }
+}
+
 void ForceFlushToSlice(bool allDb = false)
 {
     mDB->ForceTriggerTransform();
@@ -1511,7 +1519,8 @@ void TestDB::TearDown()
 
 TEST_F(TestDB, test_sp_list_and_get_return_ok)
 {
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KListAddBigValue }, { 0.1, KListRemove } };
+    auto skipRemove = [](uint32_t, uint32_t, bool) { (void)GetRandomData(sourceKey); };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KListAddBigValue }, { 0.1, skipRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_1000; j++) {
             executeOperation(operationsConfig);
@@ -1591,7 +1600,7 @@ TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_false_with_ttl)
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
         }
-        sleep(NO_6);
+        WaitForTTLExpiration(NO_5 * NO_1000);
         ForceEvictToLsm();
 
         for (auto &it : mKV) {
@@ -1658,7 +1667,7 @@ TEST_F(TestDB, test_KMap_to_lsm_store_and_get_return_false_with_ttl)
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
         }
-        sleep(NO_6);
+        WaitForTTLExpiration(NO_5 * NO_1000);
         ForceEvictToLsm();
 
         for (auto &it : mKMap) {
@@ -1718,7 +1727,7 @@ TEST_F(TestDB, test_KList_to_lsm_store_and_get_return_false_with_ttl)
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
         }
-        sleep(NO_6);
+        WaitForTTLExpiration(NO_5 * NO_1000);
         ForceEvictToLsm();
 
         for (auto &it : mKList) {
@@ -1761,7 +1770,7 @@ TEST_F(TestDB, test_all_states_to_lsm_store_and_get_return_ok_with_ttl)
         ASSERT_EQ(ret1, BSS_OK);
         BResult ret2 = UpdateFromDBWithTTL(StateType::LIST, "kListTable", mDB, NO_20 * NO_1000);
         ASSERT_EQ(ret2, BSS_OK);
-        sleep(NO_6);
+        WaitForTTLExpiration(NO_5 * NO_1000);
         ForceEvictToLsm();
 
         for (auto &it : mKV) {

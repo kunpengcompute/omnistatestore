@@ -11,12 +11,56 @@
 
 #include "key_group_util.h"
 
+#include <mutex>
+
+#include "common/bss_log.h"
+
 namespace ock {
 namespace bss {
 
-// 定义静态成员变量
+constexpr uint32_t KeyGroupUtil::VALID_HASH_BITS;
+constexpr uint64_t KeyGroupUtil::HASH_SPACE;
+uint32_t KeyGroupUtil::mMaxParallelism = 0;
+uint32_t KeyGroupUtil::mGroupBits = 0;
+uint32_t KeyGroupUtil::mQuotientBits = 0;
+uint64_t KeyGroupUtil::mBase = 0;
+uint64_t KeyGroupUtil::mExtra = 0;
+uint64_t KeyGroupUtil::mLongSpan = 0;
 KeyGroupUtil::SetKeyGroupFuncPtr KeyGroupUtil::mSetKeyGroupFunc = nullptr;
 KeyGroupUtil::ComputeKeyGroupFuncPtr KeyGroupUtil::mComputeKeyGroupFunc = nullptr;
+
+BResult KeyGroupUtil::Init(uint32_t maxParallelism)
+{
+    static std::mutex initMutex;
+    std::lock_guard<std::mutex> lock(initMutex);
+    if (UNLIKELY(maxParallelism == 0 || maxParallelism > MAX_PARALLELISM)) {
+        LOG_ERROR("Invalid maxParallelism: " << maxParallelism << ", valid range: [1, " << MAX_PARALLELISM << "]");
+        return BSS_INVALID_PARAM;
+    }
+
+    if (mMaxParallelism == maxParallelism) {
+        return BSS_OK;
+    }
+
+    uint64_t base = HASH_SPACE / maxParallelism;
+    uint64_t extra = HASH_SPACE % maxParallelism;
+    uint32_t groupBits = 0;
+    for (uint32_t value = maxParallelism; value > 1; value >>= 1) {
+        ++groupBits;
+    }
+
+    bool powerOfTwo = (maxParallelism & (maxParallelism - 1)) == 0;
+    mMaxParallelism = maxParallelism;
+    mBase = base;
+    mExtra = extra;
+    mLongSpan = extra * (base + 1);
+    mGroupBits = groupBits;
+    mQuotientBits = VALID_HASH_BITS - groupBits;
+    mSetKeyGroupFunc = powerOfTwo ? &KeyGroupUtil::SetPowerOfTwoKeyGroup : &KeyGroupUtil::SetGeneralKeyGroup;
+    mComputeKeyGroupFunc = powerOfTwo ? &KeyGroupUtil::ComputePowerOfTwoKeyGroup :
+                                        &KeyGroupUtil::ComputeGeneralKeyGroup;
+    return BSS_OK;
+}
 
 }  // namespace bss
 }  // namespace ock

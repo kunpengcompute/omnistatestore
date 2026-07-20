@@ -84,16 +84,14 @@ public:
     inline bool Filter(const KeyValueRef &keyValue) override
     {
         Key &key = keyValue->key;
-        uint32_t keyHashCode = key.PriKey().KeyHashCode();
-        auto keyGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(keyHashCode);
+        auto keyGroup = ComputeKeyGroup(key.PriKey().KeyHashCode(), key.StateId());
         Value &value = keyValue->value;
         return Filter(keyGroup, key.StateId(), value.SeqId());
     }
 
     inline bool Filter(const Key &key, const Value &value) override
     {
-        uint32_t keyHashCode = key.PriKey().KeyHashCode();
-        auto keyGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(keyHashCode);
+        auto keyGroup = ComputeKeyGroup(key.PriKey().KeyHashCode(), key.StateId());
         return Filter(keyGroup, key.StateId(), value.SeqId());
     }
 
@@ -105,9 +103,9 @@ public:
         return true;
     }
 
-    inline int32_t GetGroup(uint32_t keyHashCode) const
+    inline int32_t GetGroup(uint32_t keyHashCode, uint16_t stateId) const
     {
-        return KeyGroupUtil::ComputeKeyGroupForKeyHash(keyHashCode);
+        return static_cast<int32_t>(ComputeKeyGroup(keyHashCode, stateId));
     }
 
     inline bool StateFilter(uint16_t stateId, uint64_t seqId)
@@ -146,6 +144,12 @@ public:
     }
 
 private:
+    inline uint32_t ComputeKeyGroup(uint32_t keyHashCode, uint16_t stateId) const
+    {
+        return StateId::GetStateType(stateId) == PQ ? KeyGroupUtil::ComputePQKeyGroupForKeyHash(keyHashCode) :
+                                                      KeyGroupUtil::ComputeKeyGroupForKeyHash(keyHashCode);
+    }
+
     StateIdProviderRef mStateIdProvider = nullptr;
     ConfigRef mConf = nullptr;
     KeyGroupStateFilterRef mKeyGroupFilter = nullptr;

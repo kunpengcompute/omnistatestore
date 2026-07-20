@@ -27,12 +27,16 @@ std::atomic<uint64_t> AutoCloseable::GLOBAL_COUNT(0);
 BResult BoostStateDBImpl::Open(const ConfigRef &config)
 {
     mConfig = config;
-    KeyGroupUtil::Init(mConfig->GetMaxNumberOfParallelSubtasks());
+    auto ret = KeyGroupUtil::Init(mConfig->GetMaxNumberOfParallelSubtasks());
+    if (UNLIKELY(ret != BSS_OK)) {
+        LOG_ERROR("Failed to initialize key group util, ret:" << ret);
+        return ret;
+    }
     ReadWriteLock &taskSlotLock = BoostStateDbGroupMgr::GetOrCreateLock(config->GetTaskSlotFlag());
     WriteLocker<ReadWriteLock> lock(&taskSlotLock);
 
     // initialize memory manager.
-    auto ret = BoostStateDbGroupMgr::Create(config->GetTaskSlotFlag(), mConfig);
+    ret = BoostStateDbGroupMgr::Create(config->GetTaskSlotFlag(), mConfig);
     if (ret != BSS_OK) {
         LOG_ERROR("Failed create db group, ret:" << ret);
         InnerClose();

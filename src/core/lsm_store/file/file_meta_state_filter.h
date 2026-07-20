@@ -36,7 +36,7 @@ public:
         if (!mFileMetaOrderRange->Contains(keyHashCode)) {
             return true;
         }
-        int group = mStateFilterManager->GetGroup(keyHashCode);
+        int group = mStateFilterManager->GetGroup(keyHashCode, key.StateId());
         if (!mFileMetaGroupRange->ContainsGroup(group)) {
             return true;
         }

@@ -300,10 +300,10 @@ BResult AbstractKMapTable::Remove(uint32_t hashCode, const BinaryData &priKey)
         return BSS_OK;
     }
     MapIterator *mapIterator = EntryIterator(hashCode, priKey);
+    uint16_t stateId = GetStateId(hashCode);
     while (mapIterator->HasNext()) {
         KeyValueRef pair = mapIterator->Next();
         BinaryData secKey(pair->key.SecKey().KeyData(), pair->key.SecKey().KeyLen());
-        uint16_t stateId = GetStateId(hashCode);
         QueryKey queryKey(stateId, hashCode, priKey, secKey);
         Value putVal;
         putVal.Init(ValueType::DELETE, mSeqGenerator->Next());
