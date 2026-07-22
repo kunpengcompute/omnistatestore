@@ -206,6 +206,24 @@ public class OckDBOptions {
             .withDescription("default_value:(none,none,lz4), different levels of compression strategies");
 
     /**
+     * FreshTable snapshot compression policy
+     */
+    public static final ConfigOption<String> OCKDB_FRESH_TABLE_SNAPSHOT_COMPRESSION_POLICY =
+        ConfigOptions.key("state.backend.ockdb.freshtable.snapshot.compression.policy")
+            .stringType()
+            .defaultValue("none")
+            .withDescription("default_value:(none), FreshTable checkpoint file compression policy");
+
+    /**
+     * SliceTable snapshot compression policy
+     */
+    public static final ConfigOption<String> OCKDB_SLICE_TABLE_SNAPSHOT_COMPRESSION_POLICY =
+        ConfigOptions.key("state.backend.ockdb.slicetable.snapshot.compression.policy")
+            .stringType()
+            .defaultValue("none")
+            .withDescription("default_value:(none), SliceTable checkpoint file compression policy");
+
+    /**
      * peak filter element number
      */
     public static final ConfigOption<Integer> OCKDB_PEAK_FILTER_ELEM_NUM =

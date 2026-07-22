@@ -746,6 +746,34 @@ TEST_F(TestSliceTableBrCov, Slice_Get_ShouldSetKeyStartOffsetToPreviousOffset_Wh
     keyBuffer.Release();
 }
 
+TEST_F(TestSliceTableBrCov, SliceAddress_SnapshotMeta_ShouldPersistCompressionMeta)
+{
+    uint32_t rawLen = IO_SIZE_1K;
+    uint32_t storedLen = NO_512;
+    uint32_t checkSum = 7;
+    uint64_t startOffset = NO_4096;
+    uint64_t sliceId = 42;
+    std::string localAddress = "compressed.slice";
+    SliceAddressRef sliceAddress = std::make_shared<SliceAddress>(rawLen, checkSum, 0, startOffset, sliceId);
+    sliceAddress->SetLocalAddress(localAddress);
+    sliceAddress->SetSnapshotCompressionMeta(storedLen, CompressAlgo::LZ4);
+    SnapshotMetaRef snapshotMeta = std::make_shared<SnapshotMeta>();
+
+    sliceAddress->SnapshotMeta(mOutputView, snapshotMeta);
+    mInputView->Seek(0);
+
+    SliceAddressRef restored = nullptr;
+    ASSERT_EQ(SliceAddress::Restore(mInputView, restored), BSS_OK);
+    ASSERT_NE(restored, nullptr);
+    ASSERT_EQ(restored->GetDataLen(), rawLen);
+    ASSERT_EQ(restored->GetStoredDataLen(), storedLen);
+    ASSERT_EQ(restored->GetCompressAlgo(), CompressAlgo::LZ4);
+    ASSERT_EQ(restored->GetCheckSum(), checkSum);
+    ASSERT_EQ(restored->GetStartOffset(), startOffset);
+    ASSERT_EQ(restored->GetSliceId(), sliceId);
+    ASSERT_EQ(restored->GetLocalAddress(), localAddress);
+}
+
 /**
  * @tc.name  : SliceAddress_Restore_ShouldReturnError_WhenReadSliceLenFails
  * @tc.number: Restore_Test_002
@@ -767,7 +795,11 @@ TEST_F(TestSliceTableBrCov, SliceAddress_Restore_ShouldReturnError_WhenReadSlice
 TEST_F(TestSliceTableBrCov, SliceAddress_Restore_ShouldReturnError_WhenReadCheckSumFails)
 {
     uint32_t sliceLen = 1;
+    uint32_t storedLen = 1;
+    CompressAlgo compressAlgo = CompressAlgo::NONE;
     mOutputView->WriteUint32(sliceLen);
+    mOutputView->WriteUint32(storedLen);
+    mOutputView->WriteUint8(compressAlgo);
     SliceAddressRef sliceAddress = std::make_shared<SliceAddress>(NO_0);
     mInputView->Seek(0);
     BResult result = sliceAddress->Restore(mInputView, sliceAddress);
@@ -783,8 +815,12 @@ TEST_F(TestSliceTableBrCov, SliceAddress_Restore_ShouldReturnError_WhenReadCheck
 TEST_F(TestSliceTableBrCov, SliceAddress_Restore_ShouldReturnError_WhenReadLocalAddressFails)
 {
     uint32_t sliceLen = 1;
+    uint32_t storedLen = 1;
+    CompressAlgo compressAlgo = CompressAlgo::NONE;
     uint32_t checkSum = 1;
     mOutputView->WriteUint32(sliceLen);
+    mOutputView->WriteUint32(storedLen);
+    mOutputView->WriteUint8(compressAlgo);
     mOutputView->WriteUint32(checkSum);
     SliceAddressRef sliceAddress = std::make_shared<SliceAddress>(NO_0);
     mInputView->Seek(0);
@@ -801,9 +837,13 @@ TEST_F(TestSliceTableBrCov, SliceAddress_Restore_ShouldReturnError_WhenReadLocal
 TEST_F(TestSliceTableBrCov, SliceAddress_Restore_ShouldReturnError_WhenReadStartOffsetFails)
 {
     uint32_t sliceLen = 1;
+    uint32_t storedLen = 1;
+    CompressAlgo compressAlgo = CompressAlgo::NONE;
     uint32_t checkSum = 1;
     std::string localAddress = "12345";
     mOutputView->WriteUint32(sliceLen);
+    mOutputView->WriteUint32(storedLen);
+    mOutputView->WriteUint8(compressAlgo);
     mOutputView->WriteUint32(checkSum);
     mOutputView->WriteUTF(localAddress);
     SliceAddressRef sliceAddress = std::make_shared<SliceAddress>(NO_0);
@@ -821,10 +861,14 @@ TEST_F(TestSliceTableBrCov, SliceAddress_Restore_ShouldReturnError_WhenReadStart
 TEST_F(TestSliceTableBrCov, SliceAddress_Restore_ShouldReturnError_WhenReadSliceIdFails)
 {
     uint32_t sliceLen = 1;
+    uint32_t storedLen = 1;
+    CompressAlgo compressAlgo = CompressAlgo::NONE;
     uint32_t checkSum = 1;
     std::string localAddress = "12345";
     uint64_t startOffset = 1;
     mOutputView->WriteUint32(sliceLen);
+    mOutputView->WriteUint32(storedLen);
+    mOutputView->WriteUint8(compressAlgo);
     mOutputView->WriteUint32(checkSum);
     mOutputView->WriteUTF(localAddress);
     mOutputView->WriteUint64(startOffset);

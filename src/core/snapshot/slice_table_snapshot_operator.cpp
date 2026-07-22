@@ -11,8 +11,90 @@
 
 #include "slice_table_snapshot_operator.h"
 
+#include "snapshot_compression_utils.h"
+
 namespace ock {
 namespace bss {
+namespace {
+BResult WriteSliceSnapshotPayload(const FileOutputViewRef &fileOutputView, const SliceAddressRef &sliceAddress,
+                                  const ConfigRef &config, const MemManagerRef &memManager, int64_t fileOffset,
+                                  uint64_t snapshotId, uint32_t &storedLength, CompressAlgo &storedAlgo)
+{
+    RETURN_INVALID_PARAM_AS_NULLPTR(fileOutputView);
+    RETURN_INVALID_PARAM_AS_NULLPTR(sliceAddress);
+    RETURN_INVALID_PARAM_AS_NULLPTR(memManager);
+    if (UNLIKELY(sliceAddress->GetDataSlice() == nullptr || sliceAddress->GetDataSlice()->GetSlice() == nullptr)) {
+        LOG_WARN("Async snapshot failed, Data slice is nullptr, sliceId:" << sliceAddress->GetSliceId());
+        return BSS_NOT_EXISTS;
+    }
+    ByteBufferRef sliceBuffer = sliceAddress->GetDataSlice()->GetSlice()->GetByteBuffer();
+    if (UNLIKELY(sliceBuffer == nullptr)) {
+        LOG_ERROR("Data slice buffer is nullptr, sliceId:" << sliceAddress->GetSliceId());
+        return BSS_ERR;
+    }
+    uint32_t rawLength = sliceAddress->GetDataLen();
+    if (UNLIKELY(rawLength == 0 || rawLength > sliceBuffer->Capacity())) {
+        LOG_ERROR("Invalid slice snapshot raw length, sliceId:" << sliceAddress->GetSliceId()
+                                                                << ", rawLength:" << rawLength
+                                                                << ", capacity:" << sliceBuffer->Capacity());
+        return BSS_INVALID_PARAM;
+    }
+
+    storedAlgo = CompressAlgo::NONE;
+    storedLength = rawLength;
+    CompressAlgo policy = config == nullptr ? CompressAlgo::NONE : config->GetSliceTableSnapshotCompressionPolicy();
+    MemorySegmentRef compressedSegment = nullptr;
+    if (policy != CompressAlgo::NONE) {
+        uintptr_t addr = 0;
+        BResult allocRet = memManager->GetMemory(MemoryType::SLICE_TABLE, rawLength, addr, false, 0);
+        if (allocRet == BSS_OK) {
+            compressedSegment = MakeRef<MemorySegment>(rawLength, reinterpret_cast<uint8_t *>(addr), memManager);
+            if (UNLIKELY(compressedSegment == nullptr)) {
+                memManager->ReleaseMemory(addr);
+                LOG_WARN("Alloc slice snapshot compression segment failed, fallback raw, sliceId:"
+                         << sliceAddress->GetSliceId());
+            } else {
+                BResult compressRet = SnapshotCompressionUtils::TryCompressInto(policy, sliceBuffer->Data(), rawLength,
+                                                                                compressedSegment->GetSegment(),
+                                                                                rawLength, storedAlgo, storedLength);
+                if (UNLIKELY(compressRet != BSS_OK)) {
+                    LOG_WARN("Compress slice snapshot failed, fallback raw, ret:" << compressRet << ", sliceId:"
+                                                                                  << sliceAddress->GetSliceId());
+                    storedAlgo = CompressAlgo::NONE;
+                    storedLength = rawLength;
+                }
+            }
+        } else {
+            LOG_WARN("Alloc slice snapshot compression memory failed, fallback raw, ret:"
+                     << allocRet << ", sliceId:" << sliceAddress->GetSliceId() << ", rawLength:" << rawLength);
+        }
+    }
+
+    BResult ret;
+    if (storedAlgo == CompressAlgo::LZ4) {
+        ret = fileOutputView->WriteBuffer(compressedSegment->GetSegment(), fileOffset, storedLength);
+    } else {
+        storedAlgo = CompressAlgo::NONE;
+        storedLength = rawLength;
+        ret = fileOutputView->WriteByteBuffer(sliceBuffer, fileOffset, rawLength);
+    }
+    if (UNLIKELY(ret != BSS_OK)) {
+        LOG_ERROR("Slice table snapshot write failed, ret:" << ret << ", sliceId:" << sliceAddress->GetSliceId()
+                                                            << ", rawLength:" << rawLength
+                                                            << ", storedLength:" << storedLength);
+        return ret;
+    }
+    sliceAddress->SetRawSnapshotCompressionMeta(storedLength, storedAlgo);
+    double ratio = rawLength == 0 ? 0.0 : static_cast<double>(storedLength) * 100.0 / rawLength;
+    LOG_DEBUG("SliceTable snapshot compression, checkpointId:"
+              << snapshotId << ", sliceId:" << sliceAddress->GetSliceId()
+              << ", algo:" << static_cast<uint32_t>(storedAlgo) << ", rawLength:" << rawLength
+              << ", storedLength:" << storedLength << ", startOffset:" << fileOffset
+              << ", file:" << fileOutputView->GetFilePath()->ExtractFileName() << ", ratio:" << ratio << "%");
+    return BSS_OK;
+}
+}  // namespace
+
 BResult SliceTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
 {
     if (UNLIKELY(mSliceTable->IsSnapshotIdExist(mSnapshotId))) {
@@ -101,26 +183,21 @@ BResult SliceTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
 
             // 2. 将DataSlice中的数据写入到文件中.
             auto startOffset = mFileOutputView->Size();
-            if (UNLIKELY(sliceAddress->GetDataSlice() == nullptr ||
-                         sliceAddress->GetDataSlice()->GetSlice() == nullptr)) {
-                LOG_WARN("Async snapshot failed, Data slice is nullptr, sliceId:" << sliceAddress->GetSliceId());
-                continue;
-            }
-            ByteBufferRef sliceBuffer = sliceAddress->GetDataSlice()->GetSlice()->GetByteBuffer();
-            if (UNLIKELY(sliceBuffer == nullptr)) {
-                LOG_ERROR("Data slice buffer is nullptr, sliceId:" << sliceAddress->GetSliceId());
-                return BSS_ERR;
-            }
             auto sizeToCheck = mFileOutputView->Size();
             if (UNLIKELY(sizeToCheck > INT64_MAX)) {
                 LOG_ERROR("File size is too large :" << sizeToCheck);
                 return BSS_ERR;
             }
-            ret = mFileOutputView->WriteByteBuffer(sliceBuffer, static_cast<int64_t>(sizeToCheck),
-                                                   sliceBuffer->Capacity());
+            uint32_t storedLength = 0;
+            CompressAlgo storedAlgo = CompressAlgo::NONE;
+            ret = WriteSliceSnapshotPayload(mFileOutputView, sliceAddress, mConfig, mMemManager,
+                                            static_cast<int64_t>(sizeToCheck), snapshotId, storedLength, storedAlgo);
+            if (ret == BSS_NOT_EXISTS) {
+                continue;
+            }
             if (UNLIKELY(ret != BSS_OK)) {
                 LOG_ERROR("Slice table snapshot write failed, ret:"
-                          << ret << ", writenSize:" << sliceBuffer->Capacity()
+                          << ret << ", writenSize:" << storedLength
                           << ", file path:" << mFileOutputView->GetFilePath()->ExtractFileName());
                 mFileOutputView->Close();
                 mFileOutputView = nullptr;
@@ -130,11 +207,11 @@ BResult SliceTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
             sliceAddress->SetRawStartOffset(startOffset);
             sliceAddress->SetRawLocalAddress(snapshotPath->Name() + '/' +
                                              mFileOutputView->GetFilePath()->ExtractFileName());
-            dataTotalSize += sliceBuffer->Capacity();
+            dataTotalSize += storedLength;
             LOG_DEBUG("Slice table async checkpoint write data slice success, file path:"
                       << mFileOutputView->GetFilePath()->ExtractFileName() << ", sliceId:" << sliceAddress->GetSliceId()
-                      << ", startOffset:" << startOffset << ", writenSize:" << sliceBuffer->Capacity()
-                      << ", checkSum:" << sliceAddress->GetCheckSum());
+                      << ", startOffset:" << startOffset << ", writenSize:" << storedLength << ", checkSum:"
+                      << sliceAddress->GetCheckSum() << ", algo:" << static_cast<uint32_t>(storedAlgo));
             continue;
         }
         // 已经做过cp的slice文件直接从backup目录硬链到snapshot目录
@@ -150,7 +227,7 @@ BResult SliceTableSnapshotOperator::AsyncSnapshot(uint64_t snapshotId, const Pat
             fileSet.emplace(fileName);
         }
         sliceAddress->SetRawLocalAddress(filePath->Name());
-        dataTotalSize += sliceAddress->GetDataLen();
+        dataTotalSize += sliceAddress->GetStoredDataLen();
     }
 
     if (mFileOutputView != nullptr) {
@@ -205,7 +282,7 @@ BResult SliceTableSnapshotOperator::AsyncSnapshotWithoutLocalRecovery(uint64_t s
             // 更新此时的LocalAddress, 因为恢复的时候都要下载到对应的checkpoint目录下,
             // 所以每次checkpoint都要更新LocalAddress.
             sliceAddress->SetRawLocalAddress(filePath->Name());
-            dataTotalSize += sliceAddress->GetDataLen();
+            dataTotalSize += sliceAddress->GetStoredDataLen();
             continue;
         }
         // 必须在增量判断结束之后新建, 防止创建空文件造成上传失败.
@@ -220,24 +297,20 @@ BResult SliceTableSnapshotOperator::AsyncSnapshotWithoutLocalRecovery(uint64_t s
 
         // 2. 将DataSlice中的数据写入到文件中.
         auto startOffset = mFileOutputView->Size();
-        if (UNLIKELY(sliceAddress->GetDataSlice() == nullptr || sliceAddress->GetDataSlice()->GetSlice() == nullptr)) {
-            LOG_WARN("Async snapshot failed, Data slice is nullptr, sliceId:" << sliceAddress->GetSliceId());
-            continue;
-        }
-        ByteBufferRef sliceBuffer = sliceAddress->GetDataSlice()->GetSlice()->GetByteBuffer();
-        if (UNLIKELY(sliceBuffer == nullptr)) {
-            LOG_ERROR("Data slice buffer is nullptr, sliceId:" << sliceAddress->GetSliceId());
-            return BSS_ERR;
-        }
         auto sizeToCheck = mFileOutputView->Size();
         if (UNLIKELY(sizeToCheck > INT64_MAX)) {
             LOG_ERROR("File size is too large :" << sizeToCheck);
             return BSS_ERR;
         }
-        auto ret = mFileOutputView->WriteByteBuffer(sliceBuffer, static_cast<int64_t>(sizeToCheck),
-                                                    sliceBuffer->Capacity());
+        uint32_t storedLength = 0;
+        CompressAlgo storedAlgo = CompressAlgo::NONE;
+        auto ret = WriteSliceSnapshotPayload(mFileOutputView, sliceAddress, mConfig, mMemManager,
+                                             static_cast<int64_t>(sizeToCheck), snapshotId, storedLength, storedAlgo);
+        if (ret == BSS_NOT_EXISTS) {
+            continue;
+        }
         if (UNLIKELY(ret != BSS_OK)) {
-            LOG_ERROR("Slice table snapshot write failed, ret:" << ret << ", writenSize:" << sliceBuffer->Capacity()
+            LOG_ERROR("Slice table snapshot write failed, ret:" << ret << ", writenSize:" << storedLength
                                                                 << ", file path:"
                                                                 << mFileOutputView->GetFilePath()->ExtractFileName());
             return BSS_ERR;
@@ -245,11 +318,11 @@ BResult SliceTableSnapshotOperator::AsyncSnapshotWithoutLocalRecovery(uint64_t s
         // 设置当前slice checkpoint的文件和文件的偏移起始地址, 在恢复的时候从这个位置开始读取.
         sliceAddress->SetRawStartOffset(startOffset);
         sliceAddress->SetRawLocalAddress(mFileOutputView->GetFilePath()->Name());
-        dataTotalSize += sliceBuffer->Capacity();
+        dataTotalSize += storedLength;
         LOG_DEBUG("Slice table async checkpoint write data slice success, file path:"
                   << mFileOutputView->GetFilePath()->ExtractFileName() << ", sliceId:" << sliceAddress->GetSliceId()
-                  << ", startOffset:" << startOffset << ", writenSize:" << sliceBuffer->Capacity()
-                  << ", checkSum:" << sliceAddress->GetCheckSum());
+                  << ", startOffset:" << startOffset << ", writenSize:" << storedLength
+                  << ", checkSum:" << sliceAddress->GetCheckSum() << ", algo:" << static_cast<uint32_t>(storedAlgo));
     }
     if (mFileOutputView != nullptr) {
         mFileOutputView->Close();

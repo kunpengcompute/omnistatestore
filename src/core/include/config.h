@@ -401,6 +401,28 @@ public:
         mLsmStoreCompressionPolicy = CompressAlgoUtil::CompressAlgoTransform(lsmStoreCompressionPolicy);
     }
 
+    inline CompressAlgo GetFreshTableSnapshotCompressionPolicy() const
+    {
+        return mFreshTableSnapshotCompressionPolicy;
+    }
+
+    inline void SetFreshTableSnapshotCompressionPolicy(const std::string &freshTableSnapshotCompressionPolicy)
+    {
+        mFreshTableSnapshotCompressionPolicy =
+            CompressAlgoUtil::CompressAlgoTransform(freshTableSnapshotCompressionPolicy);
+    }
+
+    inline CompressAlgo GetSliceTableSnapshotCompressionPolicy() const
+    {
+        return mSliceTableSnapshotCompressionPolicy;
+    }
+
+    inline void SetSliceTableSnapshotCompressionPolicy(const std::string &sliceTableSnapshotCompressionPolicy)
+    {
+        mSliceTableSnapshotCompressionPolicy =
+            CompressAlgoUtil::CompressAlgoTransform(sliceTableSnapshotCompressionPolicy);
+    }
+
     // 获取lsm level前n层的默认压缩策略FileStoreCompressionPolicy, 默认值为level2压缩.
     inline std::vector<CompressAlgo> GetCompressionLevelPolicy() const
     {
@@ -558,6 +580,8 @@ public:
     uint32_t mFileStoreL0NumTrigger = NO_8;
     std::vector<CompressAlgo> mCompressionLevelPolicy = { CompressAlgo::NONE, CompressAlgo::NONE, CompressAlgo::LZ4 };
     CompressAlgo mLsmStoreCompressionPolicy = CompressAlgo::LZ4;
+    CompressAlgo mFreshTableSnapshotCompressionPolicy = CompressAlgo::NONE;
+    CompressAlgo mSliceTableSnapshotCompressionPolicy = CompressAlgo::NONE;
     uint32_t mMaxBlobNumInMemCache = TOMBSTONE_MEMTABLE_SIZE;
     uint32_t mTombstoneDataBlockSize = IO_SIZE_64K;
     uint32_t mTombstoneFileSize = IO_SIZE_64M;

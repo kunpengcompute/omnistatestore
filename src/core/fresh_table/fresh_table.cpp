@@ -11,13 +11,130 @@
 #include "fresh_table.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <new>
 #include <stdexcept>
 #include <utility>
 
+#include "fresh_restore_memory.h"
+#include "snapshot/snapshot_compression_utils.h"
+
 namespace ock {
 namespace bss {
+BResult AllocateFreshRestoreCompressedSegment(uint32_t length, uint32_t maxLength, MemorySegmentRef &segment)
+{
+    if (UNLIKELY(length == 0 || length > maxLength)) {
+        LOG_ERROR("Invalid Fresh restore compressed scratch length:" << length << ", maxLength:" << maxLength);
+        return BSS_INVALID_PARAM;
+    }
+    auto *temporary = static_cast<uint8_t *>(malloc(length));
+    if (UNLIKELY(temporary == nullptr)) {
+        LOG_ERROR("Allocate Fresh restore compressed scratch failed, length:" << length);
+        return BSS_ALLOC_FAIL;
+    }
+    segment = MemorySegmentRef(new (std::nothrow) MemorySegment(length, temporary, true));
+    if (UNLIKELY(segment == nullptr)) {
+        free(temporary);
+        return BSS_ALLOC_FAIL;
+    }
+    return BSS_OK;
+}
+
+namespace {
+BResult ValidateFreshSnapshotCompressionMeta(CompressAlgo compressAlgo, uint32_t rawLength, uint32_t storedLength)
+{
+    if (rawLength == 0) {
+        return storedLength == 0 ? BSS_OK : BSS_INVALID_PARAM;
+    }
+    if (compressAlgo == CompressAlgo::NONE) {
+        if (storedLength == rawLength) {
+            return BSS_OK;
+        }
+        LOG_ERROR("Invalid fresh table snapshot none compression meta, rawLength:" << rawLength << ", storedLength:"
+                                                                                   << storedLength);
+        return BSS_INVALID_PARAM;
+    }
+    if (compressAlgo == CompressAlgo::LZ4) {
+        if (storedLength > 0 && storedLength < rawLength) {
+            return BSS_OK;
+        }
+        LOG_ERROR("Invalid fresh table snapshot lz4 compression meta, rawLength:" << rawLength
+                                                                                  << ", storedLength:" << storedLength);
+        return BSS_INVALID_PARAM;
+    }
+    LOG_ERROR("Unsupported fresh table snapshot compression algo:" << static_cast<uint32_t>(compressAlgo));
+    return BSS_NOT_SUPPORTED;
+}
+
+MemoryType GetFreshRestoreMemoryType(const MemManagerRef &memManager, uint32_t length)
+{
+    if (length > memManager->GetMemoryTypeMaxSize(MemoryType::SNAPSHOT)) {
+        return MemoryType::RESTORE;
+    }
+    return MemoryType::SNAPSHOT;
+}
+
+BResult AllocateFreshRestoreSegment(const MemManagerRef &memManager, uint32_t length, MemorySegmentRef &segment)
+{
+    uint64_t maxFreshRestoreSize = std::max(memManager->GetMemoryTypeMaxSize(MemoryType::SNAPSHOT),
+                                            memManager->GetMemoryTypeMaxSize(MemoryType::RESTORE));
+    if (UNLIKELY(length == 0 || length > maxFreshRestoreSize)) {
+        LOG_ERROR("Invalid fresh table restore memory length:" << length
+                                                               << ", maxFreshRestoreSize:" << maxFreshRestoreSize);
+        return BSS_INVALID_PARAM;
+    }
+    uintptr_t addr = 0;
+    MemoryType memoryType = GetFreshRestoreMemoryType(memManager, length);
+    RETURN_NOT_OK_NO_LOG(memManager->GetMemory(memoryType, length, addr));
+    segment = MakeRef<MemorySegment>(length, reinterpret_cast<uint8_t *>(addr), memManager);
+    if (UNLIKELY(segment == nullptr)) {
+        memManager->ReleaseMemory(addr);
+        LOG_ERROR("Make ref buffer failed, memorySegment is null.");
+        return BSS_ALLOC_FAIL;
+    }
+    return BSS_OK;
+}
+
+BResult ReadFreshSnapshotSegment(const FileInputViewRef &fileInputView, const MemorySegmentRef &rawSegment,
+                                 uint32_t rawLength, CompressAlgo compressAlgo, uint32_t storedLength,
+                                 const MemManagerRef &memManager)
+{
+    RETURN_INVALID_PARAM_AS_NULLPTR(fileInputView);
+    RETURN_INVALID_PARAM_AS_NULLPTR(rawSegment);
+    RETURN_INVALID_PARAM_AS_NULLPTR(memManager);
+    RETURN_NOT_OK(ValidateFreshSnapshotCompressionMeta(compressAlgo, rawLength, storedLength));
+    if (compressAlgo == CompressAlgo::NONE) {
+        auto ret = fileInputView->ReadMemorySegment(0, rawSegment, 0, rawLength);
+        if (UNLIKELY(ret != BSS_OK)) {
+            LOG_ERROR("Read fresh table raw snapshot failed, ret:" << ret << ", rawLength:" << rawLength);
+            return BSS_ERR;
+        }
+        rawSegment->UpdatePosition(rawLength);
+        return BSS_OK;
+    }
+
+    MemorySegmentRef storedSegment = nullptr;
+    RETURN_NOT_OK(AllocateFreshRestoreCompressedSegment(storedLength, rawLength, storedSegment));
+    auto ret = fileInputView->ReadMemorySegment(0, storedSegment, 0, storedLength);
+    if (UNLIKELY(ret != BSS_OK)) {
+        LOG_ERROR("Read fresh table compressed snapshot failed, ret:" << ret << ", storedLength:" << storedLength);
+        return BSS_ERR;
+    }
+    ret = SnapshotCompressionUtils::Decompress(compressAlgo, storedSegment->GetSegment(), storedLength,
+                                               rawSegment->GetSegment(), rawLength);
+    if (UNLIKELY(ret != BSS_OK)) {
+        LOG_ERROR("Decompress fresh table snapshot failed, ret:" << ret << ", rawLength:" << rawLength
+                                                                 << ", storedLength:" << storedLength
+                                                                 << ", algo:" << static_cast<uint32_t>(compressAlgo));
+        return ret;
+    }
+    rawSegment->UpdatePosition(rawLength);
+    return BSS_OK;
+}
+}  // namespace
+
 FreshTable::~FreshTable()
 {
     if (!mSnapshotQueue.Empty()) {
@@ -315,6 +432,7 @@ BResult FreshTable::Restore(const std::vector<RestoredDbMetaRef> &restoredDbMeta
                 RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->Read(compressAlgo));  // 读取压缩标记.
                 uint32_t compressLength = NO_0;
                 RETURN_NOT_OK_AS_READ_ERROR(metaFileInputView->Read(compressLength));  // 读取压缩后长度.
+                RETURN_NOT_OK(ValidateFreshSnapshotCompressionMeta(compressAlgo, length, compressLength));
                 if (UNLIKELY(length == 0)) {
                     continue;
                 }
@@ -325,15 +443,19 @@ BResult FreshTable::Restore(const std::vector<RestoredDbMetaRef> &restoredDbMeta
                 }
                 FileInputViewRef fileInputView = std::make_shared<FileInputView>();
                 RETURN_NOT_OK(fileInputView->Init(FileSystemType::LOCAL, std::make_shared<Path>(Uri(address))));
+                LOG_DEBUG("Restore fresh table snapshot, algo:"
+                          << static_cast<uint32_t>(compressAlgo) << ", rawLength:" << length
+                          << ", storedLength:" << compressLength << ", fastBulkLoad:" << fastBulkLoad
+                          << ", file:" << PathTransform::ExtractFileName(address));
                 if (fastBulkLoad) {  // 执行快速批量加载.
                     MemorySegmentRef memorySegment = mActive->GetMemorySegment();
-                    auto ret = fileInputView->ReadMemorySegment(0, memorySegment, 0, length);
+                    auto ret = ReadFreshSnapshotSegment(fileInputView, memorySegment, length, compressAlgo,
+                                                        compressLength, mMemManager);
                     if (UNLIKELY(ret != BSS_OK)) {
                         LOG_ERROR("Restore memory segment failed from snapshot file, ret:"
                                   << ret << ", file path:" << fileInputView->GetFilePath()->ExtractFileName());
                         return BSS_ERR;
                     }
-                    memorySegment->UpdatePosition(length);
                     totalDataSize += length;
                     uint32_t indexNodeSize = mActive->GetBinaryData()->Size();
                     uint32_t bucketCount = mActive->GetBinaryData()->BucketCount();
@@ -342,22 +464,13 @@ BResult FreshTable::Restore(const std::vector<RestoredDbMetaRef> &restoredDbMeta
                              << ", file address:" << PathTransform::ExtractFileName(address));
                     break;
                 } else {
-                    uintptr_t addr = 0;
-                    if (length > mMemManager->GetMemoryTypeMaxSize(MemoryType::SNAPSHOT)) {
-                        RETURN_NOT_OK_NO_LOG(mMemManager->GetMemory(MemoryType::RESTORE, length, addr));
-                    } else {
-                        RETURN_NOT_OK_NO_LOG(mMemManager->GetMemory(MemoryType::SNAPSHOT, length, addr));
-                    }
-                    auto memorySegment = MakeRef<MemorySegment>(length, reinterpret_cast<uint8_t *>(addr), mMemManager);
-                    if (UNLIKELY(memorySegment == nullptr)) {
-                        mMemManager->ReleaseMemory(addr);
-                        LOG_ERROR("Make ref buffer failed, memorySegment is null.");
-                        return BSS_ALLOC_FAIL;
-                    }
+                    MemorySegmentRef memorySegment = nullptr;
+                    RETURN_NOT_OK(AllocateFreshRestoreSegment(mMemManager, length, memorySegment));
                     BoostSegmentRef boostSegment = std::make_shared<BoostSegment>();
                     RETURN_NOT_OK(boostSegment->Init(0, memorySegment, 0));
 
-                    auto ret = fileInputView->ReadMemorySegment(0, boostSegment->GetMemorySegment(), 0, length);
+                    auto ret = ReadFreshSnapshotSegment(fileInputView, boostSegment->GetMemorySegment(), length,
+                                                        compressAlgo, compressLength, mMemManager);
                     if (UNLIKELY(ret != BSS_OK)) {
                         LOG_ERROR("Restore memory segment failed from snapshot file, ret:"
                                   << ret << ", file path:" << fileInputView->GetFilePath()->ExtractFileName());

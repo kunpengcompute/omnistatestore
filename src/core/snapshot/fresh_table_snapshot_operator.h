@@ -18,6 +18,7 @@
 #include "fresh_table/fresh_table.h"
 #include "fresh_table/memory/memory_segment.h"
 #include "include/bss_err.h"
+#include "include/compress_algo.h"
 #include "kv_table/pq_table.h"
 
 namespace ock {
@@ -59,6 +60,7 @@ private:
     ConfigRef mConfig = nullptr;
     uint32_t mByteLength = 0;
     uint32_t mCompressLength = 0;
+    CompressAlgo mCompressAlgo = CompressAlgo::NONE;
     std::string mLocalAddress;
     SnapshotMetaRef mSnapshotMeta = std::make_shared<SnapshotMeta>();
     MemManagerRef mMemManager = nullptr;

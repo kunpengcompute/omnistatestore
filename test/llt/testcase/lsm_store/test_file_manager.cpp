@@ -226,7 +226,7 @@ TEST_F(TestFileManager, test_write_read_secondary_key_iterator_return_ok)
                 ByteBufferRef valueBuffer = MakeRef<ByteBuffer>(NO_8, MemoryType::FILE_STORE, mMemManager);
                 valueBuffer->WriteUint64(v, 0);
                 Value value;
-                value.Init(PUT, sizeof(value), reinterpret_cast<uint8_t *>(&v), mSeqGenerator->Next(), valueBuffer);
+                value.Init(PUT, sizeof(v), reinterpret_cast<uint8_t *>(&v), mSeqGenerator->Next(), valueBuffer);
                 keys.emplace_back(key);
                 kvPairs.emplace_back(std::pair<SliceKey, Value>(key, value));
                 std::pair<SliceKey, Value> pair = { key, value };

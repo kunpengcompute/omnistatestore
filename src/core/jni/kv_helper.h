@@ -523,6 +523,26 @@ inline ConfigRef CreateConfig(JNIEnv *env, jobject jBoostConfig)
     LOG_INFO("Parse configuration item lsmStoreCompressionLevelPolicy:"
              << StringUtil::MergeVectorToString(compressionLevel, config->GetFileStoreNumLevels()) << ".");
 
+    auto freshTableSnapshotCompressionPolicy = GetStringFromJava(env, boostConfigClass, jBoostConfig,
+                                                                 "getFreshTableSnapshotCompressionPolicy",
+                                                                 "()Ljava/lang/String;");
+    if (freshTableSnapshotCompressionPolicy.empty()) {
+        env->DeleteLocalRef(boostConfigClass);
+        LOG_ERROR("Get configuration item freshTableSnapshotCompressionPolicy failed.");
+        return nullptr;
+    }
+    LOG_INFO("Parse configuration item freshTableSnapshotCompressionPolicy:" << freshTableSnapshotCompressionPolicy);
+
+    auto sliceTableSnapshotCompressionPolicy = GetStringFromJava(env, boostConfigClass, jBoostConfig,
+                                                                 "getSliceTableSnapshotCompressionPolicy",
+                                                                 "()Ljava/lang/String;");
+    if (sliceTableSnapshotCompressionPolicy.empty()) {
+        env->DeleteLocalRef(boostConfigClass);
+        LOG_ERROR("Get configuration item sliceTableSnapshotCompressionPolicy failed.");
+        return nullptr;
+    }
+    LOG_INFO("Parse configuration item sliceTableSnapshotCompressionPolicy:" << sliceTableSnapshotCompressionPolicy);
+
     auto taskSlotFlag = GetTaskSlotFlag(env, boostConfigClass, jBoostConfig);
     if (UNLIKELY(taskSlotFlag < 0)) {
         env->DeleteLocalRef(boostConfigClass);
@@ -564,6 +584,8 @@ inline ConfigRef CreateConfig(JNIEnv *env, jobject jBoostConfig)
     config->SetCacheIndexAndFilterRatio(cacheIndexAndFilterRatio);
     config->SetLsmStoreCompressionPolicy(lsmStoreCompressionPolicy);
     config->SetCompressionLevelPolicy(compressionLevel);
+    config->SetFreshTableSnapshotCompressionPolicy(freshTableSnapshotCompressionPolicy);
+    config->SetSliceTableSnapshotCompressionPolicy(sliceTableSnapshotCompressionPolicy);
     config->SetFileMemoryRatio(fileMemoryRatio);
     config->SetHeapAvailableSize(heapAvailableSize);
     config->SetTaskSlotFlag(taskSlotFlag);
