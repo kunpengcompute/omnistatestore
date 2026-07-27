@@ -270,6 +270,15 @@ inline bool GetTtlFilterSwitch(JNIEnv *env, jclass boostConfigClass, jobject jBo
     return static_cast<bool>(env->CallBooleanMethod(jBoostConfig, getTtlFilterSwitch));
 }
 
+inline bool GetZeroCopySwitch(JNIEnv *env, jclass boostConfigClass, jobject jBoostConfig)
+{
+    jmethodID getZeroCopySwitch = env->GetMethodID(boostConfigClass, "getZeroCopySwitch", "()Z");
+    if (getZeroCopySwitch == nullptr) {
+        return false;
+    }
+    return static_cast<bool>(env->CallBooleanMethod(jBoostConfig, getZeroCopySwitch));
+}
+
 inline bool GetCacheFilterAndIndexSwitch(JNIEnv *env, jclass boostConfigClass, jobject jBoostConfig)
 {
     jmethodID getCacheFilterAndIndexSwitch = env->GetMethodID(boostConfigClass, "getCacheFilterAndIndexSwitch", "()Z");
@@ -362,8 +371,7 @@ inline bool CheckPathValid(const std::string &inputPath, bool allowPathNotExist 
         return false;
     }
 
-    struct stat s {
-    };
+    struct stat s{};
     // The path has been checked before, it is readable and exists.
     if (lstat(realPath, &s) != 0) {
         LOG_ERROR("Failed to get the inputPath stat, path: " << PathTransform::ExtractFileName(inputPath));
@@ -486,6 +494,9 @@ inline ConfigRef CreateConfig(JNIEnv *env, jobject jBoostConfig)
     auto ttlFilterSwitch = GetTtlFilterSwitch(env, boostConfigClass, jBoostConfig);
     LOG_INFO("Parse configuration item ttlFilterSwitch:" << ttlFilterSwitch);
 
+    auto zeroCopySwitch = GetZeroCopySwitch(env, boostConfigClass, jBoostConfig);
+    LOG_INFO("Parse configuration item zeroCopySwitch:" << zeroCopySwitch);
+
     // 获取cacheFilterAndIndexSwitch
     auto cacheFilterAndIndexSwitch = GetCacheFilterAndIndexSwitch(env, boostConfigClass, jBoostConfig);
     LOG_INFO("Parse configuration item cacheFilterAndIndexSwitch:" << cacheFilterAndIndexSwitch);
@@ -580,6 +591,7 @@ inline ConfigRef CreateConfig(JNIEnv *env, jobject jBoostConfig)
     config->SetTotalDBSize(dbSize);
     config->SetLsmStoreCompactionSwitch(compactionSwitch);
     config->SetTtlFilterSwitch(ttlFilterSwitch);
+    config->SetZeroCopySwitch(zeroCopySwitch);
     config->SetCacheIndexAndFilterSwitch(cacheFilterAndIndexSwitch);
     config->SetCacheIndexAndFilterRatio(cacheIndexAndFilterRatio);
     config->SetLsmStoreCompressionPolicy(lsmStoreCompressionPolicy);

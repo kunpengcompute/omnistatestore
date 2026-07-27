@@ -17,6 +17,7 @@
 #include "binary/query_binary.h"
 #include "common/path_transform.h"
 #include "common/util/seq_generator.h"
+#include "compaction/list_state_file_reuse_planner.h"
 #include "file_address_util.h"
 #include "file_info.h"
 #include "lsm_store/version/version_meta_serializer.h"
@@ -145,7 +146,8 @@ BResult LsmStore::FinishCompactionOutputFile(const CompactionProcessorRef &proce
         builder->Fill(smallest, largest, fileBlockMeta->GetFileSize(),
                       FileAddressUtil::GetFileAddressWithZeroOffset(processor->mCurrentFileId),
                       static_cast<int64_t>(processor->mCurrentFileSeqId), mGroupRange, mOrderRange,
-                      processor->mCurrentFileName, fileBlockMeta->GetStateIdInterval());
+                      processor->mCurrentFileName, fileBlockMeta->GetStateIdInterval(), FileStatus::LOCAL,
+                      fileBlockMeta->GetRecordMeta());
         FileMetaDataRef fileMetaData = builder->Build();
         RETURN_ERROR_AS_NULLPTR(fileMetaData);
         mFileCache->FinishBuilder(processor->mCurrentFileId, fileMetaData);
@@ -180,6 +182,12 @@ void LsmStore::FinalizeVersionEdit(const CompactionProcessorRef &processor, std:
         processor->mOutputSize.emplace_back(output->GetFileSize());
         editBuilder->AddFile(mGroupRange, processor->mCompaction->GetOutputLevelId(), output);
     }
+    for (const auto &adoptedFile : processor->mCompaction->GetAdoptedFiles()) {
+        if (!adoptedFile->GetGroupRange()->Equals(mGroupRange)) {
+            LOG_ERROR("Adopted file should be current group range.");
+        }
+        editBuilder->AddFile(adoptedFile->GetGroupRange(), processor->mCompaction->GetOutputLevelId(), adoptedFile);
+    }
 
     outputs.swap(processor->mOutputs);
 }
@@ -195,14 +203,15 @@ BResult LsmStore::AddEntry(const CompactionProcessorRef &compactionProcessor, co
     ret = compactionProcessor->mFileBuilder->Add(keyValue);
     RETURN_NOT_OK_NO_LOG(ret);
 
-    // File builder的数据估计大小超过文件存储的大小，则完成文件输出 或者单个key的value len大于 4m，防止单个value长度过长
+    // 文件达到目标大小时完成输出；大 ListState APPEND 继续单独分段，避免合并链占用过多内存。
     auto currentSize = compactionProcessor->mFileBuilder->CurrentEstimateSize();
     if (UNLIKELY(currentSize == UINT32_MAX)) {
         LOG_WARN("Compact failed, output file is too large.");
         return BSS_INNER_ERR;
     }
     if (currentSize > mConf->GetFileBaseSize() ||
-        (StateId::IsList(keyValue->key.StateId()) && keyValue->value.ValueLen() > IO_SIZE_4M)) {
+        (StateId::IsList(keyValue->key.StateId()) && keyValue->value.ValueType() == ValueType::APPEND &&
+         keyValue->value.ValueLen() > IO_SIZE_4M)) {
         return FinishCompactionOutputFile(compactionProcessor);
     }
     return BSS_OK;
@@ -296,6 +305,12 @@ Compaction::Result LsmStore::BackgroundCompaction()
                     innerVersionBuilder->InternalRelease();
                 }
             } else {
+                if (mZeroCopySwitch && mTombstoneService == nullptr && !mConf->GetEnableKVSeparate()) {
+                    auto adoptableFilter = [this](uint16_t stateId, uint64_t seqId) {
+                        return mStateFilterManager == nullptr || !mStateFilterManager->StateFilter(stateId, seqId);
+                    };
+                    ListStateFileReusePlanner::Build(compaction, adoptableFilter);
+                }
                 mFileCacheManager->RegisterFilesForCompaction(compaction->GetLevelInputs());
                 mFileCacheManager->RegisterFilesForCompaction(compaction->GetOutputLevelInputs());
             }
@@ -368,6 +383,8 @@ BResult LsmStore::DoCompaction(const CompactionProcessorRef &processor)
         RETURN_ERROR_AS_NULLPTR(iterator);
     }
 
+    const std::vector<FileMetaDataRef> &adoptedFiles = processor->mCompaction->GetAdoptedFiles();
+    size_t adoptedFileIndex = 0;
     // 2. 遍历迭代器添加KVPair.
     while (iterator->HasNext()) {
         if (UNLIKELY(mCompactionAbort.load())) {
@@ -376,6 +393,23 @@ BResult LsmStore::DoCompaction(const CompactionProcessorRef &processor)
 
         auto current = iterator->Next();
         RETURN_ALLOC_FAIL_AS_NULLPTR(current);
+
+        bool isAdoptedKey = false;
+        while (adoptedFileIndex < adoptedFiles.size()) {
+            int32_t cmp = adoptedFiles[adoptedFileIndex]->GetSmallest()->CompareKey(current->key);
+            if (cmp > 0) {
+                break;
+            }
+            RETURN_NOT_OK_NO_LOG(FinishCompactionOutputFile(processor));
+            if (cmp == 0) {
+                isAdoptedKey = true;
+                break;
+            }
+            ++adoptedFileIndex;
+        }
+        if (isAdoptedKey) {
+            continue;
+        }
 
         if (UNLIKELY(processor->mCompaction->ShouldStopBefore(current))) {
             LOG_INFO("Should stop do compaction, fileStoreSeqId:" << mSeqId << ".");
@@ -467,7 +501,7 @@ BResult LsmStore::BuildLsmStoreFlushFile(const IteratorRef<std::vector<DataSlice
         std::make_shared<FileMetaData>(FileAddressUtil::GetFileAddressWithZeroOffset(fileInfo->GetFileId()->Get()),
                                        fileSeqId, static_cast<uint64_t>(fileMeta->GetFileSize()), smallest, largest,
                                        mGroupRange, mOrderRange, fileInfo->GetFilePath()->Name(),
-                                       fileMeta->GetStateIdInterval());
+                                       fileMeta->GetStateIdInterval(), FileStatus::LOCAL, fileMeta->GetRecordMeta());
     mFileCache->FinishBuilder(fileInfo->GetFileId()->Get(), fileMetaData);
     UpdateLevelFileMetric(fileMetaData->GetFileSize(), 0, true);
     return BSS_OK;
@@ -597,7 +631,7 @@ BResult LsmStore::BuildLsmStoreFlushFile(const PQTableIteratorRef &iter, FileMet
         std::make_shared<FileMetaData>(FileAddressUtil::GetFileAddressWithZeroOffset(fileInfo->GetFileId()->Get()),
                                        fileSeqId, static_cast<uint64_t>(fileMeta->GetFileSize()), smallest, largest,
                                        mGroupRange, mOrderRange, fileInfo->GetFilePath()->Name(),
-                                       fileMeta->GetStateIdInterval());
+                                       fileMeta->GetStateIdInterval(), FileStatus::LOCAL, fileMeta->GetRecordMeta());
     mFileCache->FinishBuilder(fileInfo->GetFileId()->Get(), fileMetaData);
     return BSS_OK;
 }

@@ -22,6 +22,7 @@
 #include "file_cache_type.h"
 #include "file_meta.h"
 #include "file_meta_base.h"
+#include "file_record_meta.h"
 #include "group_range.h"
 #include "include/bss_types.h"
 #include "order_range.h"
@@ -51,7 +52,8 @@ public:
 
     FileMetaData(uint64_t fileAddress, int64_t seqId, uint64_t fileSize, const FullKeyRef &smallest,
                  const FullKeyRef &largest, GroupRangeRef groupRange, HashCodeOrderRangeRef orderRange,
-                 std::string identifier, StateIdInterval stateIdInterval, FileStatus fileStatus = FileStatus::LOCAL)
+                 std::string identifier, StateIdInterval stateIdInterval, FileStatus fileStatus = FileStatus::LOCAL,
+                 const FileRecordMeta &recordMeta = FileRecordMeta())
         : FileMetaBase(identifier, fileAddress, fileSize),
           mSeqId(seqId),
           mSmallest(std::move(smallest)),
@@ -59,7 +61,8 @@ public:
           mGroupRange(std::move(groupRange)),
           mOrderRange(std::move(orderRange)),
           mStateIdInterval(stateIdInterval),
-          mFileStatus(fileStatus)
+          mFileStatus(fileStatus),
+          mRecordMeta(recordMeta)
     {
     }
 
@@ -113,6 +116,11 @@ public:
         return mStateIdInterval;
     }
 
+    inline const FileRecordMeta &GetRecordMeta() const
+    {
+        return mRecordMeta;
+    }
+
     inline static uint64_t HashCodeInt(uint64_t value)
     {
         return (value ^ (value >> NO_32));
@@ -130,7 +138,8 @@ public:
                mFileSize == other->GetFileSize() && mSeqId == other->GetSeqId() &&
                mSmallest->EqualsFullKey(other->GetSmallest()) == 0 && mLargest->EqualsFullKey(other->GetLargest()) &&
                mGroupRange->Equals(other->GetGroupRange()) && mOrderRange == other->GetOrderRange() &&
-               mShortName == other->GetShortFileName() && mStateIdInterval == other->mStateIdInterval;
+               mShortName == other->GetShortFileName() && mStateIdInterval == other->mStateIdInterval &&
+               mRecordMeta.Equals(other->GetRecordMeta());
     }
 
     inline FileStatus GetFileStatus() const
@@ -152,7 +161,8 @@ public:
     public:
         void Fill(const FullKeyRef &smallest, const FullKeyRef &largest, uint64_t fileSize, uint64_t fileAddress,
                   int64_t seqId, const GroupRangeRef &groupRange, const HashCodeOrderRangeRef &orderRange,
-                  std::string identifier, StateIdInterval interval, FileStatus fileStatus = FileStatus::LOCAL)
+                  std::string identifier, StateIdInterval interval, FileStatus fileStatus = FileStatus::LOCAL,
+                  const FileRecordMeta &recordMeta = FileRecordMeta())
         {
             mSmallest = smallest;
             mLargest = largest;
@@ -164,6 +174,7 @@ public:
             mIdentifier = identifier;
             mStateIdInterval = interval;
             mFileStatus = fileStatus;
+            mRecordMeta = recordMeta;
         }
 
         FileMetaDataRef Build() const
@@ -172,7 +183,7 @@ public:
                 return nullptr;
             }
             return std::make_shared<FileMetaData>(mFileAddress, mSeqId, mFileSize, mSmallest, mLargest, mGroupRange,
-                                                  mOrderRange, mIdentifier, mStateIdInterval, mFileStatus);
+                                                  mOrderRange, mIdentifier, mStateIdInterval, mFileStatus, mRecordMeta);
         }
 
     private:
@@ -186,6 +197,7 @@ public:
         std::string mIdentifier;
         StateIdInterval mStateIdInterval;
         FileStatus mFileStatus = FileStatus::LOCAL;
+        FileRecordMeta mRecordMeta;
     };
     using BuilderRef = std::shared_ptr<Builder>;
 
@@ -205,6 +217,7 @@ private:
     // 将key的比较器(FileMetaDataGroup::Builder::CreateFileMetaDataComparator)修改为先比较state id, 可删除该字段.
     StateIdInterval mStateIdInterval;
     FileStatus mFileStatus;
+    FileRecordMeta mRecordMeta;
 };
 
 }  // namespace bss

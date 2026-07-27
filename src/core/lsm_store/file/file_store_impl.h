@@ -73,6 +73,7 @@ public:
              const MemManagerRef &memManager)
         : mFileStoreID(fileStoreId),
           mConf(config),
+          mZeroCopySwitch(config != nullptr && config->GetZeroCopySwitch()),
           mFileCacheManager(fileCache),
           mFileFactory(fileFactory),
           mStateFilterManager(stateFilterManager),
@@ -435,22 +436,29 @@ private:
         auto compaction = processor->mCompaction;
         auto inputLevelId = compaction->GetInputLevelId();
         auto outputLevelId = compaction->GetOutputLevelId();
-        auto fileInputs = processor->mCompaction->GetLevelInputs();
         for (const auto &size : processor->mOutputSize) {
             mBoostNativeMetric->UpdateLevelFileMetric(size, outputLevelId, true);
             mBoostNativeMetric->AddLsmCompactionWriteSize(size, outputLevelId);
         }
-        for (const auto &item : fileInputs) {
+        for (const auto &item : compaction->GetLevelInputs()) {
             CONTINUE_LOOP_AS_NULLPTR(item);
-            uint64_t fileSize = item->GetFileSize();
-            mBoostNativeMetric->UpdateLevelFileMetric(fileSize, inputLevelId, false);
-            mBoostNativeMetric->AddLsmCompactionReadSize(fileSize, inputLevelId);
+            mBoostNativeMetric->UpdateLevelFileMetric(item->GetFileSize(), inputLevelId, false);
         }
         for (const auto &item : compaction->GetOutputLevelInputs()) {
             CONTINUE_LOOP_AS_NULLPTR(item);
             mBoostNativeMetric->UpdateLevelFileMetric(item->GetFileSize(), outputLevelId, false);
-            // 这里inputLevelId表示的是输出文件的来源level，因为输出文件的来源可能来自多个level，所以这里用inputLevelId表示。
+        }
+        for (const auto &item : compaction->GetMergeLevelInputs()) {
+            CONTINUE_LOOP_AS_NULLPTR(item);
             mBoostNativeMetric->AddLsmCompactionReadSize(item->GetFileSize(), inputLevelId);
+        }
+        for (const auto &item : compaction->GetMergeOutputLevelInputs()) {
+            CONTINUE_LOOP_AS_NULLPTR(item);
+            mBoostNativeMetric->AddLsmCompactionReadSize(item->GetFileSize(), outputLevelId);
+        }
+        for (const auto &item : compaction->GetAdoptedFiles()) {
+            CONTINUE_LOOP_AS_NULLPTR(item);
+            mBoostNativeMetric->UpdateLevelFileMetric(item->GetFileSize(), outputLevelId, true);
         }
         mBoostNativeMetric->AddLsmCompactionCount();
     }
@@ -480,6 +488,7 @@ private:
 private:
     FileStoreIDRef mFileStoreID = nullptr;
     ConfigRef mConf = nullptr;
+    bool mZeroCopySwitch = false;
     HashCodeOrderRangeRef mOrderRange = nullptr;
     std::atomic<int32_t> mBackgroundCompactions{ 0 };
     std::atomic<bool> mCompactionAbort = { false };

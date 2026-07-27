@@ -39,6 +39,8 @@ public class BoostConfig {
 
     private boolean ttlFilterSwitch = false; // 默认关闭stateBackend的ttl后台压缩.
 
+    private boolean zeroCopySwitch = false; // ListState compaction file reuse is disabled by default.
+
     private boolean cacheFilterAndIndexSwitch = true; // 默认开启FilterBlock和IndexBlock的缓存.
 
     /**
@@ -149,6 +151,14 @@ public class BoostConfig {
 
     public boolean getTtlFilterSwitch() {
         return this.ttlFilterSwitch;
+    }
+
+    public void setZeroCopySwitch(boolean switchValue) {
+        this.zeroCopySwitch = switchValue;
+    }
+
+    public boolean getZeroCopySwitch() {
+        return this.zeroCopySwitch;
     }
 
     public void setCacheFilterAndIndexSwitch(boolean switchValue) {

@@ -45,6 +45,8 @@ public:
           mCompactionReason(inputVersion->GetCompactionReason()),
           mLevelInputs(levelInputs),
           mOutputLevelInputs(outputLevelInputs),
+          mMergeLevelInputs(levelInputs),
+          mMergeOutputLevelInputs(outputLevelInputs),
           mGrandparents(grandparents),
           mMaxFileOutputSize(maxFileOutputSize),
           mInputLevelId(inputLevelId),
@@ -77,6 +79,35 @@ public:
     virtual std::vector<FileMetaDataRef> &GetOutputLevelInputs()
     {
         return mOutputLevelInputs;
+    }
+
+    virtual const std::vector<FileMetaDataRef> &GetMergeLevelInputs() const
+    {
+        return mMergeLevelInputs;
+    }
+
+    virtual const std::vector<FileMetaDataRef> &GetMergeOutputLevelInputs() const
+    {
+        return mMergeOutputLevelInputs;
+    }
+
+    virtual const std::vector<FileMetaDataRef> &GetAdoptedFiles() const
+    {
+        return mAdoptedFiles;
+    }
+
+    virtual void SetListStateFileReusePlan(const std::vector<FileMetaDataRef> &mergeLevelInputs,
+                                           const std::vector<FileMetaDataRef> &mergeOutputLevelInputs,
+                                           const std::vector<FileMetaDataRef> &adoptedFiles)
+    {
+        mMergeLevelInputs = mergeLevelInputs;
+        mMergeOutputLevelInputs = mergeOutputLevelInputs;
+        mAdoptedFiles = adoptedFiles;
+    }
+
+    virtual VersionPtr GetInputVersion() const
+    {
+        return mInputVersion;
     }
 
     virtual uint32_t GetInputLevelId()
@@ -190,6 +221,9 @@ protected:
     Reason mCompactionReason = Reason::NO_NEED_COMPACTION;  // compaction原因
     std::vector<FileMetaDataRef> mLevelInputs;              // 本层的文件
     std::vector<FileMetaDataRef> mOutputLevelInputs;        // 下一层与本层Key范围有重叠的文件
+    std::vector<FileMetaDataRef> mMergeLevelInputs;         // 本层仍需逐记录归并的文件
+    std::vector<FileMetaDataRef> mMergeOutputLevelInputs;   // 下一层仍需逐记录归并的文件
+    std::vector<FileMetaDataRef> mAdoptedFiles;             // 通过元数据直接迁移到下一层的文件
     std::vector<FileMetaDataRef> mGrandparents;             // 父的文件元数据
     uint64_t mMaxFileOutputSize = 0;                        // 最大文件输出大小
     uint32_t mInputLevelId = 0;                             // 输入的Level的ID

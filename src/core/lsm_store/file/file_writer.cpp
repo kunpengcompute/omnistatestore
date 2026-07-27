@@ -36,6 +36,13 @@ BResult FileWriter::Add(const KeyValueRef &keyValue)
 
     auto ret = mDataBlockWriter->Add(keyValue);
     RETURN_NOT_OK_NO_LOG(ret);
+    if (mMaintainRecordMeta) {
+        mRecordMeta.UpdateMaxSeqId(keyValue->value.SeqId());
+        if (!mHasTrackedRecord) {
+            mRecordMeta.SetSingleValueLength(keyValue->value.ValueLen());
+            mHasTrackedRecord = true;
+        }
+    }
 
     if (mFilterBlockWriter != nullptr) {
         mFilterBlockWriter->Add(keyValue->key.MixedHashCode());
@@ -180,9 +187,12 @@ BResult FileWriter::Finish(FileBlockMetaRef &fileMeta)
         retVal = mFileOutputView->Sync();
         RETURN_NOT_OK_NO_LOG(retVal);
     }
+    if (mMaintainRecordMeta) {
+        mRecordMeta.Finalize(mDataBlockStat->GetTotalNumKeys());
+    }
     fileMeta = std::make_shared<FileBlockMeta>(mFilePath, mDataBlockStat, mIndexBlockStat,
                                                (mFilterBlockHandle == nullptr) ? 0 : mFilterBlockHandle->GetSize(),
-                                               mFilterBlockRawSize, mFileOutputSize, mStateIdInterval);
+                                               mFilterBlockRawSize, mFileOutputSize, mStateIdInterval, mRecordMeta);
     return BSS_OK;
 }
 

@@ -163,6 +163,13 @@ public class EmbeddedOckStateBackendTest {
         }
     }
 
+    @Test
+    public void test_zero_copy_switch_defaults_to_disabled() {
+        Assert.assertFalse(config.get(OckDBOptions.OCKDB_ZERO_COPY_SWITCH));
+        config.set(OckDBOptions.OCKDB_ZERO_COPY_SWITCH, true);
+        Assert.assertTrue(config.get(OckDBOptions.OCKDB_ZERO_COPY_SWITCH));
+    }
+
     @Test(expected = IllegalConfigurationException.class)
     public void test_create_state_backend_with_log_level_beyond_left_bound() throws IOException {
         OckDBStateBackendFactory factory = new OckDBStateBackendFactory();

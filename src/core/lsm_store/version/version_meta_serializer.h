@@ -166,8 +166,89 @@ public:
             auto stateIdInterval = fileMeta->GetStateIdInterval();
             RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&stateIdInterval),
                                     sizeof(stateIdInterval)));
+
+            uint32_t recordCount = 0;
+            uint64_t minRecordSeqId = 0;
+            uint64_t maxRecordSeqId = 0;
+            uint8_t singleValueType = static_cast<uint8_t>(ValueType::TYPE_BUTT);
+            uint32_t singleValueLength = 0;
+            BuildPersistentRecordMeta(fileMeta->GetRecordMeta(), smallest, largest, recordCount, minRecordSeqId,
+                                      maxRecordSeqId, singleValueType, singleValueLength);
+            RETURN_NOT_OK(
+                WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&recordCount), sizeof(recordCount)));
+            RETURN_NOT_OK(
+                WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&minRecordSeqId), sizeof(minRecordSeqId)));
+            RETURN_NOT_OK(
+                WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&maxRecordSeqId), sizeof(maxRecordSeqId)));
+            RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&singleValueType),
+                                    sizeof(singleValueType)));
+            RETURN_NOT_OK(WriteFunc(outputViews, function, reinterpret_cast<uint8_t *>(&singleValueLength),
+                                    sizeof(singleValueLength)));
         }
         return BSS_OK;
+    }
+
+    static void BuildPersistentRecordMeta(const FileRecordMeta &recordMeta, const FullKeyRef &smallest,
+                                          const FullKeyRef &largest, uint32_t &recordCount, uint64_t &minRecordSeqId,
+                                          uint64_t &maxRecordSeqId, uint8_t &singleValueType,
+                                          uint32_t &singleValueLength)
+    {
+        // Keep the version-7 wire layout. Fields no longer retained at runtime
+        // are derived for a single record and use conservative placeholders for
+        // multi-record or unavailable summaries.
+        recordCount = 0;
+        minRecordSeqId = 0;
+        maxRecordSeqId = 0;
+        singleValueType = static_cast<uint8_t>(ValueType::TYPE_BUTT);
+        singleValueLength = 0;
+        if (!IsRuntimeRecordMetaValid(recordMeta, smallest, largest)) {
+            return;
+        }
+
+        recordCount = recordMeta.GetRecordCount();
+        maxRecordSeqId = recordMeta.GetMaxSeqId();
+        if (recordMeta.IsSingleRecord()) {
+            minRecordSeqId = maxRecordSeqId;
+            singleValueType = static_cast<uint8_t>(smallest->ValueType());
+            singleValueLength = recordMeta.GetSingleValueLength();
+        }
+    }
+
+    static bool IsRuntimeRecordMetaValid(const FileRecordMeta &recordMeta, const FullKeyRef &smallest,
+                                         const FullKeyRef &largest)
+    {
+        if (!recordMeta.IsAvailable() || smallest == nullptr || largest == nullptr ||
+            recordMeta.GetMaxSeqId() < smallest->SeqId() || recordMeta.GetMaxSeqId() < largest->SeqId()) {
+            return false;
+        }
+        return !recordMeta.IsSingleRecord() ||
+               (smallest->EqualsFullKey(largest) && recordMeta.GetMaxSeqId() == smallest->SeqId());
+    }
+
+    static FileRecordMeta RestoreRecordMeta(uint32_t recordCount, uint64_t minRecordSeqId, uint64_t maxRecordSeqId,
+                                            uint8_t singleValueType, uint32_t singleValueLength,
+                                            const FullKeyRef &smallest, const FullKeyRef &largest)
+    {
+        if (recordCount == 0) {
+            return FileRecordMeta();
+        }
+
+        bool valid = smallest != nullptr && largest != nullptr && minRecordSeqId <= maxRecordSeqId &&
+                     minRecordSeqId <= smallest->SeqId() && minRecordSeqId <= largest->SeqId() &&
+                     maxRecordSeqId >= smallest->SeqId() && maxRecordSeqId >= largest->SeqId();
+        if (recordCount == 1) {
+            valid = valid && smallest->EqualsFullKey(largest) && minRecordSeqId == maxRecordSeqId &&
+                    maxRecordSeqId == smallest->SeqId() && singleValueType == smallest->ValueType();
+        } else {
+            valid = valid && singleValueType == static_cast<uint8_t>(ValueType::TYPE_BUTT) && singleValueLength == 0;
+        }
+        if (!valid) {
+            // The summary is an optional optimization hint. Invalid hints must
+            // not weaken adoption checks or prevent an otherwise valid restore.
+            LOG_WARN("Restored file record summary is inconsistent; disable file reuse for this file.");
+            return FileRecordMeta();
+        }
+        return FileRecordMeta(recordCount, maxRecordSeqId, recordCount == 1 ? singleValueLength : 0);
     }
 
     static BResult SerializeInternalKey(const FullKeyRef &key, std::vector<OutputViewRef> &outputViews)
@@ -223,7 +304,7 @@ public:
 
         uint32_t restoreVersion = 0;
         RETURN_NOT_OK_AS_READ_ERROR(inputView->Read(restoreVersion));
-        if (restoreVersion > PRIMARY_FILE_STATUS_VERSION) {
+        if (restoreVersion != PRIMARY_FILE_STATUS_VERSION) {
             LOG_ERROR("Bad version, expect version:" << PRIMARY_FILE_STATUS_VERSION << ", actual:" << restoreVersion);
             return BSS_ERR;
         }
@@ -238,8 +319,8 @@ public:
 
         GroupRangeRef curGroupRange = DeserializeGroupRange(inputView);
         VersionBuilderRef builder = VersionBuilder::NewBuilder(versionSet.get());
-        DeserializeLevel(builder, fileMapping, inputView, memManager, lazyPathMapping, restorePathFileIdMap, basePath,
-                         isLazyDownload);
+        RETURN_NOT_OK(DeserializeLevel(builder, fileMapping, inputView, memManager, lazyPathMapping,
+                                       restorePathFileIdMap, basePath, isLazyDownload));
         builder->SetCurGroupRange(curGroupRange)->SetCurOrderRange(hashCodeOrderRange);
         version = builder->Build();
         return BSS_OK;
@@ -330,6 +411,18 @@ public:
 
             StateIdInterval stateIdInterval;
             RETURN_NOT_OK(inputView->Read(stateIdInterval));
+            uint32_t recordCount = 0;
+            RETURN_NOT_OK(inputView->Read(recordCount));
+            uint64_t minRecordSeqId = 0;
+            RETURN_NOT_OK(inputView->Read(minRecordSeqId));
+            uint64_t maxRecordSeqId = 0;
+            RETURN_NOT_OK(inputView->Read(maxRecordSeqId));
+            uint8_t singleValueType = static_cast<uint8_t>(ValueType::TYPE_BUTT);
+            RETURN_NOT_OK(inputView->Read(singleValueType));
+            uint32_t singleValueLength = 0;
+            RETURN_NOT_OK(inputView->Read(singleValueLength));
+            FileRecordMeta recordMeta = RestoreRecordMeta(recordCount, minRecordSeqId, maxRecordSeqId, singleValueType,
+                                                          singleValueLength, smallest, largest);
             auto restoreFilePath = FindFileMapping(fileName, lazyPathMapping, static_cast<FileStatus>(fileStatus),
                                                    isLazyDownload);
             auto it = restorePathFileIdMap.find(PathTransform::ExtractFileName(fileName));
@@ -348,9 +441,10 @@ public:
             }
             uint32_t fileId = it->second;
             fileAddress = FileAddressUtil::GetFileAddressWithZeroOffset(fileId);
-            FileMetaDataRef fileMetaData =
-                std::make_shared<FileMetaData>(fileAddress, seqId, fileSize, smallest, largest, groupRange, orderRange,
-                                               restoreFilePath.remotePath, stateIdInterval, restoreFilePath.fileStatus);
+            FileMetaDataRef fileMetaData = std::make_shared<FileMetaData>(fileAddress, seqId, fileSize, smallest,
+                                                                          largest, groupRange, orderRange,
+                                                                          restoreFilePath.remotePath, stateIdInterval,
+                                                                          restoreFilePath.fileStatus, recordMeta);
             builder->AddFileMeta(fileMetaData);
             RestoreFileInfo restoreFileInfo = {
                 fileName, fileAddress, restoreFilePath.fileStatus, fileSize,

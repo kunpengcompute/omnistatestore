@@ -17,6 +17,7 @@
 #include "binary/query_binary.h"
 #include "include/bss_types.h"
 #include "include/config.h"
+#include "lsm_store/version/version_meta_serializer.h"
 
 using namespace ock::bss;
 
@@ -121,6 +122,7 @@ TEST_F(TestFile, test_compact_2_files_return_ok)
     ConfigRef config = std::make_shared<Config>();
     config->Init(NO_0, NO_15, NO_16);
     config->SetLsmStoreCompactionSwitch(1);
+    config->SetZeroCopySwitch(true);
     config->SetLsmStoreCompressionPolicy(lsmStoreCompressionPolicyForTestFile);
     config->SetCompressionLevelPolicy(compressionLevelPolicyForTestFile);
     config->SetFileStoreL0NumTrigger(NO_2);
@@ -306,7 +308,295 @@ TEST_F(TestFile, test_list_state_return_ok)
     }
 }
 
+TEST_F(TestFile, test_l0_compaction_trigger_defaults)
+{
+    Config config;
+
+    EXPECT_EQ(config.GetFileStoreL0NumTrigger(), NO_8);
+}
+
+TEST_F(TestFile, test_l0_compaction_triggered_by_8_files)
+{
+    ConfigRef config = std::make_shared<Config>();
+    config->Init(NO_0, NO_15, NO_16);
+    config->SetLsmStoreCompactionSwitch(0);
+    InitEnv(config);
+
+    uint16_t stateId = StateId::Of(NO_1, StateType::VALUE);
+    for (uint32_t fileIndex = NO_0; fileIndex < NO_8; ++fileIndex) {
+        SliceKey key = mGenerator->GenerateSglKey(NO_10, stateId);
+        Value value = mGenerator->GenerateValue(NO_1024, mSeqGenerator->Next());
+        std::vector<std::pair<SliceKey, Value>> entry{ { key, value } };
+        FlushLevel0Table(entry);
+
+        if (fileIndex < NO_7) {
+            EXPECT_FALSE(mLsmStore->GetVersionSet()->NeedCompaction());
+        }
+    }
+
+    VersionPtr current = mLsmStore->GetVersionSet()->GetCurrent();
+    EXPECT_EQ(current->GetFileMetaDatas(0, current->GetGroupRange()).size(), NO_8);
+    EXPECT_TRUE(mLsmStore->GetVersionSet()->NeedCompaction());
+    EXPECT_EQ(current->GetCompactionReason(), Reason::LEVEL0_NUM_TRIGGERED);
+}
+
 // list、value 覆盖写并查询
+TEST_F(TestFile, test_compaction_adopts_latest_single_record_large_list_put)
+{
+    ConfigRef config = std::make_shared<Config>();
+    config->Init(NO_0, NO_15, NO_16);
+    config->SetLsmStoreCompactionSwitch(0);
+    config->SetZeroCopySwitch(true);
+    config->SetLsmStoreCompressionPolicy("lz4");
+    config->SetCompressionLevelPolicy({ "none", "lz4", "lz4" });
+    config->SetFileStoreL0NumTrigger(NO_2);
+    config->SetTotalDBSize(IO_SIZE_2G);
+    InitEnv(config);
+
+    uint16_t stateId = StateId::Of(NO_1, StateType::LIST);
+    SliceKey key = mGenerator->GenerateSglKey(NO_10, stateId);
+    Value oldValue = mGenerator->GenerateValue(IO_SIZE_4M + NO_1, mSeqGenerator->Next());
+    std::vector<std::pair<SliceKey, Value>> oldEntry{ { key, oldValue } };
+    FlushLevel0Table(oldEntry);
+    EXPECT_FALSE(mLsmStore->GetVersionSet()->NeedCompaction());
+
+    Value latestValue = mGenerator->GenerateValue(IO_SIZE_4M + NO_1, mSeqGenerator->Next());
+    std::vector<std::pair<SliceKey, Value>> latestEntry{ { key, latestValue } };
+    FlushLevel0Table(latestEntry);
+
+    VersionPtr beforeCompaction = mLsmStore->GetVersionSet()->GetCurrent();
+    EXPECT_TRUE(mLsmStore->GetVersionSet()->NeedCompaction());
+    EXPECT_EQ(beforeCompaction->GetCompactionReason(), Reason::LEVEL0_NUM_TRIGGERED);
+    auto level0Files = beforeCompaction->GetFileMetaDatas(0, beforeCompaction->GetGroupRange());
+    ASSERT_EQ(level0Files.size(), NO_2);
+    FileMetaDataRef latestFile = nullptr;
+    FileMetaDataRef oldFile = nullptr;
+    for (const auto &file : level0Files) {
+        ASSERT_TRUE(file->GetRecordMeta().IsSingleRecord());
+        ASSERT_EQ(file->GetSmallest()->ValueType(), ValueType::PUT);
+        if (file->GetRecordMeta().GetMaxSeqId() == latestValue.SeqId()) {
+            latestFile = file;
+        } else {
+            oldFile = file;
+        }
+    }
+    ASSERT_NE(latestFile, nullptr);
+    ASSERT_NE(oldFile, nullptr);
+    uint32_t recordCount = 0;
+    uint64_t minRecordSeqId = 0;
+    uint64_t maxRecordSeqId = 0;
+    uint8_t singleValueType = static_cast<uint8_t>(ValueType::TYPE_BUTT);
+    uint32_t singleValueLength = 0;
+    VersionMetaSerializer::BuildPersistentRecordMeta(latestFile->GetRecordMeta(), latestFile->GetSmallest(),
+                                                     latestFile->GetLargest(), recordCount, minRecordSeqId,
+                                                     maxRecordSeqId, singleValueType, singleValueLength);
+    EXPECT_EQ(recordCount, NO_1);
+    EXPECT_EQ(minRecordSeqId, latestValue.SeqId());
+    EXPECT_EQ(maxRecordSeqId, latestValue.SeqId());
+    EXPECT_EQ(singleValueType, static_cast<uint8_t>(ValueType::PUT));
+    EXPECT_EQ(singleValueLength, latestValue.ValueLen());
+    FileRecordMeta restoredRecordMeta =
+        VersionMetaSerializer::RestoreRecordMeta(recordCount, minRecordSeqId, maxRecordSeqId, singleValueType,
+                                                 singleValueLength, latestFile->GetSmallest(),
+                                                 latestFile->GetLargest());
+    EXPECT_TRUE(restoredRecordMeta.Equals(latestFile->GetRecordMeta()));
+    FileRecordMeta invalidRecordMeta =
+        VersionMetaSerializer::RestoreRecordMeta(recordCount, minRecordSeqId + NO_1, maxRecordSeqId + NO_1,
+                                                 singleValueType, singleValueLength, latestFile->GetSmallest(),
+                                                 latestFile->GetLargest());
+    EXPECT_FALSE(invalidRecordMeta.IsAvailable());
+    uint64_t latestFileAddress = latestFile->GetFileAddress();
+    uint64_t oldFileAddress = oldFile->GetFileAddress();
+
+    config->SetLsmStoreCompactionSwitch(1);
+    mLsmStore->StartLsmCompaction();
+    sleep(1);
+    while (!mLsmStore->CheckCompactionCompleted()) {
+        sleep(1);
+    }
+
+    VersionPtr afterCompaction = mLsmStore->GetVersionSet()->GetCurrent();
+    EXPECT_TRUE(afterCompaction->GetFileMetaDatas(0, afterCompaction->GetGroupRange()).empty());
+    auto level1Files = afterCompaction->GetFileMetaDatas(NO_1, afterCompaction->GetGroupRange());
+    ASSERT_EQ(level1Files.size(), NO_1);
+    EXPECT_EQ(level1Files.front()->GetFileAddress(), latestFileAddress);
+    EXPECT_NE(level1Files.front()->GetFileAddress(), oldFileAddress);
+
+    Value actualValue;
+    ASSERT_TRUE(mLsmStore->Get(key, actualValue));
+    EXPECT_TRUE(IsTheSameValue(latestValue, actualValue));
+}
+
+TEST_F(TestFile, test_zero_copy_disabled_uses_normal_merge_and_skips_summary)
+{
+    ConfigRef config = std::make_shared<Config>();
+    config->Init(NO_0, NO_15, NO_16);
+    config->SetLsmStoreCompactionSwitch(0);
+    config->SetFileStoreL0NumTrigger(NO_2);
+    config->SetTotalDBSize(IO_SIZE_2G);
+    InitEnv(config);
+
+    uint16_t stateId = StateId::Of(NO_1, StateType::LIST);
+    SliceKey key = mGenerator->GenerateSglKey(NO_10, stateId);
+    Value oldValue = mGenerator->GenerateValue(IO_SIZE_4M + NO_1, mSeqGenerator->Next());
+    std::vector<std::pair<SliceKey, Value>> oldEntry{ { key, oldValue } };
+    FlushLevel0Table(oldEntry);
+    Value latestValue = mGenerator->GenerateValue(IO_SIZE_4M + NO_1, mSeqGenerator->Next());
+    std::vector<std::pair<SliceKey, Value>> latestEntry{ { key, latestValue } };
+    FlushLevel0Table(latestEntry);
+
+    VersionPtr beforeCompaction = mLsmStore->GetVersionSet()->GetCurrent();
+    auto level0Files = beforeCompaction->GetFileMetaDatas(0, beforeCompaction->GetGroupRange());
+    ASSERT_EQ(level0Files.size(), NO_2);
+    uint64_t latestFileAddress = 0;
+    for (const auto &file : level0Files) {
+        EXPECT_FALSE(file->GetRecordMeta().IsAvailable());
+        uint32_t recordCount = NO_1;
+        uint64_t minRecordSeqId = NO_1;
+        uint64_t maxRecordSeqId = NO_1;
+        uint8_t singleValueType = static_cast<uint8_t>(ValueType::PUT);
+        uint32_t singleValueLength = NO_1;
+        VersionMetaSerializer::BuildPersistentRecordMeta(file->GetRecordMeta(), file->GetSmallest(), file->GetLargest(),
+                                                         recordCount, minRecordSeqId, maxRecordSeqId, singleValueType,
+                                                         singleValueLength);
+        EXPECT_EQ(recordCount, 0);
+        EXPECT_EQ(minRecordSeqId, 0);
+        EXPECT_EQ(maxRecordSeqId, 0);
+        EXPECT_EQ(singleValueType, static_cast<uint8_t>(ValueType::TYPE_BUTT));
+        EXPECT_EQ(singleValueLength, 0);
+        if (file->GetSmallest()->SeqId() == latestValue.SeqId()) {
+            latestFileAddress = file->GetFileAddress();
+        }
+    }
+    ASSERT_NE(latestFileAddress, 0);
+
+    // Both the planner and summary policy are captured during initialization.
+    config->SetZeroCopySwitch(true);
+    config->SetLsmStoreCompactionSwitch(1);
+    mLsmStore->StartLsmCompaction();
+    sleep(1);
+    while (!mLsmStore->CheckCompactionCompleted()) {
+        sleep(1);
+    }
+
+    VersionPtr afterCompaction = mLsmStore->GetVersionSet()->GetCurrent();
+    auto level1Files = afterCompaction->GetFileMetaDatas(NO_1, afterCompaction->GetGroupRange());
+    ASSERT_EQ(level1Files.size(), NO_1);
+    EXPECT_NE(level1Files.front()->GetFileAddress(), latestFileAddress);
+    EXPECT_FALSE(level1Files.front()->GetRecordMeta().IsAvailable());
+    Value actualValue;
+    ASSERT_TRUE(mLsmStore->Get(key, actualValue));
+    EXPECT_TRUE(IsTheSameValue(latestValue, actualValue));
+}
+
+TEST_F(TestFile, test_compaction_splits_merged_outputs_around_adopted_list_key)
+{
+    ConfigRef config = std::make_shared<Config>();
+    config->Init(NO_0, NO_15, NO_16);
+    config->SetLsmStoreCompactionSwitch(0);
+    config->SetZeroCopySwitch(true);
+    config->SetLsmStoreCompressionPolicy("none");
+    config->SetCompressionLevelPolicy({ "none", "none", "none" });
+    config->SetFileStoreL0NumTrigger(NO_2);
+    config->SetTotalDBSize(IO_SIZE_2G);
+    InitEnv(config);
+
+    uint16_t stateId = StateId::Of(NO_1, StateType::LIST);
+    std::vector<SliceKey> keys = { mGenerator->GenerateSglKey(NO_10, stateId),
+                                   mGenerator->GenerateSglKey(NO_10, stateId),
+                                   mGenerator->GenerateSglKey(NO_10, stateId) };
+    std::sort(keys.begin(), keys.end(),
+              [](const SliceKey &left, const SliceKey &right) { return left.Compare(right) < 0; });
+    SliceKey adoptedKey = keys[NO_1];
+    std::vector<std::pair<SliceKey, Value>> oldEntries;
+    for (const auto &key : keys) {
+        oldEntries.emplace_back(key, mGenerator->GenerateValue(NO_1024, mSeqGenerator->Next()));
+    }
+    FlushLevel0Table(oldEntries);
+
+    Value latestValue = mGenerator->GenerateValue(IO_SIZE_4M + NO_1, mSeqGenerator->Next());
+    std::vector<std::pair<SliceKey, Value>> latestEntry{ { adoptedKey, latestValue } };
+    FlushLevel0Table(latestEntry);
+
+    VersionPtr beforeCompaction = mLsmStore->GetVersionSet()->GetCurrent();
+    auto level0Files = beforeCompaction->GetFileMetaDatas(0, beforeCompaction->GetGroupRange());
+    ASSERT_EQ(level0Files.size(), NO_2);
+    FileMetaDataRef adoptedFile = nullptr;
+    for (const auto &file : level0Files) {
+        if (file->GetRecordMeta().IsSingleRecord()) {
+            adoptedFile = file;
+        }
+    }
+    ASSERT_NE(adoptedFile, nullptr);
+    uint64_t adoptedFileAddress = adoptedFile->GetFileAddress();
+
+    config->SetLsmStoreCompactionSwitch(1);
+    mLsmStore->StartLsmCompaction();
+    sleep(1);
+    while (!mLsmStore->CheckCompactionCompleted()) {
+        sleep(1);
+    }
+
+    VersionPtr afterCompaction = mLsmStore->GetVersionSet()->GetCurrent();
+    auto level1Files = afterCompaction->GetFileMetaDatas(NO_1, afterCompaction->GetGroupRange());
+    ASSERT_EQ(level1Files.size(), NO_3);
+    uint32_t adoptedCount = 0;
+    for (const auto &file : level1Files) {
+        if (file->GetFileAddress() == adoptedFileAddress) {
+            ++adoptedCount;
+            continue;
+        }
+        bool overlapsAdoptedKey = file->GetSmallest()->CompareKey(adoptedKey) <= 0 &&
+                                  file->GetLargest()->CompareKey(adoptedKey) >= 0;
+        EXPECT_FALSE(overlapsAdoptedKey);
+    }
+    EXPECT_EQ(adoptedCount, NO_1);
+
+    Value actualValue;
+    ASSERT_TRUE(mLsmStore->Get(adoptedKey, actualValue));
+    EXPECT_TRUE(IsTheSameValue(latestValue, actualValue));
+}
+
+TEST_F(TestFile, test_compaction_packs_large_list_puts_into_normal_output_file)
+{
+    ConfigRef config = std::make_shared<Config>();
+    config->Init(NO_0, NO_15, NO_16);
+    config->SetLsmStoreCompactionSwitch(0);
+    config->SetZeroCopySwitch(true);
+    config->SetLsmStoreCompressionPolicy("none");
+    config->SetCompressionLevelPolicy({ "none", "none", "none" });
+    config->SetFileStoreL0NumTrigger(NO_2);
+    config->SetTotalDBSize(IO_SIZE_2G);
+    InitEnv(config);
+
+    uint16_t stateId = StateId::Of(NO_1, StateType::LIST);
+    std::vector<SliceKey> keys = { mGenerator->GenerateSglKey(NO_10, stateId),
+                                   mGenerator->GenerateSglKey(NO_10, stateId) };
+    std::sort(keys.begin(), keys.end(),
+              [](const SliceKey &left, const SliceKey &right) { return left.Compare(right) < 0; });
+    std::vector<std::pair<SliceKey, Value>> oldEntries = {
+        { keys[NO_0], mGenerator->GenerateValue(IO_SIZE_4M + NO_1, mSeqGenerator->Next()) },
+        { keys[NO_1], mGenerator->GenerateValue(IO_SIZE_4M + NO_1, mSeqGenerator->Next()) }
+    };
+    FlushLevel0Table(oldEntries);
+
+    Value latestValue = mGenerator->GenerateValue(NO_1024, mSeqGenerator->Next());
+    std::vector<std::pair<SliceKey, Value>> latestEntry{ { keys[NO_1], latestValue } };
+    FlushLevel0Table(latestEntry);
+
+    config->SetLsmStoreCompactionSwitch(1);
+    mLsmStore->StartLsmCompaction();
+    sleep(1);
+    while (!mLsmStore->CheckCompactionCompleted()) {
+        sleep(1);
+    }
+
+    VersionPtr afterCompaction = mLsmStore->GetVersionSet()->GetCurrent();
+    auto level1Files = afterCompaction->GetFileMetaDatas(NO_1, afterCompaction->GetGroupRange());
+    ASSERT_EQ(level1Files.size(), NO_1);
+    EXPECT_EQ(level1Files.front()->GetRecordMeta().GetRecordCount(), NO_2);
+}
+
 TEST_F(TestFile, test_value_and_list_state_with_covered_value_return_ok)
 {
     ConfigRef config = std::make_shared<Config>();

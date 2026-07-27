@@ -15,6 +15,7 @@
 #include <memory>
 
 #include "common/path.h"
+#include "file_record_meta.h"
 #include "lsm_store/block/data_block_stat.h"
 #include "lsm_store/block/index_block_stat.h"
 #include "state_id_interval.h"
@@ -25,14 +26,15 @@ class FileBlockMeta {
 public:
     FileBlockMeta(const PathRef &path, const DataBlockStatRef &dataBlockStat, const IndexBlockStatRef &indexBlockStat,
                   uint32_t filterBlockSize, uint32_t filterBlockRawSize, uint32_t fileSize,
-                  StateIdInterval stateIdInterval)
+                  StateIdInterval stateIdInterval, const FileRecordMeta &recordMeta)
         : mPath(path),
           mDataBlockStat(dataBlockStat),
           mIndexBlockStat(indexBlockStat),
           mFilterBlockSize(filterBlockSize),
           mFilterBlockRawSize(filterBlockRawSize),
           mFileSize(fileSize),
-          mStateIdInterval(stateIdInterval)
+          mStateIdInterval(stateIdInterval),
+          mRecordMeta(recordMeta)
     {
     }
 
@@ -96,6 +98,11 @@ public:
         return mDataBlockStat->GetTotalNumKeys();
     }
 
+    inline const FileRecordMeta &GetRecordMeta() const
+    {
+        return mRecordMeta;
+    }
+
 private:
     PathRef mPath = nullptr;
     DataBlockStatRef mDataBlockStat = nullptr;
@@ -104,6 +111,7 @@ private:
     uint32_t mFilterBlockRawSize = 0;
     uint32_t mFileSize = 0;
     StateIdInterval mStateIdInterval;
+    FileRecordMeta mRecordMeta;
 };
 using FileBlockMetaRef = std::shared_ptr<FileBlockMeta>;
 
