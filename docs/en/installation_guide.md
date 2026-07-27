@@ -43,7 +43,7 @@ The OmniStateStore software runs in Docker containers.  [Table 1](#en-us_topic_0
 
 Before installing the OmniStateStore software, check that you have installed all the dependency software. Install these dependencies based on their security standards.  [Table 2](#en-us_topic_0000002466592290_en-us_topic_0000001664980070_table564mcpsimp)  lists the OS and software requirements of each node in the cluster.
 
-**Table  2**  Software requirements
+**Table  2**  Software requirements<a name="en-us_topic_0000002466592290_en-us_topic_0000001664980070_table564mcpsimp"></a>
 
 |Software Name|Software Version|How to Obtain|
 |--|--|--|
@@ -51,15 +51,13 @@ Before installing the OmniStateStore software, check that you have installed all
 |Java|JDK 1.8.0_432|Link|
 |Flink|1.16.11.16.31.17.1|Link|
 
-
 **Obtaining the Software Package<a name="en-us_topic_0000002466592290_en-us_topic_0000001664980070_section3489574613"></a>**
 
-**Table  3**  OmniStateStore software list
+**Table  3**  OmniStateStore software list<a name="en-us_topic_0000002466592290_en-us_topic_0000001664980070__table677mcpsimp"></a>
 
 |Software Name|Package Name|Release Type|Description|Download URL|
 |--|--|--|--|--|
 |OmniStateStore package|omnistatestore_1.1.0_aarch64_release.tar.gz|Open source|OmniStateStore software installation package|Link|
-
 
 **Verifying Software Package Integrity<a name="en-us_topic_0000002466592290_section15465143812508"></a>**
 
@@ -72,18 +70,20 @@ To prevent a software package from being maliciously tampered with during transf
 
 3. Verify the software package integrity by following instructions in  _OpenPGP Signature Verification Guide_.
 
-    >![](public_sys-resources/icon-note.gif) **NOTE:** 
-    >-   If the verification fails, do not use the software package, and contact Huawei technical support.
-    >-   Before using the software package for an installation or upgrade, verify the digital signature to ensure that the software has not been tampered with.
+    > ![](public_sys-resources/icon-note.gif) **NOTE:**
+    >
+    > - If the verification fails, do not use the software package, and contact Huawei technical support.
+    > - Before using the software package for an installation or upgrade, verify the digital signature to ensure that the software has not been tampered with.
 
 Before installing and using OmniStateStore, ensure that the hardware and software environments meet the requirements for installation, deployment, and normal operation.
+
 ## Installing OmniStateStore<a name="EN-US_TOPIC_0000002518426732"></a>
 
-1. Obtain  **omnistatestore\_1.1.0\_aarch64\_release.tar.gz**  based on  [Table 3](environment-requirements.md#en-us_topic_0000002466592290_en-us_topic_0000001664980070__table677mcpsimp).
+1. Obtain  **omnistatestore\_1.1.0\_aarch64\_release.tar.gz**  based on  [Table 3](#en-us_topic_0000002466592290_en-us_topic_0000001664980070__table677mcpsimp).
 2. Log in to the installation node and upload the  **BoostKit-omnistatestore\_1.1.0\_aarch64\_release.tar.gz**  software package to the  **$\{FLINK\_HOME\}/lib/**  subdirectory.
 3. Extract the software package.
 
-    ```
+    ```bash
     tar -zxvf BoostKit-omnistatestore_1.1.0_aarch64_release.tar.gz
     ```
 
@@ -95,17 +95,16 @@ Before installing and using OmniStateStore, ensure that the hardware and softwar
 
     Retain only the JAR package that matches the current Flink version and remove the other JAR packages. For example, retain Flink 1.16.3:
 
-    ```
+    ```bash
     rm -f flink-boost-statebackend-1.1.0-SNAPSHOT-for-flink-1.17.1.jar
     rm -f flink-boost-statebackend-1.1.0-SNAPSHOT-for-flink-1.16.1.jar
     ```
 
 4. To release drive space, run the following command to delete the software package:
 
-    ```
+    ```bash
     rm -f BoostKit-omnistatestore_1.1.0_aarch64_release.tar.gz
     ```
-
 
 ## Starting OmniStateStore<a name="EN-US_TOPIC_0000002550026579"></a>
 
@@ -113,7 +112,7 @@ This section describes how to start the OmniStateStore service to enable the acc
 
 1. Set the configuration items in the  **flink-conf.yaml**  file located in the Flink  **conf**  directory based on the service requirements and deployment environment.
 
-    Configuration item format:  _$\{Configuration item name\} + $\{Colon\} + $\{Space\} + $\{Configuration item value\}_.  [Configuration Items](configuration-items.md#EN-US_TOPIC_0000002550026577)  describes the configuration items. The following describes the configuration items in different scenarios.
+    Configuration item format:  _$\{Configuration item name\} + $\{Colon\} + $\{Space\} + $\{Configuration item value\}_.  [Configuration Items](#EN-US_TOPIC_0000002550026577)  describes the configuration items. The following describes the configuration items in different scenarios.
 
     - Add or modify the following configuration items in  **$\{FLINK\_HOME\}/conf/flink-conf.yaml**  to enable OmniStateStore. Update the configuration files of the Job Manager and all Task Managers.
 
@@ -125,10 +124,9 @@ This section describes how to start the OmniStateStore service to enable the acc
 |state.backend.ockdb.localdir|Local OmniStateStore state data path.|/usr/local/flink/ockdb|Check that the path exists and the Flink run user has the read and write permissions on the path.|
 |state.backend.ockdb.jni.logfile|OmniStateStore log path.|/usr/local/flink/log/kv.log|The Flink log path is recommended for this path.|
 
-
         A configuration example is as follows:
 
-        ```
+        ```yaml
         state.backend: com.huawei.ock.bss.OckDBStateBackendFactory
         state.backend.ockdb.localdir: /usr/local/flink/ockdb
         state.backend.ockdb.jni.logfile: /usr/local/flink/log/kv.log
@@ -138,7 +136,7 @@ This section describes how to start the OmniStateStore service to enable the acc
 
         A configuration example is as follows:
 
-        ```
+        ```yaml
         state.backend.ockdb.timer-service.factory: OCKDB
         ```
 
@@ -146,7 +144,7 @@ This section describes how to start the OmniStateStore service to enable the acc
 
         A configuration example is as follows:
 
-        ```
+        ```yaml
         state.backend.ockdb.kv-separate.switch: true
         state.backend.ockdb.kv-separate.threshold: 200
         ```
@@ -155,7 +153,7 @@ This section describes how to start the OmniStateStore service to enable the acc
 
     In the example,  **state.backend.ockdb.localdir**  is set to  **/usr/local/flink/ockdb**  and  **state.backend.ockdb.checkpoint.backup**  is set to  **/usr/local/flink/checkpoint/backup**. Replace the example directories with the actual directories used in your installation.
 
-    ```
+    ```bash
     mkdir -p /usr/local/flink/ockdb
     mkdir -p /usr/local/flink/checkpoint/backup
     ```
@@ -166,28 +164,29 @@ This section describes how to start the OmniStateStore service to enable the acc
     If "OmniStateStore service start success" is displayed in the Task Manager logs, OmniStateStore is started successfully.
 
 This section describes how to start the OmniStateStore service to enable the acceleration function of Flink state storage.
+
 ## Maintaining the Feature<a name="EN-US_TOPIC_0000002549906573"></a>
 
 Upgrade or uninstall the feature by following the instructions below.
 
 **Upgrading the Software<a name="en-us_topic_0000002516475165_section8320132214814"></a>**
 
-Replace the existing JAR package with the JAR package of the new version on the installation node. You do not need to uninstall the existing version. For details, see  [Installing OmniStateStore](installing-omnistatestore.md#EN-US_TOPIC_0000002518426732).
+Replace the existing JAR package with the JAR package of the new version on the installation node. You do not need to uninstall the existing version. For details, see  [Installing OmniStateStore](#EN-US_TOPIC_0000002518426732).
 
 **Uninstalling the Software<a name="en-us_topic_0000002516475165_section777110331398"></a>**
 
->![](public_sys-resources/icon-notice.gif) **NOTICE:** 
->Perform the following steps only when you need to uninstall OmniStateStore.
+> ![](public_sys-resources/icon-notice.gif) **NOTICE:**
+>
+> Perform the following steps only when you need to uninstall OmniStateStore.
 
 1. Delete the configured  **state.backend.ockdb.localdir**  path from the installation node.
 2. Delete the  **flink-boost-statebackend-1.1.0-SNAPSHOT-for-flink-$\{flink._x.x.x_\}.jar**  file from the  **$\{FLINK\_HOME\}/lib/**  directory.
 
-    ```
+    ```bash
     rm -f flink-boost-statebackend-1.1.0-SNAPSHOT-for-flink-x.x.x.jar
     ```
 
 3. Set the  **state.backend**  configuration item in the  **flink-conf.yaml**  configuration file to another state backend.
-
 
 ## References<a name="EN-US_TOPIC_0000002518266822"></a>
 
@@ -197,65 +196,66 @@ The parameter configuration rules for the Log, StateStore, and Metric modules of
 
 [Table 1](#en-us_topic_0000002516476219_table19127204118479),  [Table 2](#en-us_topic_0000002516476219_table5331123964816), and  [Table 3](#en-us_topic_0000002516476219_table8874183794213)  describe the configuration items of the Log, StateStore, and Metric modules.
 
-**Table  1**  Configuration items of the Log module
+**Table  1**  Configuration items of the Log module<a name="en-us_topic_0000002516476219_table19127204118479"></a>
 
 |Configuration Item|Description|Default Value|Value Range|Remarks|
 |--|--|--|--|--|
 |state.backend.ockdb.jni.logfile|Log file path and name.|/usr/local/flink/log/kv.log|Files in the path on which the Flink run user has the read and write permissions (The path must exist.)|Check that the path exists and the Flink run user has the read and write permissions on the path.|
-|state.backend.ockdb.jni.loglevel|Log level.**1**: DEBUG**2**: INFO**3**: WARN**4**: ERROR|2|[1, 4]|None|
+|state.backend.ockdb.jni.loglevel|Log level.<br>**1**: DEBUG<br>**2**: INFO<br>**3**: WARN<br>**4**: ERROR|2|[1, 4]|None|
 |state.backend.ockdb.jni.lognum|Maximum number of log files.|20|[10, 50]|None|
 |state.backend.ockdb.jni.logsize|Size of a single log file. Unit: MB.|20|[10, 50]|None|
 
-
-**Table  2**  Configuration items of the StateStore module
+**Table  2**  Configuration items of the StateStore module<a name="en-us_topic_0000002516476219_table5331123964816"></a>
 
 |Configuration Item|Description|Default Value|Value Range|Remarks|
 |--|--|--|--|--|
 |state.backend|Open source Flink parameter, which is used to configure the state backend.|None|com.huawei.ock.bss.OckDBStateBackendFactory|Ensure that the case-sensitive characters are correctly spelled.|
-|state.backend.ockdb.localdir|Local OmniStateStore data path.|None|An existing path for which the Flink run user has the read and write permissions.|Check that the path exists and the Flink run user has the read and write permissions on the path.Check that the path and the **taskmanager.state.local.root-dirs** path are in the same file system.|
-|taskmanager.state.local.root-dirs|Open-source Flink parameter, which is used to set the local checkpoint temporary directory.|None|An existing path for which the Flink run user has the read and write permissions.|You are recommended to set this configuration item. If you choose not to set this configuration item, the path specified by **io.tmp.dirs** is used by default.Check that the path and the **state.backend.ockdb.localdir** path are in the same file system.|
+|state.backend.ockdb.localdir|Local OmniStateStore data path.|None|An existing path for which the Flink run user has the read and write permissions.|Check that the path exists and the Flink run user has the read and write permissions on the path.<br>Check that the path and the **taskmanager.state.local.root-dirs** path are in the same file system.|
+|taskmanager.state.local.root-dirs|Open-source Flink parameter, which is used to set the local checkpoint temporary directory.|None|An existing path for which the Flink run user has the read and write permissions.|You are recommended to set this configuration item. If you choose not to set this configuration item, the path specified by **io.tmp.dirs** is used by default.<br>Check that the path and the **state.backend.ockdb.localdir** path are in the same file system.|
 |state.backend.ockdb.savepoint.sort.local.dir|Path for storing temporary sorting files generated during savepoint creation. This parameter is required for using savepoints.|/usr/local/flink/savepoint/tmp|An existing path for which the Flink run user has the read and write permissions.|Check that the path exists and the Flink run user has the read and write permissions on the path.|
 |state.backend.ockdb.jni.slice.watermark.ratio|The cache layer triggers data eviction by setting the high and low watermark ratio thresholds. Cold data is migrated to the LSM file storage layer based on the preset policy to dynamically balance storage resources.|0.8|(0, 1)|Generally, you do not need to set it separately.|
 |state.backend.ockdb.file.memory.fraction|Ratio of the memory cache space used for reading and writing data at the LSM layer to the maximum memory of the entire database instance.|0.2|[0.1, 0.5]|Generally, you do not need to set it separately.|
-|state.backend.ockdb.jni.lsmstore.compaction.switch|Indicates whether to sort and merge data in the LSM file storage layer. The leveled compaction mechanism of the LSM file storage layer controls the sorting and compaction of data files to optimize storage performance and space utilization.|1|**0**: disable**1**: enable|It is recommended that you enable this option.|
-|state.backend.ockdb.ttl.filter.switch|Compresses time to live (TTL) expired data in the background.|false|**false**: disable**true**: enable|You are advised to enable this function for TTL State.|
-|state.backend.ockdb.lsmstore.compression.policy|Compression policy of each level in the LSM store. It is used with the default value of "state.backend.ockdb.lsmstore.compression.level.policy".**level0**: Compression is disabled.**level1**: Compression is disabled.**level2**: LZ4 compression is enabled.Other levels: Full compression is enabled.|lz4|**none**: Compression is disabled.**lz4**: LZ4 compression is enabled.|If the checkpoint file to be uploaded is too large, you are advised to enable this function.|
-|state.backend.ockdb.lsmstore.compression.level.policy|Configures the LSM file compression policy for different levels. The default value is **none,none,lz4**, which indicates that compression is disabled at level 0 and level 1 and LZ4 compression is enabled at level 2.|none,none,lz4|**none**: Compression is disabled.**lz4**: LZ4 compression is enabled.|When checkpoints become a bottleneck, you can advance the compression policy to a lower level. The default level range is [0, 5].**level0** indicates foreground write compression. **None** is recommended.Other levels indicate background compression.|
-|state.backend.ockdb.lazy.download.switch|Indicates whether to enable lazy loading during recovery from a checkpoint.|false|**false**: disable**true**: enable|When the checkpoint size is large, enable this option to shorten the time required for restoring a task to the running state.|
-|state.backend.ockdb.bloom.filter.switch|Enables or disables the Bloom filter for status keys.|true|**false**: disable**true**: enable|You are advised to enable this function in scenarios where a large number of invalid key accesses. When this function is enabled, the memory usage increases by dozens of megabytes.|
+|state.backend.ockdb.jni.lsmstore.compaction.switch|Indicates whether to sort and merge data in the LSM file storage layer. The leveled compaction mechanism of the LSM file storage layer controls the sorting and compaction of data files to optimize storage performance and space utilization.|1|**0**: disable<br>**1**: enable|It is recommended that you enable this option.|
+|state.backend.ockdb.ttl.filter.switch|Compresses time to live (TTL) expired data in the background.|false|**false**: disable<br>**true**: enable|You are advised to enable this function for TTL State.|
+|state.backend.ockdb.lsmstore.compression.policy|Compression policy of each level in the LSM store. It is used with the default value of "state.backend.ockdb.lsmstore.compression.level.policy".<br>**level0**: Compression is disabled.<br>**level1**: Compression is disabled.<br>**level2**: LZ4 compression is enabled.<br>Other levels: Full compression is enabled.|lz4|**none**: Compression is disabled.<br>**lz4**: LZ4 compression is enabled.|If the checkpoint file to be uploaded is too large, you are advised to enable this function.|
+|state.backend.ockdb.lsmstore.compression.level.policy|Configures the LSM file compression policy for different levels. The default value is **none,none,lz4**, which indicates that compression is disabled at level 0 and level 1 and LZ4 compression is enabled at level 2.|none,none,lz4|**none**: Compression is disabled.<br>**lz4**: LZ4 compression is enabled.|When checkpoints become a bottleneck, you can advance the compression policy to a lower level. The default level range is [0, 5].<br>**level0** indicates foreground write compression. **None** is recommended.<br>Other levels indicate background compression.|
+|state.backend.ockdb.freshtable.snapshot.compression.policy|Compression policy for FreshTable checkpoint snapshot files.|none|**none**: Compression is disabled.<br>**lz4**: LZ4 compression is enabled.|When FreshTable snapshot file uploads become a checkpoint bottleneck, you can set this parameter to **lz4** to reduce the amount of uploaded data. Compression increases CPU usage.|
+|state.backend.ockdb.slicetable.snapshot.compression.policy|Compression policy for SliceTable checkpoint snapshot files.|none|**none**: Compression is disabled.<br>**lz4**: LZ4 compression is enabled.|When SliceTable snapshot file uploads become a checkpoint bottleneck, you can set this parameter to **lz4** to reduce the amount of uploaded data. Compression increases CPU usage.|
+|state.backend.ockdb.lazy.download.switch|Indicates whether to enable lazy loading during recovery from a checkpoint.|false|**false**: disable<br>**true**: enable|When the checkpoint size is large, enable this option to shorten the time required for restoring a task to the running state.|
+|state.backend.ockdb.bloom.filter.switch|Enables or disables the Bloom filter for status keys.|true|**false**: disable<br>**true**: enable|You are advised to enable this function in scenarios where a large number of invalid key accesses. When this function is enabled, the memory usage increases by dozens of megabytes.|
 |state.backend.bloom.filter.expected.key.count|Order of magnitude of keys to be filtered by the Bloom filter in a single state.|8000000|[1000000, 10000000]|Generally, you do not need to set it separately. A larger value indicates that the Bloom filter occupies more memory.|
-|state.backend.ockdb.cache.filter.and.index.switch|Enables or disables the use of the least recently used (LRU) cache for filter and index blocks at the LSM layer.|true|**false**: disable**true**: enable|Generally, you do not need to set it separately. If there are a large number of files and different files are frequently read, you are advised to enable this function.|
+|state.backend.ockdb.cache.filter.and.index.switch|Enables or disables the use of the least recently used (LRU) cache for filter and index blocks at the LSM layer.|true|**false**: disable<br>**true**: enable|Generally, you do not need to set it separately. If there are a large number of files and different files are frequently read, you are advised to enable this function.|
 |state.backend.ockdb.cache.filter.and.index.ratio|Ratio of the memory occupied by the filter and index blocks to the total memory. This memory is not subject to LRU-based eviction.|0|(0, 1)|Generally, you do not need to set it separately. You are advised to enable this function when the filter and index blocks are frequently released in the cache due to heavy pressure.|
 |state.backend.ockdb.checkpoint.backup|Directory for storing local checkpoint backup slice files when local restoration is enabled.|None|Files in the path on which the Flink run user has the read and write permissions (The path must exist.)|Set this parameter when local restoration is enabled. Check that the path exists and the Flink run user has the read and write permissions on the path.|
-|state.backend.ockdb.timer-service.factory|Location where the Flink timer is stored.|OCKDB|**OCKDB**: persistently stored in the state backend**HEAP**: stored in the JVM heap memory|When the number of timers is small, the heap-based timer may have better performance.|
-|state.backend.ockdb.kv-separate.switch|Enables or disables KV separation.|false|**false**: disable**true**: enable|Enable KV separation if this value is large.|
+|state.backend.ockdb.timer-service.factory|Location where the Flink timer is stored.|OCKDB|**OCKDB**: persistently stored in the state backend<br>**HEAP**: stored in the JVM heap memory|When the number of timers is small, the heap-based timer may have better performance.|
+|state.backend.ockdb.kv-separate.switch|Enables or disables KV separation.|false|**false**: disable<br>**true**: enable|Enable KV separation if this value is large.|
 |state.backend.ockdb.kv-separate.threshold|Threshold for enabling KV separation. Enable KV separation when this value is exceeded.|200|(8, 4294967295)|Values greater than this threshold are stored separately after KV separation.|
 
-
-**Table  3**  Configuration items of the Metric module
+**Table  3**  Configuration items of the Metric module<a name="en-us_topic_0000002516476219_table8874183794213"></a>
 
 |Configuration Item|Description|Default Value|Value Range|Remarks|
 |--|--|--|--|--|
-|state.backend.ockdb.metric.enable|Enables or disables the overall metric function. OmniStateStore collects metric information after this function is enabled.|false|**false**: disable**true**: enable|The metric function of each module takes effect only after this option is enabled.|
-|state.backend.ockdb.metric.memory|Enables or disables the metric function of the MemoryManager module.|false|**false**: disable**true**: enable|None|
-|state.backend.ockdb.metric.fresh.table|Enables or disables the metric function of the FreshTable module.|false|**false**: disable**true**: enable|None|
-|state.backend.ockdb.metric.slice.table|Enables or disables the metric function of the SliceTable module.|false|**false**: disable**true**: enable|None|
-|state.backend.ockdb.metric.lsm.store|Enables or disables the metric function of the LSM Store module.|false|**false**: disable**true**: enable|None|
-|state.backend.ockdb.metric.lsm.cache|Enables or disables the metric function of the LSM Cache module.|false|**false**: disable**true**: enable|None|
-|state.backend.ockdb.metric.snapshot|Enables or disables the metric function of the Snapshot module.|false|**false**: disable**true**: enable|None|
-|state.backend.ockdb.metric.restore|Enables or disables the metric function of the Restore module.|false|**false**: disable**true**: enable|None|
-
+|state.backend.ockdb.metric.enable|Enables or disables the overall metric function. OmniStateStore collects metric information after this function is enabled.|false|**false**: disable<br>**true**: enable|The metric function of each module takes effect only after this option is enabled.|
+|state.backend.ockdb.metric.memory|Enables or disables the metric function of the MemoryManager module.|false|**false**: disable<br>**true**: enable|None|
+|state.backend.ockdb.metric.fresh.table|Enables or disables the metric function of the FreshTable module.|false|**false**: disable<br>**true**: enable|None|
+|state.backend.ockdb.metric.slice.table|Enables or disables the metric function of the SliceTable module.|false|**false**: disable<br>**true**: enable|None|
+|state.backend.ockdb.metric.lsm.store|Enables or disables the metric function of the LSM Store module.|false|**false**: disable<br>**true**: enable|None|
+|state.backend.ockdb.metric.lsm.cache|Enables or disables the metric function of the LSM Cache module.|false|**false**: disable<br>**true**: enable|None|
+|state.backend.ockdb.metric.snapshot|Enables or disables the metric function of the Snapshot module.|false|**false**: disable<br>**true**: enable|None|
+|state.backend.ockdb.metric.restore|Enables or disables the metric function of the Restore module.|false|**false**: disable<br>**true**: enable|None|
 
 The parameter configuration rules for the Log, StateStore, and Metric modules of OmniStateStore cover log management, state storage, and performance monitoring, providing guidance for deploying and tuning OmniStateStore on Flink.
+
 ### Metrics<a name="EN-US_TOPIC_0000002550026581"></a>
 
 OmniStateStore can connect to the Flink Metric framework to provide metrics for monitoring its internal status, such as memory usage and cache hit ratio, during task execution. These metrics serve as a reference for performance tuning and operational analysis in Flink scenarios.
 
 You can add and view these metrics on the  **Metric**  page during task execution on the Flink WebUI to learn and analyze the running performance of OmniStateStore in real time.
 
->![](public_sys-resources/icon-notice.gif) **NOTICE:** 
->-   Collecting metric data introduces additional performance overhead, which may affect task execution performance. It is recommended to enable the metric feature only during task testing or for performance-insensitive tasks.
->-   The unit of all data volume metrics is byte, and the unit of all time metrics is second.
+> ![](public_sys-resources/icon-notice.gif) **NOTICE:**
+>
+> - Collecting metric data introduces additional performance overhead, which may affect task execution performance. It is recommended to enable the metric feature only during task testing or for performance-insensitive tasks.
+> - The unit of all data volume metrics is byte, and the unit of all time metrics is second.
 
 **MemoryManager Module<a name="en-us_topic_0000002505799817_section7735163610488"></a>**
 
@@ -275,7 +275,6 @@ You can add and view these metrics on the  **Metric**  page during task executio
 |ockdb_memory_max_snapshot|Allocated memory of the Snapshot type.|
 |ockdb_memory_max_borrow_heap|Allocated memory of the BorrowHeap type.|
 |ockdb_memory_max_db|Managed memory allocated to a single TaskSlot.|
-
 
 **FreshTable Module<a name="en-us_topic_0000002505799817_section12799165145018"></a>**
 
@@ -297,7 +296,6 @@ You can add and view these metrics on the  **Metric**  page during task executio
 |ockdb_fresh_binary_map_node_size|Total size of all MapNodes in the FreshTable.|
 |ockdb_fresh_wasted_size|Total size of free segment space when segments in the FreshTable are evicted to the SliceTable.|
 
-
 **SliceTable Module<a name="en-us_topic_0000002505799817_section9213174155116"></a>**
 
 **Table  3**  Metric references
@@ -314,7 +312,6 @@ You can add and view these metrics on the  **Metric**  page during task executio
 |ockdb_slice_compaction_avg_slice_count|Average number of slices processed by each compaction task in the SliceTable.|
 |ockdb_slice_chain_avg_size|Average SliceChain length.|
 |ockdb_slice_avg_size|Average size of a single slice.|
-
 
 **FileCache Module<a name="en-us_topic_0000002505799817_section1596412433523"></a>**
 
@@ -343,7 +340,6 @@ You can add and view these metrics on the  **Metric**  page during task executio
 |ockdb_filter_success_count|Number of occurrences where the key is not present in the FilterBlock's filtered result.|
 |ockdb_filter_exist_success_count|Number of occurrences where the key is present in the FilterBlock's filtered result and actually exists.|
 |ockdb_filter_exist_fail_count|Number of occurrences where the key is present in the FilterBlock's filtered result but actually does not exist.|
-
 
 **FileStore Module<a name="en-us_topic_0000002505799817_section1634518277549"></a>**
 
@@ -379,7 +375,6 @@ You can add and view these metrics on the  **Metric**  page during task executio
 |ockdb_lsm_compaction_rate|Compression rate of files at all LSMStore levels.|
 |ockdb_lsm_file_count|Number of files at all LSMStore levels.|
 
-
 **Snapshot Module<a name="en-us_topic_0000002505799817_section15501109155814"></a>**
 
 **Table  6**  Metric reference
@@ -398,7 +393,6 @@ You can add and view these metrics on the  **Metric**  page during task executio
 |ockdb_snapshot_sst_incremental_file_size|Size of incremental LSMStore files created in the latest snapshot task.|
 |ockdb_snapshot_sst_file_size|Size of LSMStore snapshot files created in the latest snapshot task.|
 
-
 **Restore Module<a name="en-us_topic_0000002505799817_section19402193125815"></a>**
 
 **Table  7**  Metric references
@@ -409,15 +403,15 @@ You can add and view these metrics on the  **Metric**  page during task executio
 |ockdb_restore_download_time|Download duration of the latest snapshot restoration task.|
 |ockdb_restore_lazy_download_time|Lazy loading duration of the latest snapshot restoration task.|
 
-
 OmniStateStore can connect to the Flink Metric framework to provide metrics for monitoring its internal status, such as memory usage and cache hit ratio, during task execution. These metrics serve as a reference for performance tuning and operational analysis in Flink scenarios.
+
 ### Function Specifications<a name="EN-US_TOPIC_0000002518266820"></a>
 
 When used as a Flink state backend, OmniStateStore and RocksDB both support core functions such as basic state read/write, checkpoints, and savepoints, providing a reference for evaluating the feasibility of replacing RocksDB with OmniStateStore.
 
 [Table 1](#en-us_topic_0000002499631625_table462152614498)  describes the comparison between RocksDB and OmniStateStore.
 
-**Table  1**  State backend comparison
+**Table  1**  State backend comparison<a name="en-us_topic_0000002499631625_table462152614498"></a>
 
 |Item|Function|RocksDB State Backend|OmniStateStore State Backend|
 |--|--|--|--|
@@ -445,7 +439,4 @@ When used as a Flink state backend, OmniStateStore and RocksDB both support core
 |Savepoint|Savepoint restoration in scenarios with scaling parallelism|Supported|Supported|
 |Savepoint|Status data structure upgrade with savepoints|Supported|Supported|
 
-
 When used as a Flink state backend, OmniStateStore and RocksDB both support core functions such as basic state read/write, checkpoints, and savepoints, providing a reference for evaluating the feasibility of replacing RocksDB with OmniStateStore.
-
-
