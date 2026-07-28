@@ -157,12 +157,16 @@ TEST_F(TestSavepointMaxParallelism, KvOutputIsMonotonicByKeyGroup)
     auto iterator = dataView->SavepointIterator();
     uint32_t previousGroup = 0;
     uint32_t count = 0;
+    std::set<std::vector<uint8_t>> uniqueKeys;
     while (iterator->HasNext()) {
         auto item = iterator->Next();
+        ASSERT_NE(item, nullptr);
         if (count > 0) {
             EXPECT_LE(previousGroup, item->mKeyGroup);
         }
         previousGroup = item->mKeyGroup;
+        std::vector<uint8_t> serializedKey(item->mKey, item->mKey + item->mKeyLength);
+        EXPECT_TRUE(uniqueKeys.insert(serializedKey).second);
         ++count;
     }
     EXPECT_EQ(count, groups * perGroup);

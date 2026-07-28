@@ -322,10 +322,9 @@ BResult SliceTable::InternalGetList(const Key &key, std::deque<Value> &result,
                                     std::vector<SectionsReadContextRef> &readMetas)
 {
     mAccessRecorder->Record();
-    uint32_t bucketIndex = key.KeyHashCode() >> mSliceBucketIndex->mUnsignedRightShiftBits;
-    LogicalSliceChainRef logicalSliceChain = mSliceBucketIndex->GetLogicChainedSlice(bucketIndex);
+    LogicalSliceChainRef logicalSliceChain = mSliceBucketIndex->GetLogicalSliceChain(key);
     if (UNLIKELY(logicalSliceChain == nullptr)) {
-        LOG_ERROR("Get logical slice chain failed, bucketIndex" << bucketIndex);
+        LOG_ERROR("Get logical slice chain failed, hashCode:" << key.KeyHashCode());
         return BSS_ERR;
     }
     if (logicalSliceChain->IsEmpty() && !logicalSliceChain->HasFilePage()) {

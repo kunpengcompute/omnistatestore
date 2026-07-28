@@ -57,7 +57,7 @@ BResult RestoreOperator::Restore(std::vector<PathRef> &restoredMetaPaths,
     for (const RestoredDbMetaRef &dbMeta : restoredDbMetas) {
         FileInputViewRef inputView = dbMeta->GetSnapshotMetaInputView();
         inputView->Seek(dbMeta->GetStateIdOffset());
-        mStateIdProvider->Restore(inputView, tableDescriptions);
+        RETURN_NOT_OK(mStateIdProvider->Restore(inputView, tableDescriptions));
     }
 
     // 3. 重新生成fileId.

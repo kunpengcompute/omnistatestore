@@ -354,8 +354,17 @@ BResult BoostStateDBImpl::Restore(std::vector<std::string> &restorePath,
     auto restoreOperator = std::make_shared<RestoreOperator>(mConfig, mLocalFileManager, mRemoteFileManager,
                                                              mSliceTable, mFreshTable, mStateIdProvider, mTables,
                                                              mFileCacheFactory, mSnapshotManager, mPQTable);
+    auto stateIdProviderBackup = mStateIdProvider->Copy();
     uint64_t seqId = 0;
     BResult ret = restoreOperator->Restore(restoredMetaPaths, lazyPathMapping, seqId, isLazyDownload);
+    if (UNLIKELY(ret != BSS_OK)) {
+        BResult rollbackRet = mStateIdProvider->RestoreFrom(stateIdProviderBackup);
+        if (UNLIKELY(rollbackRet != BSS_OK)) {
+            LOG_ERROR("Rollback state id provider failed, ret:" << rollbackRet);
+        }
+        LOG_ERROR("Restore operator failed, ret:" << ret);
+        return ret;
+    }
     mSeqGenerator->Restore(seqId);
     for (const auto &item : mTables) {
         std::dynamic_pointer_cast<AbstractTable>(item.second)->SetStateIdProvider(mStateIdProvider);
@@ -365,7 +374,7 @@ BResult BoostStateDBImpl::Restore(std::vector<std::string> &restorePath,
     }
     // restore完成, 调用lsm compaction
     mSliceTable->Open();
-    return ret;
+    return BSS_OK;
 }
 
 SavepointDataView *BoostStateDBImpl::TriggerSavepoint()

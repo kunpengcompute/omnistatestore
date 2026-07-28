@@ -101,10 +101,10 @@ public:
                                std::unordered_map<std::string, TableDescriptionRef> &tableDescriptionMap)
     {
         RETURN_INVALID_PARAM_AS_NULLPTR(inputView);
-        restoreGroupMapInstance = std::make_shared<StateIdMap>();
+        StateIdMapRef restoredStateIdMap = std::make_shared<StateIdMap>();
         uint32_t count = 0;
         RETURN_NOT_OK_AS_READ_ERROR(inputView->Read(count));
-        restoreGroupMapInstance->mSize.store(count);
+        restoredStateIdMap->mSize.store(count);
         for (uint32_t i = 0; i < count; i++) {
             std::string tableName;
             RETURN_NOT_OK_AS_READ_ERROR(inputView->ReadUTF(tableName));
@@ -118,9 +118,10 @@ public:
                 LOG_ERROR("error in restoring map for GTableDescription. No GTableDescription found.");
                 return BSS_ERR;
             }
-            restoreGroupMapInstance->mStateIdMap.emplace(tableDescription, stateId);
-            restoreGroupMapInstance->mReverseMap.emplace(stateId, tableDescription);
+            restoredStateIdMap->mStateIdMap.emplace(tableDescription, stateId);
+            restoredStateIdMap->mReverseMap.emplace(stateId, tableDescription);
         }
+        restoreGroupMapInstance = restoredStateIdMap;
         return BSS_OK;
     }
 
@@ -188,8 +189,10 @@ public:
     BResult Restore(const FileInputViewRef &fileInputView, const std::vector<TableDescriptionRef> &descriptions)
     {
         RETURN_INVALID_PARAM_AS_NULLPTR(fileInputView);
-        RETURN_NOT_OK_AS_READ_ERROR(fileInputView->Read(mStartGroupId));
-        RETURN_NOT_OK_AS_READ_ERROR(fileInputView->Read(mEndGroupId));
+        uint32_t restoredStartGroupId = 0;
+        uint32_t restoredEndGroupId = 0;
+        RETURN_NOT_OK_AS_READ_ERROR(fileInputView->Read(restoredStartGroupId));
+        RETURN_NOT_OK_AS_READ_ERROR(fileInputView->Read(restoredEndGroupId));
         std::unordered_map<std::string, TableDescriptionRef> tableDescriptionMap;
         for (const auto &description : descriptions) {
             if (UNLIKELY(description == nullptr)) {
@@ -198,8 +201,22 @@ public:
             }
             tableDescriptionMap.emplace(description->GetTableName(), description);
         }
-        RETURN_NOT_OK(StateIdMap::Deserialize(mStateIdMap, fileInputView, tableDescriptionMap));
+        StateIdMapRef restoredStateIdMap = nullptr;
+        RETURN_NOT_OK(StateIdMap::Deserialize(restoredStateIdMap, fileInputView, tableDescriptionMap));
+        mStartGroupId = restoredStartGroupId;
+        mEndGroupId = restoredEndGroupId;
+        mStateIdMap = restoredStateIdMap;
         LOG_DEBUG("Restore stateId provider success, groupId:" << mStartGroupId << "-" << mEndGroupId);
+        return BSS_OK;
+    }
+
+    BResult RestoreFrom(const StateIdProviderRef &snapshot)
+    {
+        RETURN_INVALID_PARAM_AS_NULLPTR(snapshot);
+        RETURN_INVALID_PARAM_AS_NULLPTR(snapshot->mStateIdMap);
+        mStartGroupId = snapshot->mStartGroupId;
+        mEndGroupId = snapshot->mEndGroupId;
+        mStateIdMap = snapshot->mStateIdMap;
         return BSS_OK;
     }
 

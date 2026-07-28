@@ -13,6 +13,7 @@
 #define BOOST_STATE_STORE_LOGICALSLICECHAIN_H
 
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <stack>
@@ -191,7 +192,7 @@ public:
 
     virtual void RestoreFilePage(LsmStoreRef lsmStore) = 0;
 
-    virtual std::shared_ptr<LogicalSliceChain> DeepCopy() = 0;
+    virtual std::shared_ptr<LogicalSliceChain> DeepCopy(bool allowMetadataOnly = false) = 0;
 
     virtual bool IsNone() const = 0;
 
@@ -411,7 +412,7 @@ public:
 
     void RestoreFilePage(LsmStoreRef lsmStore) override;
 
-    LogicalSliceChainRef DeepCopy() override;
+    LogicalSliceChainRef DeepCopy(bool allowMetadataOnly = false) override;
 
     bool IsNone() const override
     {
@@ -501,6 +502,11 @@ public:
     }
 
     uint32_t GetSliceSize() override
+    {
+        return static_cast<uint32_t>(std::min<uint64_t>(mSliceSize, std::numeric_limits<uint32_t>::max()));
+    }
+
+    uint64_t GetCompositeSliceSize() const
     {
         return mSliceSize;
     }
@@ -647,7 +653,7 @@ public:
         }
     }
 
-    LogicalSliceChainRef DeepCopy() override
+    LogicalSliceChainRef DeepCopy(bool allowMetadataOnly = false) override
     {
         LOG_ERROR("Unsupported operation exception.");
         return nullptr;
@@ -683,10 +689,21 @@ public:
         return mSliceChains.size();
     }
 
-    void AddLogicalSliceChain(const LogicalSliceChainRef &sliceChain)
+    BResult AddLogicalSliceChain(const LogicalSliceChainRef &sliceChain, bool requireForceCompaction = false)
     {
+        if (UNLIKELY(sliceChain == nullptr)) {
+            LOG_ERROR("Add logical slice chain failed because sliceChain is nullptr.");
+            return BSS_INVALID_PARAM;
+        }
         mSliceChains.push_back(sliceChain);
-        mSliceSize += sliceChain->GetSliceSize();
+        mSliceSize += static_cast<uint64_t>(sliceChain->GetSliceSize());
+        mRequireForceCompaction = mRequireForceCompaction || requireForceCompaction;
+        return BSS_OK;
+    }
+
+    bool RequireForceCompaction() const
+    {
+        return mRequireForceCompaction;
     }
 
     std::vector<LogicalSliceChainRef> GetSliceChains() override
@@ -696,7 +713,8 @@ public:
 
 private:
     std::vector<LogicalSliceChainRef> mSliceChains;
-    uint32_t mSliceSize = 0;
+    uint64_t mSliceSize = 0;
+    bool mRequireForceCompaction = false;
 };
 using CompositeLogicalSliceChainRef = std::shared_ptr<CompositeLogicalSliceChain>;
 

@@ -11,6 +11,7 @@
 
 #include "test_bucket_group.h"
 #define private public
+#include "lsm_store/file/file_cache_factory.h"
 #include "lsm_store/file/file_store_impl.h"
 #include "slice_table/bucket_group.h"
 #include "slice_table/bucket_group_manager.h"
@@ -205,6 +206,32 @@ TEST_F(TestBucketGroup, Initialize_ShouldReturnBSS_ERR_WhenSliceIndexIsNullptr)
     BucketGroupManager manager;
     BResult result = manager.Initialize(config, nullptr, fileCache, 1, 1, memManager, nullptr);
     EXPECT_EQ(result, BSS_ERR);
+}
+
+TEST_F(TestBucketGroup, SingleGroupFileStoreUsesTaskHashRange)
+{
+    config = std::make_shared<Config>(8, 15, 1024);
+    config->SetLocalPath(".");
+    ASSERT_EQ(memManager->Initialize(config), BSS_OK);
+    stateIdProvider = std::make_shared<StateIdProvider>(8, 15, memManager);
+    stateFilterManager = std::make_shared<StateFilterManager>(stateIdProvider, config, 8, 15);
+    BoostNativeMetricPtr *metric = nullptr;
+    auto fileCacheFactory = std::make_shared<FileCacheFactory>(config, nullptr, metric);
+    fileCache = fileCacheFactory->GetFileCache();
+    sliceIndex = std::make_shared<SliceBucketIndex>();
+    ASSERT_EQ(sliceIndex->Initialize(1024, config), BSS_OK);
+
+    BucketGroupManager manager;
+    ASSERT_EQ(manager.Initialize(config, sliceIndex, fileCache, 1, 1024, memManager, stateFilterManager), BSS_OK);
+    auto bucketGroups = manager.GetBucketGroupVector();
+    ASSERT_EQ(bucketGroups.size(), 1);
+    auto actualRange = bucketGroups[0]->GetLsmStore()->GetFileStoreId()->GetHashCodeRange();
+    auto expectedRange = sliceIndex->GetBucketMapper()->GetTaskRange();
+    ASSERT_NE(actualRange, nullptr);
+    ASSERT_NE(expectedRange, nullptr);
+    EXPECT_EQ(actualRange->GetStartHashCode(), expectedRange->GetStartHashCode());
+    EXPECT_EQ(actualRange->GetEndHashCode(), expectedRange->GetEndHashCode());
+    manager.Close();
 }
 
 /**

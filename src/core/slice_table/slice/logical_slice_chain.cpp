@@ -226,6 +226,11 @@ BResult LogicalSliceChainImpl::CopySliceAddresses(const LogicalSliceChainRef &lo
                 LOG_ERROR("Get logical slice chain addresses failed, index:" << (startIndex + static_cast<int32_t>(i)));
                 return BSS_ERR;
             }
+            if (UNLIKELY(!sliceAddress->IsEvicted() && sliceAddress->GetDataSlice() == nullptr)) {
+                LOG_ERROR("Copy slice address failed, data slice is nullptr, index:"
+                          << (startIndex + static_cast<int32_t>(i)) << ", sliceId:" << sliceAddress->GetSliceId());
+                return BSS_ERR;
+            }
             auto copySliceAddress = std::make_shared<SliceAddress>(*sliceAddress);
             copySliceAddress->SetFatherSlice(sliceAddress);
             mSliceAddresses.emplace_back(copySliceAddress);
@@ -331,7 +336,7 @@ void LogicalSliceChainImpl::SnapshotMeta(uint64_t snapshotId, const FileOutputVi
     }
 }
 
-LogicalSliceChainRef LogicalSliceChainImpl::DeepCopy()
+LogicalSliceChainRef LogicalSliceChainImpl::DeepCopy(bool allowMetadataOnly)
 {
     // 深拷贝SliceChain, DataSlice仅拷贝智能指针.
     auto copyLogicSliceChain = std::make_shared<LogicalSliceChainImpl>();
@@ -342,11 +347,18 @@ LogicalSliceChainRef LogicalSliceChainImpl::DeepCopy()
     if (!mSliceAddresses.empty()) {
         copyLogicSliceChain->mSliceAddresses.resize(mSliceAddresses.size());
         for (uint32_t i = 0; i < mSliceAddresses.size(); i++) {
-            if (mSliceAddresses[i] == nullptr) {
+            if (UNLIKELY(mSliceAddresses[i] == nullptr)) {
                 LOG_ERROR("sliceAddress should not be null! and index in chain = " << i);
-                continue;
+                return nullptr;
             }
-            copyLogicSliceChain->mSliceAddresses[i] = std::make_shared<SliceAddress>(*mSliceAddresses[i]);
+            if (UNLIKELY(!allowMetadataOnly && !mSliceAddresses[i]->IsEvicted() &&
+                         mSliceAddresses[i]->GetDataSlice() == nullptr)) {
+                LOG_ERROR("Deep copy slice chain failed, data slice is nullptr, index:"
+                          << i << ", sliceId:" << mSliceAddresses[i]->GetSliceId());
+                return nullptr;
+            }
+            copyLogicSliceChain->mSliceAddresses[i] = std::make_shared<SliceAddress>(*mSliceAddresses[i],
+                                                                                     allowMetadataOnly);
             copyLogicSliceChain->mSliceAddresses[i]->SetFatherSlice(mSliceAddresses[i]);
         }
     }

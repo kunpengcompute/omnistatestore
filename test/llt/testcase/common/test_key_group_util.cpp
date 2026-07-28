@@ -24,10 +24,14 @@
 namespace ock {
 namespace bss {
 
-class KeyGroupUtilTest : public testing::Test {};
+class KeyGroupUtilTest : public testing::Test {
+};
 
 static uint32_t EncodeKV(uint32_t rawHash, uint32_t maxParallelism)
 {
+    if (maxParallelism == 0) {
+        return rawHash;
+    }
     uint32_t keyGroup = rawHash % maxParallelism;
     uint32_t orderHash = rawHash;
     KeyGroupUtil::SetKeyGroup(orderHash, keyGroup);

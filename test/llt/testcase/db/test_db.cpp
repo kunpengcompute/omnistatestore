@@ -1188,8 +1188,10 @@ BResult UpdateFromDBWithTTL(StateType keyedStateType, std::string tableName, Boo
 void WaitForTTLExpiration(int64_t ttl)
 {
     uint64_t expirationTime = TimeStampUtil::GetCurrentTime() + static_cast<uint64_t>(ttl);
-    while (TimeStampUtil::GetCurrentTime() < expirationTime) {
+    uint64_t currentTime = TimeStampUtil::GetCurrentTime();
+    while (currentTime < expirationTime) {
         usleep(NO_10000);
+        currentTime = TimeStampUtil::GetCurrentTime();
     }
 }
 
@@ -1486,6 +1488,13 @@ void TestDB::TearDown()
     kListTable.reset();
     nsKListTable.reset();
     pqTable.reset();
+    kVTable1.reset();
+    nsKVTable1.reset();
+    kMapTable1.reset();
+    nsKMapTable1.reset();
+    kListTable1.reset();
+    nsKListTable1.reset();
+    pqTable1.reset();
 
     mKV.clear();
     mNsKV.clear();

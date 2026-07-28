@@ -9,14 +9,22 @@
  * See the Mulan PSL v2 for more details.
  */
 
+// test_utils.h defines private/protected as public and must be included before the test fixture.
+// clang-format off
+#include "test_utils.h"
 #include "test_fresh_slice_table_snapshot.h"
+// clang-format on
+#undef private
+#undef protected
 
+#include <array>
 #include <cstring>
 #include <fstream>
 #include <map>
 #include <vector>
 
 #include "fresh_table/fresh_restore_memory.h"
+#include "snapshot/slice_table_restore_operation.h"
 #include "snapshot/snapshot_compression_utils.h"
 #include "snapshot/snapshot_restore_utils.h"
 
@@ -28,6 +36,42 @@ MemManagerRef TestFreshSliceTableSnapshot::mMemManager = nullptr;
 uint64_t TestFreshSliceTableSnapshot::mCheckpointId = NO_1;
 std::vector<QueryKey> TestFreshSliceTableSnapshot::originKeyList{};
 std::vector<Value> TestFreshSliceTableSnapshot::originValueList{};
+
+TEST_F(TestFreshSliceTableSnapshot, RestoreSliceBucketIndexRebuildsSourceMapper)
+{
+    const uint32_t bucketNum = mBoostStateDB->GetSliceTable()->GetSliceBucketIndex()->GetIndexCapacity();
+    ASSERT_GT(bucketNum, NO_0);
+    const std::string metaPath = "/tmp/bss-old-slice-mapper.meta";
+    auto path = std::make_shared<Path>(Uri(metaPath));
+    auto output = std::make_shared<FileOutputView>();
+    ASSERT_EQ(output->Init(path, mConfig, FileOutputView::WriteMode::OVERWRITE), BSS_OK);
+    ASSERT_EQ(output->WriteUint32(bucketNum), BSS_OK);
+    for (uint32_t bucket = 0; bucket < bucketNum; ++bucket) {
+        ASSERT_EQ(output->WriteUint8(NO_1), BSS_OK);
+    }
+    ASSERT_EQ(output->WriteUint32(NO_1), BSS_OK);
+    ASSERT_EQ(output->WriteUint32(NO_0), BSS_OK);
+    ASSERT_EQ(output->WriteUint32(bucketNum - 1), BSS_OK);
+    ASSERT_EQ(output->WriteUint32(NO_0), BSS_OK);
+    output->Close();
+
+    auto input = std::make_shared<FileInputView>();
+    ASSERT_EQ(input->Init(FileSystemType::LOCAL, path), BSS_OK);
+    auto targetConfig = std::make_shared<Config>(8, 15, 1024);
+    SliceTableRestoreOperation restoreOperation(targetConfig, mBoostStateDB->GetSliceTable());
+    SliceBucketGroupRangeGroupRef oldGroup = nullptr;
+    SliceBucketMapperRef oldMapper = nullptr;
+    ASSERT_EQ(restoreOperation.RestoreSliceBucketIndex(input, NO_2, oldGroup, NO_1, NO_0, NO_15, oldMapper), BSS_OK);
+
+    SliceBucketMapper expectedMapper;
+    ASSERT_EQ(expectedMapper.Initialize(1024, 0, 15, bucketNum), BSS_OK);
+    ASSERT_NE(oldMapper, nullptr);
+    EXPECT_EQ(oldMapper->GetBucketNum(), bucketNum);
+    EXPECT_EQ(oldMapper->GetTaskRange()->GetStartHashCode(), expectedMapper.GetTaskRange()->GetStartHashCode());
+    EXPECT_EQ(oldMapper->GetTaskRange()->GetEndHashCode(), expectedMapper.GetTaskRange()->GetEndHashCode());
+    input->Close();
+    std::remove(metaPath.c_str());
+}
 
 TEST(SnapshotCompressionUtilsTest, TryCompressIntoFallsBackForNone)
 {
@@ -210,6 +254,13 @@ TEST_F(TestFreshSliceTableSnapshot, TestFreshTableRestoreReadsCompressedCheckpoi
     restorePaths.emplace_back(restorePath);
     ASSERT_EQ(mBoostStateDB->Restore(restorePaths, pathMap, false, true), BSS_OK);
 
+    auto index = mBoostStateDB->GetSliceTable()->GetSliceBucketIndex();
+    for (uint32_t slot = 0; slot < index->GetIndexCapacity(); ++slot) {
+        auto chain = index->GetLogicChainedSlice(slot);
+        ASSERT_NE(chain, nullptr);
+        EXPECT_EQ(std::dynamic_pointer_cast<CompositeLogicalSliceChain>(chain), nullptr);
+    }
+
     for (const auto &key : keys) {
         Value value{};
         mBoostStateDB->GetFreshTable()->Get(key, value);
@@ -284,7 +335,56 @@ TEST_F(TestFreshSliceTableSnapshot, TestFreshTableRestoreRejectsZeroRawLengthWit
 
     std::unordered_map<std::string, std::string> pathMap;
     std::vector<std::string> restorePaths{ checkpointPath };
+    auto sentinelDescription = std::make_shared<TableDescription>(VALUE, "restore_failure_sentinel", -1,
+                                                                  TableSerializer(), *mConfig);
+    const uint16_t sentinelStateId = mBoostStateDB->mStateIdProvider->GetStateId(sentinelDescription);
+    ASSERT_NE(mBoostStateDB->mStateIdProvider->GetTableDescription(sentinelStateId), nullptr);
+    const uint64_t seqBeforeRestore = mBoostStateDB->mSeqGenerator->GetSeqId();
     ASSERT_NE(mBoostStateDB->Restore(restorePaths, pathMap, false, true), BSS_OK);
+    EXPECT_EQ(mBoostStateDB->mSeqGenerator->GetSeqId(), seqBeforeRestore);
+    auto restoredSentinel = mBoostStateDB->mStateIdProvider->GetTableDescription(sentinelStateId);
+    ASSERT_NE(restoredSentinel, nullptr);
+    EXPECT_EQ(restoredSentinel->GetTableName(), "restore_failure_sentinel");
+}
+
+TEST_F(TestFreshSliceTableSnapshot, TestRestoreRejectsMalformedStateIdProviderMeta)
+{
+    const std::string checkpointPath = "/tmp/" + std::to_string(mCheckpointId);
+    ASSERT_NE(mBoostStateDB->CreateSyncCheckpoint(checkpointPath, mCheckpointId), nullptr);
+    ASSERT_EQ(mBoostStateDB->CreateAsyncCheckpoint(mCheckpointId, false), BSS_OK);
+
+    const std::string metadataPath = checkpointPath + "/metadata";
+    auto restoredDbMeta = SnapshotRestoreUtils::ReadDbMeta(std::make_shared<Path>(metadataPath));
+    ASSERT_NE(restoredDbMeta, nullptr);
+    const uint64_t stateCountOffset = restoredDbMeta->GetStateIdOffset() + sizeof(uint32_t) * 2;
+
+    std::fstream metadata(metadataPath, std::ios::in | std::ios::out | std::ios::binary);
+    ASSERT_TRUE(metadata.is_open());
+    metadata.seekp(static_cast<std::streamoff>(stateCountOffset));
+    const uint32_t invalidStateCount = 1;
+    metadata.write(reinterpret_cast<const char *>(&invalidStateCount), sizeof(invalidStateCount));
+    metadata.close();
+    ASSERT_FALSE(metadata.fail());
+
+    mBoostStateDB->Close();
+    delete mBoostStateDB;
+    mBoostStateDB = nullptr;
+
+    auto config = std::make_shared<Config>();
+    config->Init(NO_0, NO_15, NO_16);
+    config->mMemorySegmentSize = IO_SIZE_64M;
+    config->SetEvictMinSize(IO_SIZE_2G);
+    config->SetSliceStandardSizePerBucket(IO_SIZE_1M);
+    config->SetLocalPath(checkpointPath + "/sst");
+    mConfig = config;
+    mMemManager = std::make_shared<MemManager>(AllocatorType::DIRECT);
+    ASSERT_EQ(mMemManager->Initialize(config), BSS_OK);
+    mBoostStateDB = static_cast<BoostStateDBImpl *>(BoostStateDBFactory::Create());
+    ASSERT_EQ(mBoostStateDB->Open(config), BSS_OK);
+
+    std::unordered_map<std::string, std::string> pathMap;
+    std::vector<std::string> restorePaths{ checkpointPath };
+    EXPECT_NE(mBoostStateDB->Restore(restorePaths, pathMap, false, true), BSS_OK);
 }
 
 void TestFreshSliceTableSnapshot::SetUp()
@@ -364,6 +464,7 @@ TEST_F(TestFreshSliceTableSnapshot, TestSnapshotFuncInFreshTable)
     mConfig = config;
     mConfig->mMemorySegmentSize = IO_SIZE_64M;
     mConfig->SetEvictMinSize(IO_SIZE_2G);
+    mConfig->SetSliceStandardSizePerBucket(IO_SIZE_1M);
     mConfig->SetLocalPath("/tmp/" + std::to_string(mCheckpointId) + "/sst");
     mMemManager = std::make_shared<MemManager>(AllocatorType::DIRECT);
     mMemManager->Initialize(config);
@@ -567,6 +668,80 @@ TEST_F(TestFreshSliceTableSnapshot, TestSliceTableRestoreReadsCompressedCheckpoi
         ASSERT_TRUE(!value.IsNull());
         ASSERT_EQ(value.ValueLen(), NO_1024);
         ASSERT_EQ(value.ValueData()[0], 5);
+    }
+}
+
+TEST_F(TestFreshSliceTableSnapshot, TestSliceTableRestoreFiltersPartialKeyGroupOverlap)
+{
+    constexpr uint32_t outsideTargetHash = 0U;
+    constexpr uint32_t insideTargetHash = 1U << 30U;
+    std::array<uint8_t, 1> outsideKeyBytes = { 1 };
+    std::array<uint8_t, 1> insideKeyBytes = { 2 };
+    std::array<uint8_t, 1> outsideValueBytes = { 3 };
+    std::array<uint8_t, 1> insideValueBytes = { 4 };
+    const uint16_t stateId = VALUE << NO_13;
+
+    BinaryData outsidePrimaryKey(outsideKeyBytes.data(), outsideKeyBytes.size());
+    BinaryData insidePrimaryKey(insideKeyBytes.data(), insideKeyBytes.size());
+    QueryKey outsideQueryKey(stateId, outsideTargetHash, outsidePrimaryKey);
+    QueryKey insideQueryKey(stateId, insideTargetHash, insidePrimaryKey);
+    Value outsidePut;
+    Value insidePut;
+    outsidePut.Init(ValueType::PUT, outsideValueBytes.size(), outsideValueBytes.data(), NO_1);
+    insidePut.Init(ValueType::PUT, insideValueBytes.size(), insideValueBytes.data(), NO_2);
+    ASSERT_EQ(mBoostStateDB->GetFreshTable()->Put(outsideQueryKey, outsidePut), BSS_OK);
+    ASSERT_EQ(mBoostStateDB->GetFreshTable()->Put(insideQueryKey, insidePut), BSS_OK);
+    ASSERT_EQ(mBoostStateDB->GetFreshTable()->TriggerSegmentFlush(), BSS_OK);
+    while (!mBoostStateDB->GetFreshTable()->IsSnapshotQueueEmpty()) {
+        usleep(NO_1000);
+    }
+
+    const std::string checkpointPath = "/tmp/" + std::to_string(mCheckpointId);
+    ASSERT_NE(mBoostStateDB->CreateSyncCheckpoint(checkpointPath, mCheckpointId), nullptr);
+    ASSERT_EQ(mBoostStateDB->CreateAsyncCheckpoint(mCheckpointId, false), BSS_OK);
+    mBoostStateDB->Close();
+    delete mBoostStateDB;
+    mBoostStateDB = nullptr;
+
+    auto targetConfig = std::make_shared<Config>();
+    targetConfig->Init(8, 15, 16);
+    targetConfig->mMemorySegmentSize = IO_SIZE_64M;
+    targetConfig->SetEvictMinSize(IO_SIZE_2G);
+    targetConfig->SetSliceStandardSizePerBucket(IO_SIZE_1M);
+    targetConfig->SetLocalPath(checkpointPath + "/sst");
+    mConfig = targetConfig;
+    mMemManager = std::make_shared<MemManager>(AllocatorType::DIRECT);
+    ASSERT_EQ(mMemManager->Initialize(targetConfig), BSS_OK);
+    mBoostStateDB = static_cast<BoostStateDBImpl *>(BoostStateDBFactory::Create());
+    ASSERT_EQ(mBoostStateDB->Open(targetConfig), BSS_OK);
+    mBoostStateDB->GetSliceTable()->SetMemHighMark(IO_SIZE_2G);
+
+    std::unordered_map<std::string, std::string> pathMap;
+    std::vector<std::string> restorePaths{ checkpointPath };
+    ASSERT_EQ(mBoostStateDB->Restore(restorePaths, pathMap, false, true), BSS_OK);
+
+    Value insideValue;
+    Value outsideValue;
+    EXPECT_TRUE(mBoostStateDB->GetSliceTable()->Get(insideQueryKey, insideValue));
+    EXPECT_FALSE(mBoostStateDB->GetSliceTable()->Get(outsideQueryKey, outsideValue));
+
+    bool outsideHashFound = false;
+    KeyFilter noFilter = [](const Key &) { return false; };
+    auto iterator = mBoostStateDB->GetSliceTable()->EntryIterator(noFilter, stateId);
+    ASSERT_NE(iterator, nullptr);
+    while (iterator->HasNext()) {
+        auto keyValue = iterator->Next();
+        ASSERT_NE(keyValue, nullptr);
+        outsideHashFound = outsideHashFound || keyValue->key.KeyHashCode() == outsideTargetHash;
+    }
+    iterator->Close();
+    EXPECT_FALSE(outsideHashFound);
+
+    auto index = mBoostStateDB->GetSliceTable()->GetSliceBucketIndex();
+    for (uint32_t slot = 0; slot < index->GetIndexCapacity(); ++slot) {
+        auto chain = index->GetLogicChainedSlice(slot);
+        ASSERT_NE(chain, nullptr);
+        EXPECT_EQ(std::dynamic_pointer_cast<CompositeLogicalSliceChain>(chain), nullptr);
     }
 }
 
