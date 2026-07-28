@@ -138,7 +138,7 @@ Log模块、StateStore模块和Metric模块的具体配置项说明请参见[表
 |配置项名称|说明|默认值|合法值/区间|注意事项|
 |--|--|--|--|--|
 |state.backend.ockdb.jni.logfile|日志路径及日志文件名。|/usr/local/flink/log/kv.log|Flink运行用户具有读写权限的路径下面的文件（要求路径已存在）|保证路径已存在且对Flink运行用户有读写权限。|
-|state.backend.ockdb.jni.loglevel|日志级别。1：DEBUG2：INFO3：WARN4：ERROR|2|[1, 4]|无特别说明|
+|state.backend.ockdb.jni.loglevel|日志级别。<br>1：DEBUG<br>2：INFO<br>3：WARN<br>4：ERROR|2|[1, 4]|无特别说明|
 |state.backend.ockdb.jni.lognum|最大日志文件个数。|20|[10, 50]|无特别说明|
 |state.backend.ockdb.jni.logsize|单个日志文件大小。单位MB。|20|[10, 50]|无特别说明|
 
@@ -151,32 +151,34 @@ Log模块、StateStore模块和Metric模块的具体配置项说明请参见[表
 |taskmanager.state.local.root-dirs|Flink开源参数，用于配置本地Checkpoint临时目录。|无|已存在且Flink运行用户具有读写权限的路径。|建议配置。如果不配置，默认使用io.tmp.dirs配置的路径。确保该路径与state.backend.ockdb.localdir配置路径在同一个文件系统下。|
 |state.backend.ockdb.jni.slice.watermark.ratio|缓存层通过设定高/低水位线比例阈值触发数据淘汰机制，将冷数据按预设策略迁移至LSM文件存储层，实现存储资源动态平衡。|0.8|(0, 1)|一般情况下不需要单独设置。|
 |state.backend.ockdb.file.memory.fraction|控制用于读写LSM层数据的内存缓存空间大小占整个DB实例的内存上限的比例。|0.2|[0.1, 0.5]|一般情况下不需要单独设置。|
-|state.backend.ockdb.jni.lsmstore.compaction.switch|LSM文件存储层整理合并开关。LSM文件存储层的分层合并机制通过开关控制数据文件的整理与合并操作，以优化存储性能和空间利用率。|1|0：关闭1：开启|建议开启。|
-|state.backend.ockdb.ttl.filter.switch|TTL过期数据后台压缩清理。|false|false：关闭true：开启|当存在使用TTL State的业务场景时，建议开启。|
-|state.backend.ockdb.lsmstore.compression.policy|LsmStore中的各层级Level的压缩策略。state.backend.ockdb.lsmstore.compression.level.policy默认值配合使用。level0：不开启压缩level1：不开启压缩level2：开启lz4压缩其余level：全压缩|lz4|none：不压缩lz4：使用lz4压缩|当Checkpoint文件上传过大时，建议开启。|
-|state.backend.ockdb.lsmstore.compression.level.policy|手动配置LSM文件不同level配置压缩策略，默认值为“none,none,lz4”，表示level0不开启压缩，level1不开启压缩，level2开启lz4压缩。|none,none,lz4|none：不压缩lz4：使用lz4压缩|当Checkpoint成为瓶颈时，可适当将压缩策略往低层级提前，默认level层级范围[0, 5]。level0为前台写压缩，建议使用None。其余level为后台压缩。|
-|state.backend.ockdb.lazy.download.switch|从Checkpoint恢复时启动懒加载开关。|false|false：关闭true：开启|当Checkpoint很大时开启，缩短任务恢复为running的所需时间。|
-|state.backend.ockdb.bloom.filter.switch|针对状态Key的布隆过滤器开关。|true|false：关闭true：开启|对于存在较多无效key访问的场景建议开启。开启时会增加数十兆字节的内存占用。|
+|state.backend.ockdb.jni.lsmstore.compaction.switch|LSM文件存储层整理合并开关。LSM文件存储层的分层合并机制通过开关控制数据文件的整理与合并操作，以优化存储性能和空间利用率。|1|0：关闭<br>1：开启|建议开启。|
+|state.backend.ockdb.ttl.filter.switch|TTL过期数据后台压缩清理。|false|false：关闭<br>true：开启|当存在使用TTL State的业务场景时，建议开启。|
+|state.backend.ockdb.lsmstore.compression.policy|LsmStore中的各层级Level的压缩策略。state.backend.ockdb.lsmstore.compression.level.policy默认值配合使用。<br>level0：不开启压缩<br>level1：不开启压缩<br>level2：开启lz4压缩<br>其余level：全压缩|lz4|none：不压缩<br>lz4：使用lz4压缩|当Checkpoint文件上传过大时，建议开启。|
+|state.backend.ockdb.lsmstore.compression.level.policy|手动配置LSM文件不同level配置压缩策略，默认值为“none,none,lz4”，表示level0不开启压缩，level1不开启压缩，level2开启lz4压缩。|none,none,lz4|none：不压缩<br>lz4：使用lz4压缩|当Checkpoint成为瓶颈时，可适当将压缩策略往低层级提前，默认level层级范围[0, 5]。<br>level0为前台写压缩，建议使用None。<br>其余level为后台压缩。|
+|state.backend.ockdb.freshtable.snapshot.compression.policy|FreshTable的Checkpoint快照文件压缩策略。|none|none：不压缩<br>lz4：使用lz4压缩|当FreshTable快照文件上传成为Checkpoint瓶颈时，可配置为lz4以减少上传数据量。压缩会增加CPU开销。|
+|state.backend.ockdb.slicetable.snapshot.compression.policy|SliceTable的Checkpoint快照文件压缩策略。|none|none：不压缩<br>lz4：使用lz4压缩|当SliceTable快照文件上传成为Checkpoint瓶颈时，可配置为lz4以减少上传数据量。压缩会增加CPU开销。|
+|state.backend.ockdb.lazy.download.switch|从Checkpoint恢复时启动懒加载开关。|false|false：关闭<br>true：开启|当Checkpoint很大时开启，缩短任务恢复为running的所需时间。|
+|state.backend.ockdb.bloom.filter.switch|针对状态Key的布隆过滤器开关。|true|false：关闭<br>true：开启|对于存在较多无效key访问的场景建议开启。开启时会增加数十兆字节的内存占用。|
 |state.backend.bloom.filter.expected.key.count|单个状态中布隆过滤器需要过滤的key的数量级。|8000000|[1000000, 10000000]|一般情况下不需要单独设置，配置数量越大，布隆过滤器需要占用的内存越多。|
-|state.backend.ockdb.cache.filter.and.index.switch|开启LSM层filter与indexBlock使用LRU缓存的开关。|true|false：关闭true：开启|一般情况下不需要单独设置，文件数量大时，频繁读不同文件时建议开启。|
+|state.backend.ockdb.cache.filter.and.index.switch|开启LSM层filter与indexBlock使用LRU缓存的开关。|true|false：关闭<br>true：开启|一般情况下不需要单独设置，文件数量大时，频繁读不同文件时建议开启。|
 |state.backend.ockdb.cache.filter.and.index.ratio|filter与indexBlock独占缓存占总缓存的内存比，此内存不参与LRU压力过载释放。|0|(0, 1)|一般情况下不需要单独设置。压力过大，filter与indexBlock频繁在缓存中被释放时建议开启。|
 |state.backend.ockdb.checkpoint.backup|开启本地恢复时Checkpoint本地备份slice文件的目录。|无|Flink运行用户具有读写权限的路径下面的文件（要求路径已存在）。|在开启本地恢复时需要配置，保证路径已存在且对Flink运行用户有读写权限。|
-|state.backend.ockdb.timer-service.factory|控制Flink计时器存储的位置。|OCKDB|OCKDB：持久化存储在状态后端HEAP：存储在JVM堆内存中|当计时器数量较少时，基于堆的计时器可以具有更好的性能。|
-|state.backend.ockdb.kv-separate.switch|控制KV分离启用的开关。|false|false：关闭true：开启|Value值比较大时开启KV分离。|
+|state.backend.ockdb.timer-service.factory|控制Flink计时器存储的位置。|OCKDB|OCKDB：持久化存储在状态后端<br>HEAP：存储在JVM堆内存中|当计时器数量较少时，基于堆的计时器可以具有更好的性能。|
+|state.backend.ockdb.kv-separate.switch|控制KV分离启用的开关。|false|false：关闭<br>true：开启|Value值比较大时开启KV分离。|
 |state.backend.ockdb.kv-separate.threshold|KV分离启用的阈值，大于该值需KV分离。|200|(8, 4294967295)|大于该值的Value会经过KV分离单独存储。|
 
 **表 3**  Metric配置项说明<a id="Metric配置项说明"></a>
 
 |配置项名称|说明|默认值|合法值/区间|注意事项|
 |--|--|--|--|--|
-|state.backend.ockdb.metric.enable|Metric功能总开关，开启后OmniStateStore才会采集Metric信息。|false|false：关闭true：开启|此开关打开后，各模块的Metric开关才会生效。|
-|state.backend.ockdb.metric.memory|MemoryManager模块Metric信息采集开关。|false|false：关闭true：开启|无特别说明|
-|state.backend.ockdb.metric.fresh.table|FreshTable模块Metric信息采集开关。|false|false：关闭true：开启|无特别说明|
-|state.backend.ockdb.metric.slice.table|SliceTable模块Metric信息采集开关。|false|false：关闭true：开启|无特别说明|
-|state.backend.ockdb.metric.lsm.store|LSM Store模块Metric信息采集开关。|false|false：关闭true：开启|无特别说明|
-|state.backend.ockdb.metric.lsm.cache|LSM Cache模块Metric信息采集开关。|false|false：关闭true：开启|无特别说明|
-|state.backend.ockdb.metric.snapshot|Snapshot模块Metric信息采集开关。|false|false：关闭true：开启|无特别说明|
-|state.backend.ockdb.metric.restore|Restore模块Metric信息采集开关。|false|false：关闭true：开启|无特别说明|
+|state.backend.ockdb.metric.enable|Metric功能总开关，开启后OmniStateStore才会采集Metric信息。|false|false：关闭<br>true：开启|此开关打开后，各模块的Metric开关才会生效。|
+|state.backend.ockdb.metric.memory|MemoryManager模块Metric信息采集开关。|false|false：关闭<br>true：开启|无特别说明|
+|state.backend.ockdb.metric.fresh.table|FreshTable模块Metric信息采集开关。|false|false：关闭<br>true：开启|无特别说明|
+|state.backend.ockdb.metric.slice.table|SliceTable模块Metric信息采集开关。|false|false：关闭<br>true：开启|无特别说明|
+|state.backend.ockdb.metric.lsm.store|LSM Store模块Metric信息采集开关。|false|false：关闭<br>true：开启|无特别说明|
+|state.backend.ockdb.metric.lsm.cache|LSM Cache模块Metric信息采集开关。|false|false：关闭<br>true：开启|无特别说明|
+|state.backend.ockdb.metric.snapshot|Snapshot模块Metric信息采集开关。|false|false：关闭<br>true：开启|无特别说明|
+|state.backend.ockdb.metric.restore|Restore模块Metric信息采集开关。|false|false：关闭<br>true：开启|无特别说明|
 
 ### Metric指标<a id="Metric指标"></a>
 

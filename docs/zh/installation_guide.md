@@ -383,42 +383,56 @@ Log模块、StateStore模块和Metric模块的具体配置项说明请参见[表
     <td>state.backend.ockdb.jni.lsmstore.compaction.switch</td>
     <td>LSM文件存储层整理合并开关。LSM文件存储层的分层合并机制通过开关控制数据文件的整理与合并操作，以优化存储性能和空间利用率。</td>
     <td>1</td>
-    <td>0：关闭1：开启</td>
+    <td>0：关闭<br>1：开启</td>
     <td>建议开启。</td>
   </tr>
   <tr>
     <td>state.backend.ockdb.ttl.filter.switch</td>
     <td>TTL过期数据后台压缩清理。</td>
     <td>false</td>
-    <td>false：关闭true：开启</td>
+    <td>false：关闭<br>true：开启</td>
     <td>当存在使用TTL State的业务场景时，建议开启。</td>
   </tr>
   <tr>
     <td>state.backend.ockdb.lsmstore.compression.policy</td>
-    <td>LsmStore中的各层级Level的压缩策略。state.backend.ockdb.lsmstore.compression.level.policy默认值配合使用。level0：不开启压缩level1：不开启压缩level2：开启lz4压缩其余level：全压缩</td>
+    <td>LsmStore中的各层级Level的压缩策略。state.backend.ockdb.lsmstore.compression.level.policy默认值配合使用。<br>level0：不开启压缩<br>level1：不开启压缩<br>level2：开启lz4压缩<br>其余level：全压缩</td>
     <td>lz4</td>
-    <td>none：不压缩lz4：使用lz4压缩</td>
+    <td>none：不压缩<br>lz4：使用lz4压缩</td>
     <td>当Checkpoint文件上传过大时，建议开启。</td>
   </tr>
   <tr>
     <td>state.backend.ockdb.lsmstore.compression.level.policy</td>
     <td>手动配置LSM文件不同level配置压缩策略，默认值为“none,none,lz4”，表示level0不开启压缩，level1不开启压缩，level2开启lz4压缩。</td>
     <td>none,none,lz4</td>
-    <td>none：不压缩lz4：使用lz4压缩</td>
-    <td>当Checkpoint成为瓶颈时，可适当将压缩策略往低层级提前，默认level层级范围[0, 5]。level0为前台写压缩，建议使用None。其余level为后台压缩。</td>
+    <td>none：不压缩<br>lz4：使用lz4压缩</td>
+    <td>当Checkpoint成为瓶颈时，可适当将压缩策略往低层级提前，默认level层级范围[0, 5]。<br>level0为前台写压缩，建议使用None。<br>其余level为后台压缩。</td>
+  </tr>
+  <tr>
+    <td>state.backend.ockdb.freshtable.snapshot.compression.policy</td>
+    <td>FreshTable的Checkpoint快照文件压缩策略。</td>
+    <td>none</td>
+    <td>none：不压缩<br>lz4：使用lz4压缩</td>
+    <td>当FreshTable快照文件上传成为Checkpoint瓶颈时，可配置为lz4以减少上传数据量。压缩会增加CPU开销。</td>
+  </tr>
+  <tr>
+    <td>state.backend.ockdb.slicetable.snapshot.compression.policy</td>
+    <td>SliceTable的Checkpoint快照文件压缩策略。</td>
+    <td>none</td>
+    <td>none：不压缩<br>lz4：使用lz4压缩</td>
+    <td>当SliceTable快照文件上传成为Checkpoint瓶颈时，可配置为lz4以减少上传数据量。压缩会增加CPU开销。</td>
   </tr>
   <tr>
     <td>state.backend.ockdb.lazy.download.switch</td>
     <td>从Checkpoint恢复时启动懒加载开关。</td>
     <td>false</td>
-    <td>false：关闭true：开启</td>
+    <td>false：关闭<br>true：开启</td>
     <td>当Checkpoint很大时开启，缩短任务恢复为running的所需时间。</td>
   </tr>
   <tr>
     <td>state.backend.ockdb.bloom.filter.switch</td>
     <td>针对状态Key的布隆过滤器开关。</td>
     <td>true</td>
-    <td>false：关闭true：开启</td>
+    <td>false：关闭<br>true：开启</td>
     <td>对于存在较多无效key访问的场景建议开启。开启时会增加数十兆字节的内存占用。</td>
   </tr>
   <tr>
@@ -432,7 +446,7 @@ Log模块、StateStore模块和Metric模块的具体配置项说明请参见[表
     <td>state.backend.ockdb.cache.filter.and.index.switch</td>
     <td>开启LSM层filter与indexBlock使用LRU缓存的开关。</td>
     <td>true</td>
-    <td>false：关闭true：开启</td>
+    <td>false：关闭<br>true：开启</td>
     <td>一般情况下不需要单独设置，文件数量大时，频繁读不同文件时建议开启。</td>
   </tr>
   <tr>
@@ -453,14 +467,14 @@ Log模块、StateStore模块和Metric模块的具体配置项说明请参见[表
     <td>state.backend.ockdb.timer-service.factory</td>
     <td>控制Flink计时器存储的位置。</td>
     <td>OCKDB</td>
-    <td>OCKDB：持久化存储在状态后端HEAP：存储在JVM堆内存中</td>
+    <td>OCKDB：持久化存储在状态后端<br>HEAP：存储在JVM堆内存中</td>
     <td>当计时器数量较少时，基于堆的计时器可以具有更好的性能。</td>
   </tr>
   <tr>
     <td>state.backend.ockdb.kv-separate.switch</td>
     <td>控制KV分离启用的开关。</td>
     <td>false</td>
-    <td>false：关闭true：开启</td>
+    <td>false：关闭<br>true：开启</td>
     <td>Value值比较大时开启KV分离。</td>
   </tr>
   <tr>
