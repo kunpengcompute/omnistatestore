@@ -10,10 +10,9 @@
  */
 
 #include <algorithm>
-#include <atomic>
+#include <array>
 #include <cstdint>
 #include <set>
-#include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -25,17 +24,25 @@ namespace ock {
 namespace bss {
 
 class KeyGroupUtilTest : public testing::Test {
+    // Empty by design.
 };
 
-static uint32_t EncodeKV(uint32_t rawHash, uint32_t maxParallelism)
+static KeyGroupUtilRef CreateCodec(uint32_t maxParallelism)
+{
+    KeyGroupUtilRef codec;
+    EXPECT_EQ(KeyGroupUtil::Create(maxParallelism, codec), BSS_OK);
+    EXPECT_NE(codec, nullptr);
+    return codec;
+}
+
+static uint32_t EncodeKV(const KeyGroupUtilRef &codec, uint32_t rawHash, uint32_t maxParallelism)
 {
     if (maxParallelism == 0) {
         return rawHash;
     }
     uint32_t keyGroup = rawHash % maxParallelism;
-    uint32_t orderHash = rawHash;
-    KeyGroupUtil::SetKeyGroup(orderHash, keyGroup);
-    return orderHash;
+    codec->SetKeyGroup(rawHash, keyGroup);
+    return rawHash;
 }
 
 TEST_F(KeyGroupUtilTest, KvEncodingRoundTripsRepresentativeParallelism)
@@ -43,11 +50,11 @@ TEST_F(KeyGroupUtilTest, KvEncodingRoundTripsRepresentativeParallelism)
     const std::vector<uint32_t> maxParallelisms = { 1, 2, 3, 127, 128, 129, 30000, 32767, 32768 };
     const std::vector<uint32_t> hashes = { 0, 1, 2, 127, 128, 129, 0x12345678U, static_cast<uint32_t>(INT32_MAX) };
     for (uint32_t maxParallelism : maxParallelisms) {
-        ASSERT_EQ(KeyGroupUtil::Init(maxParallelism), BSS_OK);
+        auto codec = CreateCodec(maxParallelism);
         for (uint32_t rawHash : hashes) {
-            uint32_t orderHash = EncodeKV(rawHash, maxParallelism);
+            uint32_t orderHash = EncodeKV(codec, rawHash, maxParallelism);
             ASSERT_LE(orderHash, static_cast<uint32_t>(INT32_MAX));
-            ASSERT_EQ(KeyGroupUtil::ComputeKeyGroupForKeyHash(orderHash), rawHash % maxParallelism);
+            ASSERT_EQ(codec->ComputeKeyGroupForKeyHash(orderHash), rawHash % maxParallelism);
         }
     }
 }
@@ -55,10 +62,10 @@ TEST_F(KeyGroupUtilTest, KvEncodingRoundTripsRepresentativeParallelism)
 TEST_F(KeyGroupUtilTest, KvOrderIsLexicographicByGroupThenRawHash)
 {
     for (uint32_t maxParallelism : { 3U, 128U, 129U, 32768U }) {
-        ASSERT_EQ(KeyGroupUtil::Init(maxParallelism), BSS_OK);
+        auto codec = CreateCodec(maxParallelism);
         std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> encoded;
         for (uint32_t rawHash = 0; rawHash < 200000; rawHash += 37) {
-            encoded.emplace_back(EncodeKV(rawHash, maxParallelism), rawHash % maxParallelism, rawHash);
+            encoded.emplace_back(EncodeKV(codec, rawHash, maxParallelism), rawHash % maxParallelism, rawHash);
         }
         std::sort(encoded.begin(), encoded.end());
         for (size_t i = 1; i < encoded.size(); ++i) {
@@ -71,60 +78,34 @@ TEST_F(KeyGroupUtilTest, KvOrderIsLexicographicByGroupThenRawHash)
 
 TEST_F(KeyGroupUtilTest, PowerOfTwoLayoutMatchesExpectedBits)
 {
+    auto codec128 = CreateCodec(128);
     uint32_t raw128 = (0x123456U << 7U) | 0x55U;
-    ASSERT_EQ(KeyGroupUtil::Init(128), BSS_OK);
-    ASSERT_EQ(EncodeKV(raw128, 128), (0x55U << 24U) | 0x123456U);
+    ASSERT_EQ(EncodeKV(codec128, raw128, 128), (0x55U << 24U) | 0x123456U);
 
+    auto codec32768 = CreateCodec(32768);
     uint32_t raw32768 = (0xABCDU << 15U) | 0x2345U;
-    ASSERT_EQ(KeyGroupUtil::Init(32768), BSS_OK);
-    ASSERT_EQ(EncodeKV(raw32768, 32768), (0x2345U << 16U) | 0xABCDU);
+    ASSERT_EQ(EncodeKV(codec32768, raw32768, 32768), (0x2345U << 16U) | 0xABCDU);
 }
 
-TEST_F(KeyGroupUtilTest, ConcurrentInitWithSameParallelismIsStable)
+TEST_F(KeyGroupUtilTest, IndependentInstancesKeepTheirLayouts)
 {
-    constexpr uint32_t threadCount = 16;
-    constexpr uint32_t maxParallelism = 32768;
-    ASSERT_EQ(KeyGroupUtil::Init(128), BSS_OK);
-
-    std::atomic<uint32_t> readyCount{ 0 };
-    std::atomic<bool> start{ false };
-    std::vector<BResult> results(threadCount, BSS_ERR);
-    std::vector<std::thread> threads;
-    threads.reserve(threadCount);
-    for (uint32_t i = 0; i < threadCount; ++i) {
-        threads.emplace_back([i, &readyCount, &start, &results]() {
-            readyCount.fetch_add(1, std::memory_order_release);
-            while (!start.load(std::memory_order_acquire)) {
-                std::this_thread::yield();
-            }
-            results[i] = KeyGroupUtil::Init(maxParallelism);
-        });
-    }
-    while (readyCount.load(std::memory_order_acquire) != threadCount) {
-        std::this_thread::yield();
-    }
-    start.store(true, std::memory_order_release);
-    for (auto &thread : threads) {
-        thread.join();
-    }
-
-    for (BResult result : results) {
-        EXPECT_EQ(result, BSS_OK);
-    }
-    uint32_t rawHash = (0xABCDU << 15U) | 0x2345U;
-    EXPECT_EQ(EncodeKV(rawHash, maxParallelism), (0x2345U << 16U) | 0xABCDU);
+    auto codec128 = CreateCodec(128);
+    uint32_t orderHash = EncodeKV(codec128, 120U, 128U);
+    auto codec256 = CreateCodec(256);
+    EXPECT_EQ(codec256->GetMaxParallelism(), 256U);
+    EXPECT_EQ(codec128->ComputeKeyGroupForKeyHash(orderHash), 120U);
 }
 
 TEST_F(KeyGroupUtilTest, FixedGroupUsesAllAvailableFreshBuckets)
 {
     constexpr uint32_t maxParallelism = 32768;
     constexpr uint32_t keyGroup = 7;
-    ASSERT_EQ(KeyGroupUtil::Init(maxParallelism), BSS_OK);
+    auto codec = CreateCodec(maxParallelism);
     for (uint32_t bucketCount : { 8U, 64U, 1024U, 32768U, 65536U }) {
         std::set<uint32_t> buckets;
         for (uint32_t quotient = 0; quotient < 65536; ++quotient) {
             uint32_t rawHash = quotient * maxParallelism + keyGroup;
-            buckets.insert(EncodeKV(rawHash, maxParallelism) & (bucketCount - 1));
+            buckets.insert(EncodeKV(codec, rawHash, maxParallelism) & (bucketCount - 1));
         }
         ASSERT_EQ(buckets.size(), bucketCount);
     }
@@ -132,35 +113,48 @@ TEST_F(KeyGroupUtilTest, FixedGroupUsesAllAvailableFreshBuckets)
 
 TEST_F(KeyGroupUtilTest, PqEncodingRemainsByteCompatible)
 {
+    auto codec128 = CreateCodec(128);
     uint32_t oneByteHash = 0x12345678U;
-    ASSERT_EQ(KeyGroupUtil::Init(128), BSS_OK);
-    KeyGroupUtil::SetPQKeyGroup(oneByteHash, 0x5AU);
+    codec128->SetPQKeyGroup(oneByteHash, 0x5AU);
     ASSERT_EQ(oneByteHash, 0x5A345678U);
-    ASSERT_EQ(KeyGroupUtil::ComputePQKeyGroupForKeyHash(oneByteHash), 0x5AU);
+    ASSERT_EQ(codec128->ComputePQKeyGroupForKeyHash(oneByteHash), 0x5AU);
 
+    auto codec32768 = CreateCodec(32768);
     uint32_t twoByteHash = 0x12345678U;
-    ASSERT_EQ(KeyGroupUtil::Init(32768), BSS_OK);
-    KeyGroupUtil::SetPQKeyGroup(twoByteHash, 0x2345U);
+    codec32768->SetPQKeyGroup(twoByteHash, 0x2345U);
     ASSERT_EQ(twoByteHash, 0x23455678U);
-    ASSERT_EQ(KeyGroupUtil::ComputePQKeyGroupForKeyHash(twoByteHash), 0x2345U);
+    ASSERT_EQ(codec32768->ComputePQKeyGroupForKeyHash(twoByteHash), 0x2345U);
+    ASSERT_EQ(codec128->ComputePQKeyGroupForKeyHash(oneByteHash), 0x5AU);
 }
 
-TEST_F(KeyGroupUtilTest, InitRejectsInvalidParallelismWithoutChangingValidState)
+TEST_F(KeyGroupUtilTest, CreateRejectsInvalidParallelismWithoutChangingValidInstance)
 {
-    ASSERT_EQ(KeyGroupUtil::Init(128), BSS_OK);
+    auto codec = CreateCodec(128);
+    KeyGroupUtilRef invalidCodec;
+    EXPECT_EQ(KeyGroupUtil::Create(0, invalidCodec), BSS_INVALID_PARAM);
+    EXPECT_EQ(KeyGroupUtil::Create(32769, invalidCodec), BSS_INVALID_PARAM);
 
     uint32_t rawHash = 0x12345678U;
     uint32_t keyGroup = rawHash % 128;
-    uint32_t orderHash = rawHash;
-    KeyGroupUtil::SetKeyGroup(orderHash, keyGroup);
-    ASSERT_EQ(KeyGroupUtil::ComputeKeyGroupForKeyHash(orderHash), keyGroup);
+    uint32_t orderHash = EncodeKV(codec, rawHash, 128);
+    EXPECT_EQ(codec->ComputeKeyGroupForKeyHash(orderHash), keyGroup);
+}
 
-    EXPECT_EQ(KeyGroupUtil::Init(0), BSS_INVALID_PARAM);
-    EXPECT_EQ(KeyGroupUtil::Init(32769), BSS_INVALID_PARAM);
-
-    orderHash = rawHash;
-    KeyGroupUtil::SetKeyGroup(orderHash, keyGroup);
-    EXPECT_EQ(KeyGroupUtil::ComputeKeyGroupForKeyHash(orderHash), keyGroup);
+TEST_F(KeyGroupUtilTest, GeneralLayoutMatchesGoldenVectors)
+{
+    struct Vector {
+        uint32_t maxParallelism;
+        uint32_t rawHash;
+        uint32_t encodedHash;
+    };
+    const std::array<Vector, 4> vectors = { { { 3, 1, 0x2aaaaaab },
+                                              { 129, 0x12345678, 0x0c0c5014 },
+                                              { 30000, 0x12345678, 0x54e3f50c },
+                                              { 32767, 0x7fffffff, 0x00020005 } } };
+    for (const auto &vector : vectors) {
+        auto codec = CreateCodec(vector.maxParallelism);
+        EXPECT_EQ(EncodeKV(codec, vector.rawHash, vector.maxParallelism), vector.encodedHash);
+    }
 }
 
 }  // namespace bss

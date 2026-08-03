@@ -46,10 +46,10 @@ public:
     };
 
     SavepointDataView(const SnapshotManagerRef &snapshotManager, const PendingSavepointCoordinatorRef &pendingSavepoint,
-                      uint32_t maxParallelism, const MemManagerRef &mMemManager)
+                      const KeyGroupUtilRef &keyGroupUtil, const MemManagerRef &mMemManager)
         : mSnapshotManager(snapshotManager),
           mPendingSavepoint(pendingSavepoint),
-          mMaxParallelism(maxParallelism),
+          mKeyGroupUtil(keyGroupUtil),
           mSnapshotId(mPendingSavepoint->GetSnapshotId()),
           mMemManager(mMemManager)
     {
@@ -70,8 +70,8 @@ public:
             return sliceTable->GetValueFromBlobStore(blobId, keyHashCode, seqId, originalValue);
         };
         mCurrentIterator = MakeRef<BinaryKeyValueItemIterator>(mPendingSavepoint->GetStateIdProviderSnapshot(),
-                                                               mMaxParallelism, sortedKeyValueIterator,
-                                                               sortedPQIterator, mMemManager, func);
+                                                               mKeyGroupUtil, sortedKeyValueIterator, sortedPQIterator,
+                                                               mMemManager, func);
     }
 
     KeyValueIteratorRef CreateSortedKeyValueIterator(
@@ -92,13 +92,13 @@ public:
 
     inline uint32_t GetMaxParallelism() const
     {
-        return mMaxParallelism;
+        return mKeyGroupUtil->GetMaxParallelism();
     }
 
 private:
     SnapshotManagerRef mSnapshotManager = nullptr;
     PendingSavepointCoordinatorRef mPendingSavepoint = nullptr;
-    uint32_t mMaxParallelism = 0;
+    KeyGroupUtilRef mKeyGroupUtil = nullptr;
     uint64_t mSnapshotId = 0;
     MemManagerRef mMemManager = nullptr;
     BinaryKeyValueItemIteratorRef mCurrentIterator = nullptr;

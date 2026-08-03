@@ -49,7 +49,9 @@ TEST_F(TestFreshTable, test_write_big_value_and_get_ok)
     uint32_t orderHash = rawHash;
     uint32_t keyGroupIndex = rawHash % NO_128;
     // 先计算stateId，再修改hash，避免修改hash影响计算stateId
-    KeyGroupUtil::SetKeyGroup(orderHash, keyGroupIndex);
+    KeyGroupUtilRef codec;
+    ASSERT_EQ(KeyGroupUtil::Create(NO_128, codec), BSS_OK);
+    codec->SetKeyGroup(orderHash, keyGroupIndex);
     QueryKey queryKey(stateId, orderHash, priKey);
     Value putVal;
     putVal.Init(ValueType::PUT, val.Length(), val.Data(), 1);

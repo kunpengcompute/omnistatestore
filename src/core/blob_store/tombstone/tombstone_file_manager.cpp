@@ -360,10 +360,11 @@ void TombstoneFileManager::CleanExpireTombstoneFile(uint64_t minBlobId)
     DiscardFile(pendingDeleteFiles);
 }
 
-std::shared_ptr<TombstoneService> TombstoneFileManager::AddLevel0(const std::string &name)
+std::shared_ptr<TombstoneService> TombstoneFileManager::AddLevel0(const std::string &name,
+                                                                  const KeyGroupUtilRef &keyGroupUtil)
 {
     auto service = std::make_shared<TombstoneService>(mConfig, mGroupRange, mInitVersion, mTombstoneFlushExecutor,
-                                                      shared_from_this(), mMemManager);
+                                                      shared_from_this(), mMemManager, keyGroupUtil);
     mLevel0.emplace(name, service);
     return service;
 }

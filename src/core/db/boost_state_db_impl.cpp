@@ -27,7 +27,7 @@ std::atomic<uint64_t> AutoCloseable::GLOBAL_COUNT(0);
 BResult BoostStateDBImpl::Open(const ConfigRef &config)
 {
     mConfig = config;
-    auto ret = KeyGroupUtil::Init(mConfig->GetMaxNumberOfParallelSubtasks());
+    auto ret = KeyGroupUtil::Create(mConfig->GetMaxNumberOfParallelSubtasks(), mKeyGroupUtil);
     if (UNLIKELY(ret != BSS_OK)) {
         LOG_ERROR("Failed to initialize key group util, ret:" << ret);
         return ret;
@@ -54,11 +54,11 @@ BResult BoostStateDBImpl::Open(const ConfigRef &config)
     // create stateIdProvider, filterManager and stateMigration.
     mStateIdProvider = std::make_shared<StateIdProvider>(mConfig->GetStartGroup(), mConfig->GetEndGroup(), mMemManager);
     mStateFilterManager = std::make_shared<StateFilterManager>(mStateIdProvider, config, mConfig->GetStartGroup(),
-                                                               mConfig->GetEndGroup());
+                                                               mConfig->GetEndGroup(), mKeyGroupUtil);
 
     // initialize fresh table.
     mFreshTable = std::make_shared<FreshTable>();
-    ret = mFreshTable->Initialize(mConfig, mMemManager);
+    ret = mFreshTable->Initialize(mConfig, mMemManager, mKeyGroupUtil);
     if (ret != BSS_OK) {
         LOG_ERROR("Failed to initialize fresh table. ret:" << ret);
         InnerClose();
@@ -235,7 +235,7 @@ PQTableRef BoostStateDBImpl::CreatePQTable(const std::string &str)
         }
         auto lsmStore = bucketGroupManager->GetBucketGroupVector()[0]->GetLsmStore();
         table = std::make_shared<PQTable>(mMemManager, mFreshTransformer->GetTransformExecutor(), lsmStore, str,
-                                          mStateIdProvider, des);
+                                          mStateIdProvider, des, mKeyGroupUtil);
         auto ret = table->Initialize();
         if (ret != BSS_OK) {
             return nullptr;
@@ -399,8 +399,7 @@ SavepointDataView *BoostStateDBImpl::TriggerSavepoint()
         return nullptr;
     }
 
-    return new (std::nothrow)
-        SavepointDataView(mSnapshotManager, pendingSavepoint, mConfig->GetMaxParallelism(), mMemManager);
+    return new (std::nothrow) SavepointDataView(mSnapshotManager, pendingSavepoint, mKeyGroupUtil, mMemManager);
 }
 
 void BoostStateDBImpl::NotifyDBSnapshotAbort(uint64_t checkpointId)

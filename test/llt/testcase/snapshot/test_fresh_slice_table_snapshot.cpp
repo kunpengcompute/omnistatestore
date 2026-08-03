@@ -191,7 +191,8 @@ TEST_F(TestFreshSliceTableSnapshot, TestFreshTableCheckpointWritesCompressedByte
     ASSERT_EQ(mBoostStateDB->CreateAsyncCheckpoint(mCheckpointId, false), BSS_OK);
 
     std::string freshTableFile = "/tmp/" + std::to_string(mCheckpointId) + "/fresh_table.dat";
-    struct stat fileStat {
+    struct stat fileStat = {
+        // Value-initialize all fields.
     };
     ASSERT_EQ(stat(freshTableFile.c_str(), &fileStat), 0);
     ASSERT_LT(static_cast<uint64_t>(fileStat.st_size), rawLength);

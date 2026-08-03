@@ -2,11 +2,11 @@
 
 > Corresponding implementation: `6b360bd40d589d32c98a8095f747a100968a83e6`
 >
-> Notation: Closed intervals are written as `[start..end]`; hash values do not use thousands separators.
+> Notation: Closed intervals are written as `[start, end]`; hash values do not use thousands separators.
 
 ## 1. Key Result: Identical Bucket Numbers Do Not Imply Identical Data Ranges
 
-Each Subtask has a local Slice Bucket table of length `bucketNum`, numbered `0..bucketNum-1`. The Mapper evenly partitions the contiguous `orderHash` interval owned by that Subtask across this table.
+Each Subtask has a local Slice Bucket table of length `bucketNum`, numbered `[0, bucketNum-1]`. The Mapper evenly partitions the contiguous `orderHash` interval owned by that Subtask across this table.
 
 After parallelism changes:
 
@@ -39,12 +39,12 @@ endKeyGroup    = 15
 bucketNum      = 1024
 ```
 
-The `orderHash` here is not the original key hash. The write path first calculates the key-group as `rawHash % maxParallelism`, then rewrites the hash with `KeyGroupUtil::SetKeyGroup()` according to the quotient–remainder reordering rule. When `maxParallelism` is a power of two, an equivalent shift-based fast path is used. The rewrite preserves key-group ownership while making hashes from the same key-group contiguous over `[0..2^31-1]`. The Mapper receives the reordered `orderHash`.
+The `orderHash` here is not the original key hash. The write path first calculates the key-group as `rawHash % maxParallelism`, then rewrites the hash with `KeyGroupUtil::SetKeyGroup()` according to the quotient–remainder reordering rule. When `maxParallelism` is a power of two, an equivalent shift-based fast path is used. The rewrite preserves key-group ownership while making hashes from the same key-group contiguous over `[0, 2^31-1]`. The Mapper receives the reordered `orderHash`.
 
-In this example, each key-group covers `2^21` `orderHash` values and the current Task owns eight contiguous key-groups:
+In this example, the current Task owns eight contiguous key-groups, and each key-group covers `2^21` `orderHash` values. The following shows an example calculation of the Task hash range and local bucket span:
 
 ```text
-taskRange = [16777216..33554431]
+taskRange = [16777216, 33554431]
 taskSpan  = 16777216
 bucketSpan = taskSpan / bucketNum = 16384
 ```
@@ -87,11 +87,11 @@ end(b)   = taskStart + ceil((b + 1) × taskSpan / bucketNum) - 1
 
 | bucket | Closed hash interval |
 | ---: | --- |
-| 0 | `[16777216..16793599]` |
-| 1 | `[16793600..16809983]` |
-| 511 | `[25149440..25165823]` |
-| 512 | `[25165824..25182207]` |
-| 1023 | `[33538048..33554431]` |
+| 0 | `[16777216, 16793599]` |
+| 1 | `[16793600, 16809983]` |
+| 511 | `[25149440, 25165823]` |
+| 512 | `[25165824, 25182207]` |
+| 1023 | `[33538048, 33554431]` |
 
 Forward mapping uses `floor`, while reverse boundaries use `ceil`. Both come from the same integer interval partition, so adjacent buckets meet without gaps or overlaps, and their lengths differ by at most one.
 
@@ -110,10 +110,10 @@ For example, with `M=16` and `P=2`:
 
 | Subtask | key-group |
 | ---: | --- |
-| 0 | `[0..7]` |
-| 1 | `[8..15]` |
+| 0 | `[0, 7]` |
+| 1 | `[8, 15]` |
 
-This is why target Subtask 1 receives `[8..15]` in the scale-out example, while old Subtask 0 owns `[0..7]` in the scale-in example.
+This is why target Subtask 1 receives `[8, 15]` in the scale-out example, while old Subtask 0 owns `[0, 7]` in the scale-in example.
 
 ### 3.2 The Key-Group Range Determines the Task Hash Range
 
@@ -132,9 +132,9 @@ The start of key-group `g` on the reordered hash axis is:
 GroupStart(g) = g × base + min(g, extra)
 ```
 
-`extra` must not be discarded. It distributes the division remainder one by one to the first `extra` key-groups so that `[0..2^31-1]` is covered exactly.
+`extra` must not be discarded. It distributes the division remainder one by one to the first `extra` key-groups so that `[0, 2^31-1]` is covered exactly.
 
-For the Task's closed key-group interval `[startKeyGroup..endKeyGroup]`:
+For the Task's closed key-group interval `[startKeyGroup, endKeyGroup]`:
 
 ```text
 taskStart = GroupStart(startKeyGroup)
@@ -142,28 +142,28 @@ taskEnd   = GroupStart(endKeyGroup + 1) - 1
 taskSpan  = taskEnd - taskStart + 1
 ```
 
-The Mapper then establishes its local bucket coordinate system only within `[taskStart..taskEnd]`. `Map()` validates that its input is in this interval; `MapUnchecked()` omits validation and is reserved for hot paths whose callers have already confirmed the range.
+The Mapper then establishes its local bucket coordinate system only within `[taskStart, taskEnd]`. `Map()` validates that its input is in this interval; `MapUnchecked()` omits validation and is reserved for hot paths whose callers have already confirmed the range.
 
 ## 4. Application Mapping: Why Scale-Out Splits One into Many
 
-Section 2 uses 1024 buckets to verify the real calculation. To make split boundaries easier to see, this section reduces the parameters to `maxParallelism=16` and `bucketNum=16`; the mapping formula is unchanged. For `parallelism 1→2`, old Subtask 0 owns `[0..15]`, while target Subtask 1 owns `[8..15]`.
+Section 2 uses 1024 buckets to verify the real calculation. To make split boundaries easier to see, this section reduces the parameters to `maxParallelism=16` and `bucketNum=16`; the mapping formula is unchanged. For `parallelism 1→2`, old Subtask 0 owns `[0, 15]`, while target Subtask 1 owns `[8, 15]`.
 
 | Mapper | key-group | Task hash range | Width per bucket |
 | --- | --- | --- | ---: |
-| Old Mapper | `[0..15]` | `[0..2147483647]` | 134217728 |
-| Target Mapper | `[8..15]` | `[1073741824..2147483647]` | 67108864 |
+| Old Mapper | `[0, 15]` | `[0, 2147483647]` | 134217728 |
+| Target Mapper | `[8, 15]` | `[1073741824, 2147483647]` | 67108864 |
 
 The range of old bucket 8 is:
 
 ```text
-oldBucket8 = [1073741824..1207959551]
+oldBucket8 = [1073741824, 1207959551]
 ```
 
-The target Task starts at the same position, but its bucket width is halved:
+The target Task starts at the same position, but its bucket width is halved. The resulting bucket ranges are:
 
 ```text
-targetBucket0 = [1073741824..1140850687]
-targetBucket1 = [1140850688..1207959551]
+targetBucket0 = [1073741824, 1140850687]
+targetBucket1 = [1140850688, 1207959551]
 ```
 
 ![During scale-out from 1 to 2, the target Mapper maps old bucket 8 to buckets 0 and 1](figures/task_local_slice_bucket_mapper/scale-out-1-to-2.svg)
@@ -183,19 +183,19 @@ The same old chain is scheduled into two target slots. The implementation calls 
 
 ## 5. Application Mapping: Why Scale-In Merges Many into One
 
-Now consider `parallelism 2→1`. Old Subtask 0 owns key-groups `[0..7]`, while target Subtask 0 owns `[0..15]`; both still use 16 local buckets.
+Now consider `parallelism 2→1`. Old Subtask 0 owns key-groups `[0, 7]`, while target Subtask 0 owns `[0, 15]`; both still use 16 local buckets.
 
 | Mapper | key-group | Task hash range | Width per bucket |
 | --- | --- | --- | ---: |
-| Old Mapper | `[0..7]` | `[0..1073741823]` | 67108864 |
-| Target Mapper | `[0..15]` | `[0..2147483647]` | 134217728 |
+| Old Mapper | `[0, 7]` | `[0, 1073741823]` | 67108864 |
+| Target Mapper | `[0, 15]` | `[0, 2147483647]` | 134217728 |
 
 The first two old buckets exactly cover one target bucket:
 
 ```text
-oldBucket0    = [0..67108863]
-oldBucket1    = [67108864..134217727]
-targetBucket0 = [0..134217727]
+oldBucket0    = [0, 67108863]
+oldBucket1    = [67108864, 134217727]
+targetBucket0 = [0, 134217727]
 ```
 
 ![During scale-in from 2 to 1, two old buckets converge into target bucket 0](figures/task_local_slice_bucket_mapper/scale-in-2-to-1.svg)
@@ -207,12 +207,12 @@ Both old chains are added to target slot 0, forming a `CompositeLogicalSliceChai
 A Task boundary can cut through the middle of an old bucket. The implementation UT contains this boundary:
 
 ```text
-oldBucket341    = [715128832..717225983]
+oldBucket341    = [715128832, 717225983]
 targetTaskStart = 715827883
-overlap         = [715827883..717225983]
+overlap         = [715827883, 717225983]
 ```
 
-The intersection falls into only one target bucket, so `fanout=1`, but the old chain still contains out-of-range data in `[715128832..715827882]`. The decision therefore cannot depend only on the number of children:
+The intersection falls into only one target bucket, so `fanout=1`, but the old chain still contains out-of-range data in `[715128832, 715827882]`. The Compaction decision therefore depends not only on the number of children but also on the following condition:
 
 ```text
 rangeClipped = overlap != oldBucketRange
@@ -239,7 +239,8 @@ targetMapper.MapUnchecked(hash) != current slot
 | 6 | Load Snapshot Slices and evaluate `childNum==1 && !requireForceCompaction` | Replace directly when true; otherwise enter Compaction |
 | 7 | Filter or merge by target slot, then replace the Composite Chain with a regular `LogicalSliceChain` | Complete Restore convergence |
 
-The algorithm depends only on hash-interval intersections; old and new parallelism do not need to be integer multiples. One-to-one mapping, one-to-many splitting, many-to-one merging, and Task-boundary clipping therefore share the same code path.
+>![](public_sys-resources/icon-note.gif) **NOTE:**
+>The algorithm depends only on hash-interval intersections; old and new parallelism do not need to be integer multiples. One-to-one mapping, one-to-many splitting, many-to-one merging, and Task-boundary clipping therefore share the same code path.
 
 ## 7. Rolling Strong Cache for One Slot
 
@@ -249,7 +250,7 @@ The implementation enables the rolling strong cache under this condition:
 useRollingCache = compositeNum > 1 || requireForceCompaction
 ```
 
-It therefore covers one-to-many splitting, many-to-one merging, and boundary clipping. Only the direct-replacement path with one child and no forced filtering clears the cache. One-to-many splitting shows the reuse benefit most clearly: adjacent target slots refer to the same Snapshot Slice. Reading and decompressing it again for each slot would multiply restore I/O and decompression cost by the scale-out factor.
+It therefore covers one-to-many splitting, many-to-one merging, and boundary clipping. Only the direct-replacement path with one child and no forced filtering clears the cache. One-to-many splitting shows the reuse benefit most clearly because adjacent target slots refer to the same Snapshot Slice; reading and decompressing it again for each slot would multiply restore I/O and decompression cost by the scale-out factor.
 
 ![Adjacent slots reuse the same decoded Slice through previousSlot and currentSlot](figures/task_local_slice_bucket_mapper/rolling-slot-strong-cache.svg)
 

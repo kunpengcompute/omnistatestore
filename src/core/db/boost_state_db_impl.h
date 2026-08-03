@@ -137,6 +137,7 @@ private:
     SnapshotManagerRef mSnapshotManager;
     StateIdProviderRef mStateIdProvider;
     StateFilterManagerRef mStateFilterManager;
+    KeyGroupUtilRef mKeyGroupUtil;
     SeqGeneratorRef mSeqGenerator;
     ExecutorServiceRef mCacheExecutorService;
     std::unordered_map<std::string, uint32_t> mSliceRefCounts;

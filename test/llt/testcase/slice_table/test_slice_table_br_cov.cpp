@@ -980,8 +980,10 @@ TEST_F(TestSliceTableBrCov, LogicalSliceChain_RestoreFilePage_ShouldRestoreFileP
     std::shared_ptr<StateIdProvider> stateIdProvider = std::make_shared<StateIdProvider>(1, 1, memManager);
     std::shared_ptr<FileFactory> tableFactory = std::make_shared<FileFactory>(config, memManager);
     std::shared_ptr<FileCacheManager> fileCache = std::make_shared<FileCacheManager>();
+    KeyGroupUtilRef codec;
+    ASSERT_EQ(KeyGroupUtil::Create(NO_128, codec), BSS_OK);
     std::shared_ptr<StateFilterManager> stateFilterManager = std::make_shared<StateFilterManager>(stateIdProvider,
-                                                                                                  config, 1, 1);
+                                                                                                  config, 1, 1, codec);
     LsmStoreRef lsmStore = std::make_shared<LsmStore>(fileStoreId, config, tableFactory, fileCache, stateFilterManager,
                                                       memManager);
 

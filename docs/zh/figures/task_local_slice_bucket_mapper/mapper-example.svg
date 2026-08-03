@@ -26,10 +26,10 @@
     <rect x="828" width="138" height="54" fill="#dbeafe" stroke="#60a5fa"/><text x="897" y="34" text-anchor="middle" class="label">KG 14</text>
     <rect x="966" width="138" height="54" fill="#e0f2fe" stroke="#60a5fa"/><text x="1035" y="34" text-anchor="middle" class="label">KG 15</text>
   </g>
-  <text x="48" y="190" class="num">taskRange = [16777216..33554431]，taskSpan = 16777216</text>
+  <text x="48" y="190" class="num">taskRange = [16777216, 33554431]，taskSpan = 16777216</text>
 
   <path d="M600 204 L600 238" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow)"/>
-  <text x="48" y="255" class="label">② 减去 taskStart，得到局部 offset [0..16777215]</text>
+  <text x="48" y="255" class="label">② 减去 taskStart，得到局部 offset [0, 16777215]</text>
   <rect x="48" y="276" width="1104" height="24" rx="12" fill="#bfdbfe"/>
   <circle cx="48" cy="288" r="7" fill="#2563eb"/>
   <circle cx="600" cy="288" r="7" fill="#7c3aed"/>
@@ -41,13 +41,13 @@
   <path d="M600 340 L600 374" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="48" y="392" class="label">③ 每 16384 个 hash 放入一个本地 bucket</text>
   <g transform="translate(48 412)">
-    <rect width="145" height="64" rx="7" fill="#2563eb"/><text x="72" y="27" text-anchor="middle" class="white">bucket 0</text><text x="72" y="49" text-anchor="middle" class="white">offset 0..16383</text>
-    <rect x="153" width="145" height="64" rx="7" fill="#0ea5e9"/><text x="225" y="27" text-anchor="middle" class="white">bucket 1</text><text x="225" y="49" text-anchor="middle" class="white">16384..32767</text>
+    <rect width="145" height="64" rx="7" fill="#2563eb"/><text x="72" y="27" text-anchor="middle" class="white">bucket 0</text><text x="72" y="49" text-anchor="middle" class="white">offset [0, 16383]</text>
+    <rect x="153" width="145" height="64" rx="7" fill="#0ea5e9"/><text x="225" y="27" text-anchor="middle" class="white">bucket 1</text><text x="225" y="49" text-anchor="middle" class="white">[16384, 32767]</text>
     <rect x="306" width="90" height="64" rx="7" fill="#e2e8f0"/><text x="351" y="39" text-anchor="middle" class="label">…</text>
     <rect x="404" width="145" height="64" rx="7" fill="#7c3aed"/><text x="476" y="27" text-anchor="middle" class="white">bucket 511</text><text x="476" y="49" text-anchor="middle" class="white">止于 8388607</text>
     <rect x="557" width="145" height="64" rx="7" fill="#8b5cf6"/><text x="629" y="27" text-anchor="middle" class="white">bucket 512</text><text x="629" y="49" text-anchor="middle" class="white">始于 8388608</text>
     <rect x="710" width="90" height="64" rx="7" fill="#e2e8f0"/><text x="755" y="39" text-anchor="middle" class="label">…</text>
-    <rect x="808" width="296" height="64" rx="7" fill="#2563eb"/><text x="956" y="27" text-anchor="middle" class="white">bucket 1023</text><text x="956" y="49" text-anchor="middle" class="white">offset 16760832..16777215</text>
+    <rect x="808" width="296" height="64" rx="7" fill="#2563eb"/><text x="956" y="27" text-anchor="middle" class="white">bucket 1023</text><text x="956" y="49" text-anchor="middle" class="white">offset [16760832, 16777215]</text>
   </g>
   <rect x="48" y="506" width="1104" height="34" rx="8" fill="#ecfdf5" stroke="#34d399"/>
   <text x="600" y="529" text-anchor="middle" class="text">16777216 → bucket 0　｜　25165823 → bucket 511　｜　25165824 → bucket 512　｜　33554431 → bucket 1023</text>

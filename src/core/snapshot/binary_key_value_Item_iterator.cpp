@@ -113,8 +113,8 @@ BinaryKeyValueItemRef BinaryKeyValueItemIterator::Convert(const KeyValueRef &pai
 
     auto stateId = binaryRowKey.StateId();
     auto stateTypeFromId = StateId::GetStateType(stateId);
-    auto keyGroup = stateTypeFromId == PQ ? KeyGroupUtil::ComputePQKeyGroupForKeyHash(binaryRowKey.KeyHashCode()) :
-                                            KeyGroupUtil::ComputeKeyGroupForKeyHash(binaryRowKey.KeyHashCode());
+    auto keyGroup = stateTypeFromId == PQ ? mKeyGroupUtil->ComputePQKeyGroupForKeyHash(binaryRowKey.KeyHashCode()) :
+                                            mKeyGroupUtil->ComputeKeyGroupForKeyHash(binaryRowKey.KeyHashCode());
 
     auto description = mStateIdProvider->GetTableDescription(stateId);
     if (description == nullptr) {

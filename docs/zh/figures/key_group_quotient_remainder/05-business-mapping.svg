@@ -37,7 +37,7 @@
   <text x="1245" y="232" text-anchor="middle" class="small">stateId + orderHash + key</text>
 
   <path d="M1245 270 V315 H355 V345" class="arrow"/>
-  <text x="60" y="405" class="h2">三层存储主线</text>
+  <text x="60" y="330" class="h2">三层存储主线</text>
   <g transform="translate(200,350)">
     <rect x="0" y="0" width="310" height="120" class="box" fill="#dce9f7" stroke="#2f77c5"/>
     <text x="155" y="46" text-anchor="middle" class="h2">FreshTable</text>

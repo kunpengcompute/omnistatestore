@@ -55,8 +55,12 @@ struct TableDescriptionHashTTL {
 class StateFilterManager : public FullKeyFilter {
 public:
     StateFilterManager(const StateIdProviderRef &stateIdProvider, const ConfigRef &conf, int32_t startKeyGroup,
-                       int32_t endKeyGroup)
-        : mStateIdProvider(stateIdProvider), mConf(conf)
+                       int32_t endKeyGroup, const KeyGroupUtilRef &keyGroupUtil)
+        : mStateIdProvider(stateIdProvider),
+          mConf(conf),
+          mKeyGroupUtil(keyGroupUtil),
+          mStartKeyGroup(startKeyGroup),
+          mEndKeyGroup(endKeyGroup)
     {
         mKeyGroupFilter = std::make_shared<KeyGroupStateFilter>(startKeyGroup, endKeyGroup);
     }
@@ -69,7 +73,7 @@ public:
 
     inline bool Filter(const SliceKey &sliceKey, uint64_t seqId)
     {
-        auto group = KeyGroupUtil::ComputeKeyGroupForKeyHash(sliceKey.KeyHashCode());
+        auto group = mKeyGroupUtil->ComputeKeyGroupForKeyHash(sliceKey.KeyHashCode());
         return Filter(group, sliceKey.StateId(), seqId);
     }
 
@@ -106,6 +110,19 @@ public:
     inline int32_t GetGroup(uint32_t keyHashCode, uint16_t stateId) const
     {
         return static_cast<int32_t>(ComputeKeyGroup(keyHashCode, stateId));
+    }
+
+    inline const KeyGroupUtilRef &GetKeyGroupUtil() const
+    {
+        return mKeyGroupUtil;
+    }
+    inline int32_t GetStartKeyGroup() const
+    {
+        return mStartKeyGroup;
+    }
+    inline int32_t GetEndKeyGroup() const
+    {
+        return mEndKeyGroup;
     }
 
     inline bool StateFilter(uint16_t stateId, uint64_t seqId)
@@ -146,13 +163,16 @@ public:
 private:
     inline uint32_t ComputeKeyGroup(uint32_t keyHashCode, uint16_t stateId) const
     {
-        return StateId::GetStateType(stateId) == PQ ? KeyGroupUtil::ComputePQKeyGroupForKeyHash(keyHashCode) :
-                                                      KeyGroupUtil::ComputeKeyGroupForKeyHash(keyHashCode);
+        return StateId::GetStateType(stateId) == PQ ? mKeyGroupUtil->ComputePQKeyGroupForKeyHash(keyHashCode) :
+                                                      mKeyGroupUtil->ComputeKeyGroupForKeyHash(keyHashCode);
     }
 
     StateIdProviderRef mStateIdProvider = nullptr;
     ConfigRef mConf = nullptr;
     KeyGroupStateFilterRef mKeyGroupFilter = nullptr;
+    KeyGroupUtilRef mKeyGroupUtil = nullptr;
+    int32_t mStartKeyGroup = 0;
+    int32_t mEndKeyGroup = 0;
     std::unordered_map<TableDescriptionRef, SequenceIdFilterRef, TableDescriptionHashTTL, TableDescriptionEqualTTL>
         mStateFilterMap;
 };

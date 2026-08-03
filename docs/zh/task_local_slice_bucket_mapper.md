@@ -2,11 +2,11 @@
 
 > 对应实现：`6b360bd40d589d32c98a8095f747a100968a83e6`
 >
-> 记法：闭区间写作 `[start..end]`；hash 数值不使用千分位分隔符。
+> 记法：闭区间写作 `[start, end]`；hash 数值不使用千分位分隔符。
 
 ## 1. 先看结论：bucket 编号相同，不代表数据范围相同
 
-每个 Subtask 都有一张长度为 `bucketNum` 的本地 Slice Bucket 表，编号均为 `0..bucketNum-1`。Mapper 将该 Subtask 拥有的连续 `orderHash` 区间等分到这张表中。
+每个 Subtask 都有一张长度为 `bucketNum` 的本地 Slice Bucket 表，编号均为 `[0, bucketNum-1]`。Mapper 将该 Subtask 拥有的连续 `orderHash` 区间等分到这张表中。
 
 因此，并行度变化后：
 
@@ -39,12 +39,12 @@ endKeyGroup    = 15
 bucketNum      = 1024
 ```
 
-这里的 `orderHash` 不是原始 key hash。写入路径先用 `rawHash % maxParallelism` 得到 key-group，再由 `KeyGroupUtil::SetKeyGroup()` 按商余重排规则改写 hash；`maxParallelism` 为二次幂时使用等价的位移快路径。改写保持 key-group 归属不变，同时让同一 key-group 的 hash 在 `[0..2^31-1]` 上连续。Mapper 的输入是重排后的 `orderHash`。
+这里的 `orderHash` 不是原始 key hash。写入路径先用 `rawHash % maxParallelism` 得到 key-group，再由 `KeyGroupUtil::SetKeyGroup()` 按商余重排规则改写 hash；`maxParallelism` 为二次幂时使用等价的位移快路径。改写保持 key-group 归属不变，同时让同一 key-group 的 hash 在 `[0, 2^31-1]` 上连续。Mapper 的输入是重排后的 `orderHash`。
 
-本例中每个 key-group 覆盖 `2^21` 个 `orderHash`，当前 Task 持有 8 个连续 key-group：
+本例中，当前 Task 持有 8 个连续 key-group，每个 key-group 覆盖 `2^21` 个 `orderHash`。以下为 Task hash 范围和本地 bucket span 的计算示例：
 
 ```text
-taskRange = [16777216..33554431]
+taskRange = [16777216, 33554431]
 taskSpan  = 16777216
 bucketSpan = taskSpan / bucketNum = 16384
 ```
@@ -87,11 +87,11 @@ end(b)   = taskStart + ceil((b + 1) × taskSpan / bucketNum) - 1
 
 | bucket | hash 闭区间 |
 | ---: | --- |
-| 0 | `[16777216..16793599]` |
-| 1 | `[16793600..16809983]` |
-| 511 | `[25149440..25165823]` |
-| 512 | `[25165824..25182207]` |
-| 1023 | `[33538048..33554431]` |
+| 0 | `[16777216, 16793599]` |
+| 1 | `[16793600, 16809983]` |
+| 511 | `[25149440, 25165823]` |
+| 512 | `[25165824, 25182207]` |
+| 1023 | `[33538048, 33554431]` |
 
 正向映射使用 `floor`，反向边界使用 `ceil`。两者来自同一整数区间划分，所以相邻 bucket 首尾相接、没有空洞和重叠，长度最多相差 1。
 
@@ -110,10 +110,10 @@ endKeyGroup(i)   = ceil((i + 1) × M / P) - 1
 
 | Subtask | key-group |
 | ---: | --- |
-| 0 | `[0..7]` |
-| 1 | `[8..15]` |
+| 0 | `[0, 7]` |
+| 1 | `[8, 15]` |
 
-这就是后续扩容示例中目标 Subtask 1 获得 `[8..15]`、缩容示例中旧 Subtask 0 持有 `[0..7]` 的来源。
+这就是后续扩容示例中目标 Subtask 1 获得 `[8, 15]`、缩容示例中旧 Subtask 0 持有 `[0, 7]` 的来源。
 
 ### 3.2 key-group 范围决定 Task hash 范围
 
@@ -132,9 +132,9 @@ extra = H % M
 GroupStart(g) = g × base + min(g, extra)
 ```
 
-`extra` 不能丢。它把除法余数逐个补给前 `extra` 个 key-group，使整个 `[0..2^31-1]` 恰好被覆盖。
+`extra` 不能丢。它把除法余数逐个补给前 `extra` 个 key-group，使整个 `[0, 2^31-1]` 恰好被覆盖。
 
-对 Task 的 key-group 闭区间 `[startKeyGroup..endKeyGroup]`：
+对 Task 的 key-group 闭区间 `[startKeyGroup, endKeyGroup]`：
 
 ```text
 taskStart = GroupStart(startKeyGroup)
@@ -142,28 +142,28 @@ taskEnd   = GroupStart(endKeyGroup + 1) - 1
 taskSpan  = taskEnd - taskStart + 1
 ```
 
-Mapper 随后只在 `[taskStart..taskEnd]` 内建立本地 bucket 坐标系。`Map()` 校验输入是否在该区间；`MapUnchecked()` 省略校验，仅供调用方已确认范围的热路径。
+Mapper 随后只在 `[taskStart, taskEnd]` 内建立本地 bucket 坐标系。`Map()` 校验输入是否在该区间；`MapUnchecked()` 省略校验，仅供调用方已确认范围的热路径。
 
 ## 4. 业务映射：扩容时为什么一拆多
 
-第 2 节使用 1024 个 bucket 验证真实计算；为了直观看清拆分边界，本节将参数缩小为 `maxParallelism=16`、`bucketNum=16`，映射公式不变。`parallelism 1→2` 时，旧 Subtask 0 持有 `[0..15]`，目标 Subtask 1 持有 `[8..15]`。
+第 2 节使用 1024 个 bucket 验证真实计算；为了直观看清拆分边界，本节将参数缩小为 `maxParallelism=16`、`bucketNum=16`，映射公式不变。`parallelism 1→2` 时，旧 Subtask 0 持有 `[0, 15]`，目标 Subtask 1 持有 `[8, 15]`。
 
 | Mapper | key-group | Task hash 范围 | 单 bucket 宽度 |
 | --- | --- | --- | ---: |
-| 旧 Mapper | `[0..15]` | `[0..2147483647]` | 134217728 |
-| 目标 Mapper | `[8..15]` | `[1073741824..2147483647]` | 67108864 |
+| 旧 Mapper | `[0, 15]` | `[0, 2147483647]` | 134217728 |
+| 目标 Mapper | `[8, 15]` | `[1073741824, 2147483647]` | 67108864 |
 
 旧 bucket 8 的范围为：
 
 ```text
-oldBucket8 = [1073741824..1207959551]
+oldBucket8 = [1073741824, 1207959551]
 ```
 
-目标 Task 从同一位置开始，但 bucket 宽度减半：
+目标 Task 从同一位置开始，但 bucket 宽度减半，对应的 bucket 范围如下：
 
 ```text
-targetBucket0 = [1073741824..1140850687]
-targetBucket1 = [1140850688..1207959551]
+targetBucket0 = [1073741824, 1140850687]
+targetBucket1 = [1140850688, 1207959551]
 ```
 
 ![扩容 1 到 2 时，旧 bucket 8 被目标 Mapper 映射到 bucket 0 和 bucket 1](figures/task_local_slice_bucket_mapper/scale-out-1-to-2.svg)
@@ -183,19 +183,19 @@ fanout      = 2
 
 ## 5. 业务映射：缩容时为什么多并一
 
-反过来观察 `parallelism 2→1`。旧 Subtask 0 持有 key-group `[0..7]`，目标 Subtask 0 持有 `[0..15]`，仍使用 16 个本地 bucket。
+反过来观察 `parallelism 2→1`。旧 Subtask 0 持有 key-group `[0, 7]`，目标 Subtask 0 持有 `[0, 15]`，仍使用 16 个本地 bucket。
 
 | Mapper | key-group | Task hash 范围 | 单 bucket 宽度 |
 | --- | --- | --- | ---: |
-| 旧 Mapper | `[0..7]` | `[0..1073741823]` | 67108864 |
-| 目标 Mapper | `[0..15]` | `[0..2147483647]` | 134217728 |
+| 旧 Mapper | `[0, 7]` | `[0, 1073741823]` | 67108864 |
+| 目标 Mapper | `[0, 15]` | `[0, 2147483647]` | 134217728 |
 
 前两个旧 bucket 恰好覆盖一个目标 bucket：
 
 ```text
-oldBucket0    = [0..67108863]
-oldBucket1    = [67108864..134217727]
-targetBucket0 = [0..134217727]
+oldBucket0    = [0, 67108863]
+oldBucket1    = [67108864, 134217727]
+targetBucket0 = [0, 134217727]
 ```
 
 ![缩容 2 到 1 时，两个旧 bucket 汇聚为目标 bucket 0](figures/task_local_slice_bucket_mapper/scale-in-2-to-1.svg)
@@ -207,12 +207,12 @@ targetBucket0 = [0..134217727]
 Task 边界可能从旧 bucket 中间穿过。实现 UT 中有如下边界：
 
 ```text
-oldBucket341   = [715128832..717225983]
+oldBucket341   = [715128832, 717225983]
 targetTaskStart = 715827883
-overlap         = [715827883..717225983]
+overlap         = [715827883, 717225983]
 ```
 
-交集只落入一个目标 bucket，`fanout=1`，但旧 chain 仍含 `[715128832..715827882]` 的越界数据。因此判定不是只看 child 数量：
+交集只落入一个目标 bucket，`fanout=1`，但旧 chain 仍含 `[715128832, 715827882]` 的越界数据。因此，是否需要 Compaction 不能只看 child 数量，还要参考以下条件：
 
 ```text
 rangeClipped = overlap != oldBucketRange
@@ -227,7 +227,7 @@ hash 不在目标 Task 范围
 targetMapper.MapUnchecked(hash) != 当前 slot
 ```
 
-## 6. Restore 中旧、目标 Mapper 如何协作
+## 6. Restore 中旧目标 Mapper 如何协作
 
 | 阶段 | 实际动作 | 关键结果 |
 | ---: | --- | --- |
@@ -239,7 +239,8 @@ targetMapper.MapUnchecked(hash) != 当前 slot
 | 6 | 加载 Snapshot Slice，判断 `childNum==1 && !requireForceCompaction` | 满足时直接替换，否则进入 Compaction |
 | 7 | 按目标 slot 过滤或合并，并用普通 `LogicalSliceChain` 替换 Composite Chain | Restore 收口 |
 
-算法只依赖 hash 区间交集，不要求新旧并行度互为整数倍。因此一对一、一拆多、多并一和 Task 边界裁剪共用同一条代码路径。
+>![](public_sys-resources/icon-note.gif) **说明：**
+>算法只依赖 hash 区间交集，不要求新旧并行度互为整数倍。因此一对一、一拆多、多并一和 Task 边界裁剪共用同一条代码路径。
 
 ## 7. 单-slot 滚动强缓存
 
@@ -249,7 +250,7 @@ targetMapper.MapUnchecked(hash) != 当前 slot
 useRollingCache = compositeNum > 1 || requireForceCompaction
 ```
 
-因此它覆盖一拆多、多并一和边界裁剪；只有单 child 且无需强制过滤的直接替换路径会清空缓存。一拆多是复用收益最直观的场景：相邻目标 slot 会引用同一份 Snapshot Slice，若每个 slot 都重新读取、解压，扩容倍数会直接放大恢复 I/O 和解压开销。
+因此它覆盖一拆多、多并一和边界裁剪；只有单 child 且无需强制过滤的直接替换路径会清空缓存。一拆多的复用收益最直观，因为相邻目标 slot 会引用同一份 Snapshot Slice；若每个 slot 都重新读取、解压，扩容倍数会直接放大恢复 I/O 和解压开销。
 
 ![相邻 slot 通过 previousSlot 和 currentSlot 复用同一份解码 Slice](figures/task_local_slice_bucket_mapper/rolling-slot-strong-cache.svg)
 

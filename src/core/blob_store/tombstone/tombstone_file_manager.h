@@ -128,7 +128,7 @@ public:
 
     void CleanExpireTombstoneFile(uint64_t minBlobId);
 
-    std::shared_ptr<TombstoneService> AddLevel0(const std::string &name);
+    std::shared_ptr<TombstoneService> AddLevel0(const std::string &name, const KeyGroupUtilRef &keyGroupUtil);
 
     void UpdateSnapshotMinVersion();
 

@@ -143,7 +143,7 @@ public:
 
     void ReleaseTombstoneSnapshot(uint64_t snapshotId);
 
-    TombstoneServiceRef RegisterTombstoneService(const std::string &name);
+    TombstoneServiceRef RegisterTombstoneService(const std::string &name, const KeyGroupUtilRef &keyGroupUtil);
 
     double CalBlobSpaceWasteRate(uint64_t minBlobId);
 

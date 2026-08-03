@@ -111,7 +111,8 @@ public:
     ~SliceTableSnapshot() = default;
 
     BResult Initialize(const SliceBucketIndexRef &sliceBucketIndex, const BucketGroupManagerRef &bucketGroupManager,
-                       const MemManagerRef &memManager, bool isSavepoint, uint64_t snapshotId);
+                       const MemManagerRef &memManager, bool isSavepoint, uint64_t snapshotId,
+                       const KeyGroupUtilRef &keyGroupUtil, uint32_t startKeyGroup, uint32_t endKeyGroup);
 
     inline IteratorRef<SliceAddressRef> GetSnapshotSliceFlushIterator()
     {
@@ -168,6 +169,9 @@ private:
     std::vector<std::pair<LogicalSliceChainRef, LogicalSliceChainSnapshotMetaRef>> mSliceChainSnapshotArray;
 
     MemManagerRef mMemManager = nullptr;
+    KeyGroupUtilRef mKeyGroupUtil = nullptr;
+    uint32_t mStartKeyGroup = 0;
+    uint32_t mEndKeyGroup = 0;
     std::atomic<bool> mIsReleased{ false };
     std::mutex mResourceMutex;
 };

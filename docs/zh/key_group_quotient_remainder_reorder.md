@@ -31,7 +31,8 @@ orderHash = prefix(r) + q  // 第 r 组起点 + 组内偏移
 
 ![原始哈希经欧几里得分解后按 key-group 重排为连续区间](figures/key_group_quotient_remainder/01-algorithm-overview.svg "商余重排算法总览")
 
-商余重排不是重新计算哈希，而是把原来的“**按商逐行排列**”改成“**按余数逐列排列**”。
+>![](public_sys-resources/icon-notice.gif) **须知：**
+>商余重排不是重新计算哈希，而是把原来的“**按商逐行排列**”改成“**按余数逐列排列**”。
 
 ## 2. 背景：既要保留哈希，又要让 key-group 连续
 
@@ -58,7 +59,8 @@ M = maxParallelism, 1 <= M <= 32768
 h = rawHash,        0 <= h < H
 ```
 
-本文中的 `/` 均表示非负整数除法，`%` 表示与之对应的非负余数。
+>![](public_sys-resources/icon-notice.gif) **须知：**
+>本文中的 `/` 均表示非负整数除法，`%` 表示与之对应的非负余数。
 
 目标是构造 `E_M: [0,H) → [0,H)`。对任意不同输入 `h1、h2`，排序关系满足：
 
@@ -179,9 +181,9 @@ extra = 16 % 3 = 1
 
 | key-group `r` | 原始哈希 `h=qM+r` | 输出区间 |
 | ---: | --- | --- |
-| 0 | 0, 3, 6, 9, 12, 15 | `orderHash=0..5` |
-| 1 | 1, 4, 7, 10, 13 | `orderHash=6..10` |
-| 2 | 2, 5, 8, 11, 14 | `orderHash=11..15` |
+| 0 | 0, 3, 6, 9, 12, 15 | `orderHash=[0, 5]` |
+| 1 | 1, 4, 7, 10, 13 | `orderHash=[6, 10]` |
+| 2 | 2, 5, 8, 11, 14 | `orderHash=[11, 15]` |
 
 对单值 `h=13`：
 
@@ -330,7 +332,8 @@ KeyGroupUtil::SetKeyGroup(keyHashCode, keyGroupIndex);
 return mStateIdHelper->GetStateId(keyGroupIndex);
 ```
 
-必须先从 `rawHash` 保存 `keyGroupIndex`，再把 `keyHashCode` 原地改写为 `orderHash`。后续构造 `QueryKey` 使用改写后的哈希，获取 `stateId` 使用已保存的 key-group。
+>![](public_sys-resources/icon-notice.gif) **须知：**
+>必须先从 `rawHash` 保存 `keyGroupIndex`，再把 `keyHashCode` 原地改写为 `orderHash`。后续构造 `QueryKey` 使用改写后的哈希，获取 `stateId` 使用已保存的 key-group。
 
 ### 7.5 PQ 兼容边界
 
@@ -341,7 +344,8 @@ SetPQKeyGroup
 ComputePQKeyGroupForKeyHash
 ```
 
-状态过滤和 Savepoint 迭代根据 `StateType::PQ` 选择 PQ 解码；普通状态使用商余重排。两条编码协议不能混用。
+>![](public_sys-resources/icon-notice.gif) **须知：**
+>状态过滤和 Savepoint 迭代根据 `StateType::PQ` 选择 PQ 解码；普通状态使用商余重排。两条编码协议不能混用。
 
 ## 8. 业务映射
 

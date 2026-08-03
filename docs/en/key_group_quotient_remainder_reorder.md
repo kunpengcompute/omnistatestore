@@ -31,7 +31,8 @@ orderHash = prefix(r) + q  // start of group r + offset within the group
 
 ![The original hash is decomposed by Euclidean division and reordered into contiguous key-group intervals](figures/key_group_quotient_remainder/01-algorithm-overview.svg "Quotient–remainder reordering algorithm overview")
 
-Quotient–remainder reordering does not recompute the hash. It changes the traversal order from **row by row in quotient order** to **column by column in remainder order**.
+>![](public_sys-resources/icon-notice.gif) **NOTICE:**
+>Quotient–remainder reordering does not recompute the hash. It changes the traversal order from **row by row in quotient order** to **column by column in remainder order**.
 
 ## 2. Background: Preserve the Hash While Making Key-Groups Contiguous
 
@@ -58,7 +59,8 @@ M = maxParallelism, 1 <= M <= 32768
 h = rawHash,        0 <= h < H
 ```
 
-Throughout this document, `/` denotes non-negative integer division and `%` denotes the corresponding non-negative remainder.
+>![](public_sys-resources/icon-notice.gif) **NOTICE:**
+>Throughout this document, `/` denotes non-negative integer division and `%` denotes the corresponding non-negative remainder.
 
 The goal is to construct `E_M: [0,H) → [0,H)`. For any distinct inputs `h1` and `h2`, the ordering must satisfy:
 
@@ -179,9 +181,9 @@ Group 0 therefore has length 6, while groups 1 and 2 have length 5:
 
 | key-group `r` | Original hashes `h=qM+r` | Output interval |
 | ---: | --- | --- |
-| 0 | 0, 3, 6, 9, 12, 15 | `orderHash=0..5` |
-| 1 | 1, 4, 7, 10, 13 | `orderHash=6..10` |
-| 2 | 2, 5, 8, 11, 14 | `orderHash=11..15` |
+| 0 | 0, 3, 6, 9, 12, 15 | `orderHash=[0, 5]` |
+| 1 | 1, 4, 7, 10, 13 | `orderHash=[6, 10]` |
+| 2 | 2, 5, 8, 11, 14 | `orderHash=[11, 15]` |
 
 For the single value `h=13`:
 
@@ -330,7 +332,8 @@ KeyGroupUtil::SetKeyGroup(keyHashCode, keyGroupIndex);
 return mStateIdHelper->GetStateId(keyGroupIndex);
 ```
 
-The code must first preserve `keyGroupIndex` from `rawHash`, then rewrite `keyHashCode` in place as `orderHash`. The rewritten hash is used to construct the subsequent `QueryKey`, while the preserved key-group is used to obtain the `stateId`.
+>![](public_sys-resources/icon-notice.gif) **NOTICE:**
+>The code must first preserve `keyGroupIndex` from `rawHash`, then rewrite `keyHashCode` in place as `orderHash`. The rewritten hash is used to construct the subsequent `QueryKey`, while the preserved key-group is used to obtain the `stateId`.
 
 ### 7.5 PQ Compatibility Boundary
 
@@ -341,7 +344,8 @@ SetPQKeyGroup
 ComputePQKeyGroupForKeyHash
 ```
 
-State filtering and Savepoint iteration select PQ decoding for `StateType::PQ`; regular state uses quotient–remainder reordering. The two encoding protocols must not be mixed.
+>![](public_sys-resources/icon-notice.gif) **NOTICE:**
+>State filtering and Savepoint iteration select PQ decoding for `StateType::PQ`; regular state uses quotient–remainder reordering. The two encoding protocols must not be mixed.
 
 ## 8. Mapping to Application Flows
 

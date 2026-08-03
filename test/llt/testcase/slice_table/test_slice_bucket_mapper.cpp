@@ -158,7 +158,8 @@ TEST(SliceBucketMapperTest, TaskRangeMatchesKeyGroupUtilEncoding)
     constexpr uint64_t hashSpace = 1ULL << 31U;
     const std::array<uint32_t, 7> parallelisms = { 3, 127, 129, 1024, 30000, 32767, 32768 };
     for (uint32_t parallelism : parallelisms) {
-        ASSERT_EQ(KeyGroupUtil::Init(parallelism), BSS_OK);
+        KeyGroupUtilRef codec;
+        ASSERT_EQ(KeyGroupUtil::Create(parallelism, codec), BSS_OK);
         const std::array<uint32_t, 3> groups = { 0, parallelism / 2, parallelism - 1 };
         for (uint32_t group : groups) {
             SliceBucketMapper mapper;
@@ -168,13 +169,13 @@ TEST(SliceBucketMapperTest, TaskRangeMatchesKeyGroupUtilEncoding)
 
             uint32_t firstRawHash = group;
             uint32_t lastRawHash = static_cast<uint32_t>(((hashSpace - 1 - group) / parallelism) * parallelism + group);
-            KeyGroupUtil::SetKeyGroup(firstRawHash, group);
-            KeyGroupUtil::SetKeyGroup(lastRawHash, group);
+            codec->SetKeyGroup(firstRawHash, group);
+            codec->SetKeyGroup(lastRawHash, group);
 
             EXPECT_EQ(firstRawHash, taskRange->GetStartHashCode());
             EXPECT_EQ(lastRawHash, taskRange->GetEndHashCode());
-            EXPECT_EQ(KeyGroupUtil::ComputeKeyGroupForKeyHash(firstRawHash), group);
-            EXPECT_EQ(KeyGroupUtil::ComputeKeyGroupForKeyHash(lastRawHash), group);
+            EXPECT_EQ(codec->ComputeKeyGroupForKeyHash(firstRawHash), group);
+            EXPECT_EQ(codec->ComputeKeyGroupForKeyHash(lastRawHash), group);
         }
     }
 }

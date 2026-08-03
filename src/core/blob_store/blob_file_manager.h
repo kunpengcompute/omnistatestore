@@ -129,7 +129,7 @@ public:
         }
     }
 
-    TombstoneServiceRef RegisterTombstoneService(const std::string &name);
+    TombstoneServiceRef RegisterTombstoneService(const std::string &name, const KeyGroupUtilRef &keyGroupUtil);
 
     void ReleaseTombstoneSnapshot(uint64_t snapshotId);
 

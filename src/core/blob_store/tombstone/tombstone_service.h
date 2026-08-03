@@ -28,13 +28,14 @@ class TombstoneService : public std::enable_shared_from_this<TombstoneService>, 
 public:
     TombstoneService(const ConfigRef &config, const GroupRangeRef &keyGroupRange, uint64_t version,
                      const ExecutorServicePtr &executorService, const TombstoneFileManagerRef &tombstoneFileManager,
-                     const MemManagerRef &memManager)
+                     const MemManagerRef &memManager, const KeyGroupUtilRef &keyGroupUtil)
         : mConfig(config),
           mKeyGroupRange(keyGroupRange),
           mVersion(version),
           mTombstoneFlushExecutor(executorService),
           mFileManager(tombstoneFileManager),
-          mMemManager(memManager)
+          mMemManager(memManager),
+          mKeyGroupUtil(keyGroupUtil)
     {
     }
 
@@ -57,7 +58,7 @@ public:
         }
         uint64_t blobId = BlobStore::ToBlobId(value);
         uint32_t hash = key.KeyHashCode();
-        uint32_t keyGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(hash);
+        uint32_t keyGroup = mKeyGroupUtil->ComputeKeyGroupForKeyHash(hash);
         if (UNLIKELY(keyGroup > UINT16_MAX)) {
             LOG_ERROR("Key group is big than expected: " << keyGroup);
             return;
@@ -207,6 +208,7 @@ private:
     ExecutorServicePtr mTombstoneFlushExecutor = nullptr;
     TombstoneFileManagerRef mFileManager = nullptr;
     MemManagerRef mMemManager = nullptr;
+    KeyGroupUtilRef mKeyGroupUtil = nullptr;
     ReadWriteLock mLock;
 };
 using TombstoneServiceRef = std::shared_ptr<TombstoneService>;

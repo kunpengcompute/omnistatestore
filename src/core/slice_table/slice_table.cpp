@@ -164,7 +164,7 @@ BResult SliceTable::WriteValueToBlobStore(FreshValueNodePtr &curVal, uint32_t ke
         RETURN_ERROR_AS_NULLPTR(mConfig);
         RETURN_ERROR_AS_NULLPTR(mStateFilterManager);
         RETURN_ERROR_AS_NULLPTR(mBlobStore);
-        uint32_t keyGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(keyHash);
+        uint32_t keyGroup = mKeyGroupUtil->ComputeKeyGroupForKeyHash(keyHash);
         int64_t tableTtl = 0;
         uint64_t expireTime = 0;
         if (mConfig->GetTtlFilterSwitch()) {
@@ -193,7 +193,7 @@ BResult SliceTable::WriteValueToBlobStore(FreshValueNodePtr &curVal, uint32_t ke
 
 BResult SliceTable::GetValueFromBlobStore(uint64_t blobId, uint32_t keyHashCode, uint64_t seqId, Value &value)
 {
-    auto keyGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(keyHashCode);
+    auto keyGroup = mKeyGroupUtil->ComputeKeyGroupForKeyHash(keyHashCode);
     RETURN_INVALID_PARAM_AS_NULLPTR(mBlobStore);
     BResult result = mBlobStore->GetBlobValue(blobId, keyGroup, value);
     if (UNLIKELY(result != BSS_OK)) {
@@ -215,6 +215,7 @@ BResult SliceTable::Initialize(const ConfigRef &config, const FileCacheManagerRe
     mMemManager = memManager;
     mFileCache = fileCache;
     mStateFilterManager = stateFilterManager;
+    mKeyGroupUtil = stateFilterManager->GetKeyGroupUtil();
 
     uint32_t bucketNum = ComputeIndexBucketNum(IO_SIZE_64M, config);
     SliceBucketIndexRef sliceIndexHash = std::make_shared<SliceBucketIndex>();
@@ -268,7 +269,7 @@ BResult SliceTable::InitializeBlobStore()
                                                                       indexCacheRatio);
     mNeedReleaseBlockCache = true;
     RETURN_NOT_OK(mBlobStore->Init(mMemManager, mFileCache, mConfig, blockCache));
-    auto tombstoneService = mBlobStore->CreateTombstoneService("SliceMerge");
+    auto tombstoneService = mBlobStore->CreateTombstoneService("SliceMerge", mKeyGroupUtil);
     mTombstoneService = tombstoneService;
     mCompactManager->RegisterTombstoneService(tombstoneService);
     RegisterTombstoneService();
@@ -741,7 +742,7 @@ BResult SliceTable::RestoreBlobStore(const std::vector<SliceTableRestoreMetaRef>
 
 void SliceTable::RegisterTombstoneService()
 {
-    mBucketGroupManager->RegisterTombstoneService(mBlobStore);
+    mBucketGroupManager->RegisterTombstoneService(mBlobStore, mKeyGroupUtil);
 }
 }  // namespace bss
 }  // namespace ock

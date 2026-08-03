@@ -35,7 +35,9 @@ public:
         stateIdProvider = std::make_shared<StateIdProvider>(1, 1, memManager);
         tableFactory = std::make_shared<FileFactory>(config, memManager);
         fileCache = std::make_shared<FileCacheManager>();
-        stateFilterManager = std::make_shared<StateFilterManager>(stateIdProvider, config, 1, 1);
+        KeyGroupUtilRef codec;
+        ASSERT_EQ(KeyGroupUtil::Create(NO_128, codec), BSS_OK);
+        stateFilterManager = std::make_shared<StateFilterManager>(stateIdProvider, config, 1, 1, codec);
         sliceIndex = std::make_shared<SliceBucketIndex>();
         Uri uri(testFilePath);
         PathRef path = std::make_shared<Path>(uri);
@@ -214,7 +216,9 @@ TEST_F(TestBucketGroup, SingleGroupFileStoreUsesTaskHashRange)
     config->SetLocalPath(".");
     ASSERT_EQ(memManager->Initialize(config), BSS_OK);
     stateIdProvider = std::make_shared<StateIdProvider>(8, 15, memManager);
-    stateFilterManager = std::make_shared<StateFilterManager>(stateIdProvider, config, 8, 15);
+    KeyGroupUtilRef codec;
+    ASSERT_EQ(KeyGroupUtil::Create(config->GetMaxParallelism(), codec), BSS_OK);
+    stateFilterManager = std::make_shared<StateFilterManager>(stateIdProvider, config, 8, 15, codec);
     BoostNativeMetricPtr *metric = nullptr;
     auto fileCacheFactory = std::make_shared<FileCacheFactory>(config, nullptr, metric);
     fileCache = fileCacheFactory->GetFileCache();
