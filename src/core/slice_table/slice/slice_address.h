@@ -70,6 +70,11 @@ public:
         }
     }
 
+    SliceAddress(SliceAddress &other, SliceStatus snapshotStatus) : SliceAddress(other)
+    {
+        mSliceStatus.store(snapshotStatus);
+    }
+
     SliceAddress &operator=(const SliceAddress &other) = delete;
 
     void Init(const DataSliceRef &dataSlice, uint64_t accessNumber);

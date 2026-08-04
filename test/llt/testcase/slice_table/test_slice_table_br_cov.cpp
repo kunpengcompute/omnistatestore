@@ -11,7 +11,10 @@
 
 #include "test_slice_table_br_cov.h"
 
+#include <condition_variable>
 #include <cstdio>
+#include <mutex>
+#include <thread>
 
 #define private public
 #include "snapshot/slice_table_restore_operation.h"
@@ -936,6 +939,124 @@ TEST_F(TestSliceTableBrCov, LogicalSliceChain_Initialize_ShouldResizeFilePage_Wh
     std::vector<FilePageRef> filePages;
     logicalSliceChain->GetFilePages(filePages);
     EXPECT_EQ(filePages.size(), NO_0);
+}
+
+/**
+ * @tc.name  : LogicalSliceChain_CaptureSnapshotView_ShouldKeepSliceAliveAfterRelease
+ * @tc.number: CaptureSnapshotView_Test_001
+ * @tc.desc  : Test captured SliceAddressRef keeps data alive until snapshot deep copy
+ * completes
+ */
+TEST_F(TestSliceTableBrCov, LogicalSliceChain_CaptureSnapshotView_ShouldKeepSliceAliveAfterRelease)
+{
+    auto logicalSliceChain = std::dynamic_pointer_cast<LogicalSliceChainImpl>(mockAddSlice());
+    ASSERT_NE(logicalSliceChain, nullptr);
+    SliceAddressRef sourceSliceAddress = logicalSliceChain->GetSliceAddress(NO_0);
+    ASSERT_NE(sourceSliceAddress, nullptr);
+    DataSliceRef sourceDataSlice = sourceSliceAddress->GetDataSlice();
+    ASSERT_NE(sourceDataSlice, nullptr);
+    SliceRef sourceSlice = sourceDataSlice->GetSlice();
+    ASSERT_NE(sourceSlice, nullptr);
+    uint32_t expectedDataLen = sourceSliceAddress->GetDataLen();
+    uint32_t expectedCheckSum = sourceSliceAddress->GetCheckSum();
+    std::weak_ptr<SliceAddress> weakSliceAddress = sourceSliceAddress;
+    std::weak_ptr<DataSlice> weakDataSlice = sourceDataSlice;
+
+    LogicalSliceChainSnapshotView snapshotView;
+    ASSERT_EQ(logicalSliceChain->CaptureSnapshotView(snapshotView), BSS_OK);
+    ASSERT_EQ(snapshotView.mSliceAddresses.size(), NO_1);
+    ASSERT_EQ(snapshotView.mSliceStatuses.size(), NO_1);
+    EXPECT_EQ(snapshotView.mSliceStatuses[NO_0], SliceStatus::NORMAL);
+
+    ASSERT_TRUE(sourceSliceAddress->SetStatus(SliceEvent::FLUSH));
+    ASSERT_TRUE(sourceSliceAddress->SetStatus(SliceEvent::EVICT));
+    logicalSliceChain->ReleaseSliceAddress(sourceSliceAddress);
+    EXPECT_EQ(logicalSliceChain->GetSliceAddress(NO_0), SliceAddress::mInvalidAddress);
+    sourceDataSlice.reset();
+    sourceSliceAddress.reset();
+    EXPECT_FALSE(weakSliceAddress.expired());
+    EXPECT_FALSE(weakDataSlice.expired());
+
+    auto snapshotChain = std::make_shared<LogicalSliceChainImpl>();
+    std::unordered_map<SliceAddressRef, DataSliceRef, SliceAddressHash, SliceAddressEqual> copiedDataSlice;
+    ASSERT_EQ(snapshotChain->InitializeSnapshot(snapshotView, copiedDataSlice, false), BSS_OK);
+    SliceAddressRef copiedSliceAddress = snapshotChain->GetSliceAddress(NO_0);
+    ASSERT_NE(copiedSliceAddress, nullptr);
+    ASSERT_NE(copiedSliceAddress->GetDataSlice(), nullptr);
+    EXPECT_NE(copiedSliceAddress->GetDataSlice(), weakDataSlice.lock());
+    EXPECT_EQ(copiedSliceAddress->GetSlice(), sourceSlice);
+    EXPECT_EQ(copiedSliceAddress->GetDataLen(), expectedDataLen);
+    EXPECT_EQ(copiedSliceAddress->GetCheckSum(), expectedCheckSum);
+    EXPECT_EQ(copiedSliceAddress->GetSliceStatus(), SliceStatus::NORMAL);
+}
+
+/**
+ * @tc.name  : LogicalSliceChain_InitializeSnapshot_ShouldSucceedWhenSourceIsReleasedAfterCapture
+ * @tc.number: InitializeSnapshot_Test_001
+ * @tc.desc  : Test release waits for capture and cannot invalidate the subsequent
+ * lock-free deep copy
+ */
+TEST_F(TestSliceTableBrCov, LogicalSliceChain_InitializeSnapshot_ShouldSucceedWhenSourceIsReleasedAfterCapture)
+{
+    auto logicalSliceChain = std::dynamic_pointer_cast<LogicalSliceChainImpl>(mockAddSlice());
+    ASSERT_NE(logicalSliceChain, nullptr);
+    SliceAddressRef sourceSliceAddress = logicalSliceChain->GetSliceAddress(NO_0);
+    ASSERT_NE(sourceSliceAddress, nullptr);
+
+    std::mutex mutex;
+    std::condition_variable condition;
+    bool captured = false;
+    bool released = false;
+    bool flushStatusUpdated = false;
+    bool evictStatusUpdated = false;
+    BResult captureResult = BSS_ERR;
+    BResult initializeResult = BSS_ERR;
+    LogicalSliceChainSnapshotView snapshotView;
+    auto snapshotChain = std::make_shared<LogicalSliceChainImpl>();
+    std::unordered_map<SliceAddressRef, DataSliceRef, SliceAddressHash, SliceAddressEqual> copiedDataSlice;
+
+    std::thread snapshotThread([&]() {
+        captureResult = logicalSliceChain->CaptureSnapshotView(snapshotView);
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            captured = true;
+        }
+        condition.notify_all();
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            condition.wait(lock, [&]() { return released; });
+        }
+        if (captureResult == BSS_OK) {
+            initializeResult = snapshotChain->InitializeSnapshot(snapshotView, copiedDataSlice, false);
+        }
+    });
+    std::thread releaseThread([&]() {
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            condition.wait(lock, [&]() { return captured; });
+        }
+        flushStatusUpdated = sourceSliceAddress->SetStatus(SliceEvent::FLUSH);
+        evictStatusUpdated = sourceSliceAddress->SetStatus(SliceEvent::EVICT);
+        logicalSliceChain->ReleaseSliceAddress(sourceSliceAddress);
+        sourceSliceAddress.reset();
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            released = true;
+        }
+        condition.notify_all();
+    });
+
+    snapshotThread.join();
+    releaseThread.join();
+    EXPECT_TRUE(flushStatusUpdated);
+    EXPECT_TRUE(evictStatusUpdated);
+    EXPECT_EQ(captureResult, BSS_OK);
+    EXPECT_EQ(initializeResult, BSS_OK);
+    EXPECT_EQ(logicalSliceChain->GetSliceAddress(NO_0), SliceAddress::mInvalidAddress);
+    SliceAddressRef copiedSliceAddress = snapshotChain->GetSliceAddress(NO_0);
+    ASSERT_NE(copiedSliceAddress, nullptr);
+    EXPECT_NE(copiedSliceAddress->GetDataSlice(), nullptr);
+    EXPECT_EQ(copiedSliceAddress->GetSliceStatus(), SliceStatus::NORMAL);
 }
 
 /**

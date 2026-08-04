@@ -371,7 +371,8 @@ inline bool CheckPathValid(const std::string &inputPath, bool allowPathNotExist 
         return false;
     }
 
-    struct stat s{};
+    struct stat s {
+    };
     // The path has been checked before, it is readable and exists.
     if (lstat(realPath, &s) != 0) {
         LOG_ERROR("Failed to get the inputPath stat, path: " << PathTransform::ExtractFileName(inputPath));

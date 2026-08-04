@@ -84,6 +84,100 @@ BResult LogicalSliceChainImpl::Initialize(
     return BSS_OK;
 }
 
+BResult LogicalSliceChainImpl::CaptureSnapshotView(LogicalSliceChainSnapshotView &snapshotView)
+{
+    ReadLocker<ReadWriteLock> lk(&mRwLock);
+    snapshotView = LogicalSliceChainSnapshotView{};
+    snapshotView.mTailIndex = mChainEndIndex.load();
+    snapshotView.mSliceStatus = mSliceStatus.load();
+    if (snapshotView.mTailIndex < 0) {
+        return BSS_OK;
+    }
+    if (UNLIKELY(static_cast<uint64_t>(snapshotView.mTailIndex) >= mSliceAddresses.size())) {
+        snapshotView.mInvalidIndex = snapshotView.mTailIndex;
+        LOG_ERROR("Capture logical slice chain snapshot failed, tailIndex:"
+                  << snapshotView.mTailIndex << ", sliceAddressSize:" << mSliceAddresses.size());
+        return BSS_ERR;
+    }
+
+    // 1. 在sliceChain读锁内从前往后找到第一个状态为非evicted的slice.
+    for (int32_t index = 0; index <= snapshotView.mTailIndex; index++) {
+        const SliceAddressRef &sliceAddress = mSliceAddresses[index];
+        if (UNLIKELY(sliceAddress == nullptr)) {
+            snapshotView.mInvalidIndex = index;
+            LOG_ERROR("Capture logical slice chain snapshot failed, slice address is nullptr, index:" << index);
+            return BSS_INVALID_PARAM;
+        }
+        SliceStatus sliceStatus = sliceAddress->GetSliceStatus();
+        if (snapshotView.mHeadIndex < 0 && sliceStatus == SliceStatus::EVICTED) {
+            snapshotView.mHasEvictedSlice = true;
+            continue;
+        }
+        if (UNLIKELY(sliceStatus == SliceStatus::EVICTED)) {
+            snapshotView.mInvalidIndex = index;
+            LOG_ERROR("Capture logical slice chain snapshot failed, got evicted slice after snapshot head, index:"
+                      << index << ", headIndex:" << snapshotView.mHeadIndex);
+            return BSS_ERR;
+        }
+
+        // 2. 一次性预留空间并捕获强引用和对应状态, 避免锁内扩容及锁外状态漂移.
+        if (snapshotView.mHeadIndex < 0) {
+            snapshotView.mHeadIndex = index;
+            uint32_t snapshotChainLen = static_cast<uint32_t>(snapshotView.mTailIndex - index + 1);
+            snapshotView.mSliceAddresses.reserve(snapshotChainLen);
+            snapshotView.mSliceStatuses.reserve(snapshotChainLen);
+        }
+        snapshotView.mSliceAddresses.emplace_back(sliceAddress);
+        snapshotView.mSliceStatuses.emplace_back(sliceStatus);
+    }
+    return BSS_OK;
+}
+
+BResult LogicalSliceChainImpl::InitializeSnapshot(
+    const LogicalSliceChainSnapshotView &snapshotView,
+    std::unordered_map<SliceAddressRef, DataSliceRef, SliceAddressHash, SliceAddressEqual> &copiedDataSlice,
+    bool hasFilePage)
+{
+    if (UNLIKELY(snapshotView.mSliceAddresses.empty() ||
+                 snapshotView.mSliceAddresses.size() != snapshotView.mSliceStatuses.size())) {
+        LOG_ERROR("Initialize logical slice chain snapshot failed, sliceAddressSize:"
+                  << snapshotView.mSliceAddresses.size() << ", sliceStatusSize:" << snapshotView.mSliceStatuses.size());
+        return BSS_INVALID_PARAM;
+    }
+
+    // 1. 根据已捕获的sliceAddress初始化快照链索引.
+    mBaseSliceIndex.store(0);
+    mChainEndIndex.store(static_cast<int32_t>(snapshotView.mSliceAddresses.size()) - 1);
+
+    // 2. 在原sliceChain锁外深拷贝dataSlice.
+    RETURN_NOT_OK_NO_LOG(CopySnapshotSliceAddresses(snapshotView));
+
+    // 3. 填充copyDataSliceMap, sliceStatus, sliceSize, filePage.
+    uint32_t snapshotSliceSize = 0;
+    for (const auto &sliceAddress : mSliceAddresses) {
+        if (UNLIKELY(sliceAddress == nullptr || sliceAddress == SliceAddress::mInvalidAddress)) {
+            LOG_ERROR("Initialize logical slice chain snapshot failed, slice address is invalid.");
+            return BSS_ERR;
+        }
+        DataSliceRef dataSlice = sliceAddress->GetDataSlice();
+        if (UNLIKELY(dataSlice == nullptr)) {
+            LOG_ERROR("Initialize logical slice chain snapshot failed, data slice is nullptr, sliceId:"
+                      << sliceAddress->GetSliceId());
+            return BSS_ERR;
+        }
+        copiedDataSlice.emplace(sliceAddress, dataSlice);
+        snapshotSliceSize += sliceAddress->GetDataLen();
+    }
+    mSliceStatus.store(snapshotView.mSliceStatus);
+    mSliceSize.store(snapshotSliceSize);
+
+    LOG_DEBUG("Logic slice chain snapshot info, baseSliceIndex:"
+              << mBaseSliceIndex.load() << ", chainEndIndex:" << mChainEndIndex.load()
+              << ", sliceStatus:" << static_cast<uint32_t>(mSliceStatus.load()) << ", sliceSize:" << mSliceSize.load()
+              << ", hasFilePage:" << hasFilePage);
+    return BSS_OK;
+}
+
 IOResult LogicalSliceChainImpl::Get(const Key &key, Value &value, BlobValueTransformFunc getFromBlobFunc,
                                     BoostNativeMetricPtr &metricPtr)
 {
@@ -247,6 +341,33 @@ BResult LogicalSliceChainImpl::CopySliceAddresses(const LogicalSliceChainRef &lo
                                                                << ", snapshotChainLen:" << snapshotChainLen);
             return BSS_ERR;
         }
+    }
+    return BSS_OK;
+}
+
+BResult LogicalSliceChainImpl::CopySnapshotSliceAddresses(const LogicalSliceChainSnapshotView &snapshotView)
+{
+    mSliceAddresses.reserve(snapshotView.mSliceAddresses.size());
+    for (uint32_t index = 0; index < snapshotView.mSliceAddresses.size(); index++) {
+        SliceAddressRef sourceSliceAddress = snapshotView.mSliceAddresses[index];
+        if (UNLIKELY(sourceSliceAddress == nullptr || sourceSliceAddress == SliceAddress::mInvalidAddress ||
+                     snapshotView.mSliceStatuses[index] == SliceStatus::EVICTED ||
+                     sourceSliceAddress->GetDataSlice() == nullptr)) {
+            LOG_ERROR("Copy snapshot slice address failed, index:" << index);
+            return BSS_ERR;
+        }
+        auto copiedSliceAddress = std::make_shared<SliceAddress>(*sourceSliceAddress,
+                                                                 snapshotView.mSliceStatuses[index]);
+        if (UNLIKELY(copiedSliceAddress->GetDataSlice() == nullptr)) {
+            LOG_ERROR("Copy snapshot data slice failed, index:" << index
+                                                                << ", sliceId:" << sourceSliceAddress->GetSliceId());
+            return BSS_ERR;
+        }
+        copiedSliceAddress->SetFatherSlice(sourceSliceAddress);
+        mSliceAddresses.emplace_back(copiedSliceAddress);
+        LOG_DEBUG("Deep copy snapshot slice address success, sliceId:"
+                  << copiedSliceAddress->GetSliceId() << ", dataLen:" << copiedSliceAddress->GetDataLen()
+                  << ", checkSum:" << copiedSliceAddress->GetCheckSum());
     }
     return BSS_OK;
 }

@@ -114,6 +114,16 @@ private:
     std::vector<SliceAddressRef>::iterator mIter;
 };
 
+struct LogicalSliceChainSnapshotView {
+    int32_t mHeadIndex = -1;
+    int32_t mTailIndex = -1;
+    int32_t mInvalidIndex = -1;
+    bool mHasEvictedSlice = false;
+    SliceStatus mSliceStatus = SliceStatus::NORMAL;
+    std::vector<SliceAddressRef> mSliceAddresses;
+    std::vector<SliceStatus> mSliceStatuses;
+};
+
 class LogicalSliceChain {
 public:
     static std::shared_ptr<LogicalSliceChain> mEmptySliceChain;
@@ -250,6 +260,13 @@ public:
         const std::shared_ptr<LogicalSliceChain> &logicalSliceChain, int32_t startIndex, int32_t endIndex,
         std::unordered_map<SliceAddressRef, DataSliceRef, SliceAddressHash, SliceAddressEqual> &copiedDataSlice,
         bool deepCopySliceAddress, bool hasFilePage) override;
+
+    BResult CaptureSnapshotView(LogicalSliceChainSnapshotView &snapshotView);
+
+    BResult InitializeSnapshot(
+        const LogicalSliceChainSnapshotView &snapshotView,
+        std::unordered_map<SliceAddressRef, DataSliceRef, SliceAddressHash, SliceAddressEqual> &copiedDataSlice,
+        bool hasFilePage);
 
     IOResult Get(const Key &key, Value &value, BlobValueTransformFunc func, BoostNativeMetricPtr &metricPtr) override;
 
@@ -462,6 +479,8 @@ public:
 private:
     BResult CopySliceAddresses(const std::shared_ptr<LogicalSliceChain> &logicalSliceChain, int32_t startIndex,
                                int32_t endIndex, bool deepCopySliceAddress, uint32_t snapshotChainLen);
+
+    BResult CopySnapshotSliceAddresses(const LogicalSliceChainSnapshotView &snapshotView);
 
 private:
     std::atomic<int32_t> mChainEndIndex{ -1 };
