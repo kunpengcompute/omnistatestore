@@ -55,6 +55,28 @@ public:
     void TearDown() override;
 };
 
+class TestSavepointMaxParallelism : public ::testing::Test {
+public:
+    void SetUp() override
+    {
+        ConfigRef config = std::make_shared<Config>();
+        config->mMemorySegmentSize = IO_SIZE_4M;
+        config->SetEvictMinSize(IO_SIZE_4M);
+        config->Init(NO_0, NO_31, 32768);
+        mDb = BoostStateDBFactory::Create();
+        ASSERT_EQ(mDb->Open(config), BSS_OK);
+    }
+
+    void TearDown() override
+    {
+        mDb->Close();
+        delete mDb;
+        mDb = nullptr;
+    }
+
+    BoostStateDB *mDb = nullptr;
+};
+
 void TestSavepoint::SetUp()
 {
     ConfigRef config = std::make_shared<Config>();
@@ -110,6 +132,46 @@ TEST_F(TestSavepoint, TestSavePoint)
         ASSERT_EQ(it->second == value, true);
     }
     ASSERT_EQ(count, expectedEntrySet.size());
+}
+
+TEST_F(TestSavepointMaxParallelism, KvOutputIsMonotonicByKeyGroup)
+{
+    auto table = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "kg-order-table", mDb));
+    constexpr uint32_t maxParallelism = 32768;
+    constexpr uint32_t groups = 32;
+    constexpr uint32_t perGroup = 128;
+
+    for (uint32_t group = 0; group < groups; ++group) {
+        for (uint32_t quotient = 0; quotient < perGroup; ++quotient) {
+            uint32_t rawHash = quotient * maxParallelism + group;
+            std::string key = std::to_string(group) + "-" + std::to_string(quotient);
+            std::string value = "value-" + key;
+            BinaryData binaryKey(reinterpret_cast<const uint8_t *>(key.data()), key.size());
+            BinaryData binaryValue(reinterpret_cast<const uint8_t *>(value.data()), value.size());
+            ASSERT_EQ(table->Put(rawHash, binaryKey, binaryValue), BSS_OK);
+        }
+    }
+
+    SavepointDataView *dataView = mDb->TriggerSavepoint();
+    ASSERT_NE(dataView, nullptr);
+    auto iterator = dataView->SavepointIterator();
+    uint32_t previousGroup = 0;
+    uint32_t count = 0;
+    std::set<std::vector<uint8_t>> uniqueKeys;
+    while (iterator->HasNext()) {
+        auto item = iterator->Next();
+        ASSERT_NE(item, nullptr);
+        if (count > 0) {
+            EXPECT_LE(previousGroup, item->mKeyGroup);
+        }
+        previousGroup = item->mKeyGroup;
+        std::vector<uint8_t> serializedKey(item->mKey, item->mKey + item->mKeyLength);
+        EXPECT_TRUE(uniqueKeys.insert(serializedKey).second);
+        ++count;
+    }
+    EXPECT_EQ(count, groups * perGroup);
+    dataView->Close();
+    delete dataView;
 }
 
 }  // namespace bss

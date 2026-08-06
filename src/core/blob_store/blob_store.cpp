@@ -159,9 +159,9 @@ void BlobStore::ReleaseSnapshot(uint64_t snapshotId)
     mBlobFileManager->ReleaseTombstoneSnapshot(snapshotId);
 }
 
-TombstoneServiceRef BlobStore::CreateTombstoneService(const std::string &name)
+TombstoneServiceRef BlobStore::CreateTombstoneService(const std::string &name, const KeyGroupUtilRef &keyGroupUtil)
 {
-    return mBlobFileManager->RegisterTombstoneService(name);
+    return mBlobFileManager->RegisterTombstoneService(name, keyGroupUtil);
 }
 }  // namespace bss
 }  // namespace ock

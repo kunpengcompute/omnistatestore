@@ -14,7 +14,6 @@
 #include <memory>
 
 #include "common/bss_log.h"
-#include "common/util/bss_math.h"
 
 namespace ock {
 namespace bss {
@@ -24,14 +23,15 @@ BResult SliceBucketIndex::Initialize(uint32_t totalBucketNum, const ConfigRef &c
         LOG_ERROR("Input param failed.");
         return BSS_ERR;
     }
+    mBucketMapper = std::make_shared<SliceBucketMapper>();
+    RETURN_NOT_OK(mBucketMapper->Initialize(config->GetMaxParallelism(), config->GetStartGroup(), config->GetEndGroup(),
+                                            totalBucketNum));
     mConfig = config;
     mTotalBucketNum = totalBucketNum;
     mMappingTable.reserve(totalBucketNum);
     for (uint32_t i = 0; i < totalBucketNum; ++i) {
         mMappingTable.emplace_back(LogicalSliceChain::mEmptySliceChain);  // 初始化为empty chain.
     }
-    // 上层hashcode为正数，首位为0，所以有效位为31位
-    mUnsignedRightShiftBits = NO_31 - BssMath::IntegerBitCount(totalBucketNum - 1);
     mIsRestoreBuild = false;
     return BSS_OK;
 }
@@ -59,17 +59,17 @@ HashCodeRangeRef SliceBucketIndex::ComputeHashCodeRange(uint32_t startBucket, ui
         return nullptr;
     }
 
-    if (startBucket >= mTotalBucketNum) {
+    if (UNLIKELY(startBucket >= mTotalBucketNum)) {
         LOG_ERROR("Start bucket not legal, startBucket:" << startBucket);
         return nullptr;
     }
-    if (endBucket >= mTotalBucketNum) {
+    if (UNLIKELY(endBucket >= mTotalBucketNum || startBucket > endBucket)) {
         LOG_ERROR("End bucket not legal, endBucket:" << endBucket);
         return nullptr;
     }
-    uint32_t startHashCode = startBucket << mUnsignedRightShiftBits;
-    uint32_t endHashCode = (endBucket << mUnsignedRightShiftBits) | ((1 << mUnsignedRightShiftBits) - 1);
-    return std::make_shared<HashCodeRange>(startHashCode, endHashCode);
+    auto startRange = mBucketMapper->GetBucketRange(startBucket);
+    auto endRange = mBucketMapper->GetBucketRange(endBucket);
+    return std::make_shared<HashCodeRange>(startRange->GetStartHashCode(), endRange->GetEndHashCode());
 }
 
 SliceIndexContextRef SliceBucketIndex::InternalGetSliceIndexContext(uint32_t bucketIndex, bool createIfMiss)
@@ -79,7 +79,7 @@ SliceIndexContextRef SliceBucketIndex::InternalGetSliceIndexContext(uint32_t buc
         LOG_ERROR("Get logic chained slice is nullptr, bucketIndex:" << bucketIndex);
         return nullptr;
     }
-    if (createIfMiss && logicalSliceChain->IsNone()) {
+    if (UNLIKELY(createIfMiss && logicalSliceChain->IsNone())) {
         LogicalSliceChainRef newLogicalSliceChain = CreateLogicalChainedSlice();
         if (UNLIKELY(newLogicalSliceChain == nullptr)) {
             LOG_ERROR("Create logical chained slice failed, bucketIndex:" << bucketIndex);

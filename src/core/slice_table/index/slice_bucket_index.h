@@ -17,6 +17,7 @@
 #include "hash_code_range.h"
 #include "include/bss_err.h"
 #include "include/config.h"
+#include "slice_bucket_mapper.h"
 #include "slice_index_context.h"
 #include "slice_table/slice/logical_slice_chain.h"
 
@@ -44,7 +45,7 @@ public:
 
     inline LogicalSliceChainRef GetLogicalSliceChain(const Key &key)
     {
-        uint32_t bucketIndex = key.KeyHashCode() >> mUnsignedRightShiftBits;
+        uint32_t bucketIndex = mBucketMapper->MapUnchecked(key.KeyHashCode());
         return GetLogicChainedSlice(bucketIndex);
     }
 
@@ -54,7 +55,7 @@ public:
             LOG_ERROR("Unsupported operation exception, restore build flag:" << mIsRestoreBuild);
             return nullptr;
         }
-        uint32_t bucketIndex = hashCode >> mUnsignedRightShiftBits;
+        uint32_t bucketIndex = mBucketMapper->MapUnchecked(hashCode);
         return InternalGetSliceIndexContext(bucketIndex, createIfMissing);
     }
 
@@ -101,6 +102,7 @@ public:
         LogicalSliceChainRef newLogicalSliceChain = std::make_shared<LogicalSliceChainImpl>();
         BResult ret = newLogicalSliceChain->Init(SliceStatus::NORMAL, mConfig->GetLogicTableDefaultChainLen());
         if (UNLIKELY(ret != BSS_OK)) {
+            LOG_ERROR("Initialize logical slice chain failed, ret:" << ret);
             return nullptr;
         }
         return newLogicalSliceChain;
@@ -121,7 +123,21 @@ public:
 
     std::function<bool(SliceKey)> GetSlotStateFilter(uint32_t slot)
     {
-        return [slot, this](const SliceKey &key) { return ((key.KeyHashCode() >> mUnsignedRightShiftBits) != slot); };
+        auto mapper = mBucketMapper;
+        auto taskRange = mapper->GetTaskRange();
+        return [slot, mapper, taskRange](const SliceKey &key) {
+            uint32_t hashCode = key.KeyHashCode();
+            if (UNLIKELY(hashCode < taskRange->GetStartHashCode() || hashCode > taskRange->GetEndHashCode())) {
+                return true;
+            }
+            const uint32_t bucketIndex = mapper->MapUnchecked(hashCode);
+            return bucketIndex != slot;
+        };
+    }
+
+    inline SliceBucketMapperRef GetBucketMapper() const
+    {
+        return mBucketMapper;
     }
 
     inline uint32_t GetSliceChainMappingSize() const
@@ -185,11 +201,9 @@ public:
         mLocks[bucketIndex % LOCKS_NUM].Unlock();
     }
 
-public:
-    uint32_t mUnsignedRightShiftBits = 0;
-
 private:
     ConfigRef mConfig = nullptr;
+    SliceBucketMapperRef mBucketMapper = nullptr;
     uint32_t mTotalBucketNum = 0;
     std::array<ReadWriteLock, LOCKS_NUM> mLocks;
     std::array<ReadWriteLock, LOCKS_NUM> mMappingLocks;  // 该锁保护mMappingTable的修改.

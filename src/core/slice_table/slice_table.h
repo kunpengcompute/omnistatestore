@@ -245,6 +245,19 @@ public:
         return mStateFilterManager;
     }
 
+    inline const KeyGroupUtilRef &GetKeyGroupUtil() const
+    {
+        return mKeyGroupUtil;
+    }
+    inline uint32_t GetStartKeyGroup() const
+    {
+        return mConfig->GetStartGroup();
+    }
+    inline uint32_t GetEndKeyGroup() const
+    {
+        return mConfig->GetEndGroup();
+    }
+
     inline FullSortEvictorRef GetFullSortEvictor()
     {
         return mEvictManager->GetEvictorHandle();
@@ -522,7 +535,8 @@ private:
         }
         Ref<FlushingBucketGroupIterator> dataSliceVectorIterator = MakeRef<FlushingBucketGroupIterator>();
         dataSliceVectorIterator->Initialize(dataSlices);
-        return std::make_shared<SliceKVIterator>(dataSliceVectorIterator, mMemManager);
+        return std::make_shared<SliceKVIterator>(dataSliceVectorIterator, mMemManager, mKeyGroupUtil,
+                                                 mConfig->GetStartGroup(), mConfig->GetEndGroup());
     }
 
     BResult GetFromFile(const Key &key, LogicalSliceChainRef &logicalSliceChain, Value &finalResult,
@@ -552,6 +566,7 @@ private:
     EvictManagerRef mEvictManager;
     SliceCompactionTriggerRef mCompactManager;
     TombstoneServiceRef mTombstoneService = nullptr;
+    KeyGroupUtilRef mKeyGroupUtil = nullptr;
     AccessRecorderRef mAccessRecorder;
     std::atomic<uint32_t> mSnapshotVersion{ 0 };
     std::atomic<SliceTableCompaction> mIsCompaction{ SliceTableCompaction::OPEN };

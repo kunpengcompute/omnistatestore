@@ -118,12 +118,12 @@ public:
         }
     }
 
-    void RegisterTombstoneService(BlobStoreRef &blobStore)
+    void RegisterTombstoneService(BlobStoreRef &blobStore, const KeyGroupUtilRef &keyGroupUtil)
     {
         for (const auto &item : mBucketGroups) {
             auto lsmStore = item->GetLsmStore();
             auto name = lsmStore->GetName();
-            auto tombstoneService = blobStore->CreateTombstoneService(name);
+            auto tombstoneService = blobStore->CreateTombstoneService(name, keyGroupUtil);
             lsmStore->RegisterTombstoneService(tombstoneService);
         }
     }

@@ -89,11 +89,11 @@ using BlobValueTransformFunc = std::function<BResult(uint64_t, uint32_t, uint64_
 
 class BinaryKeyValueItemIterator : public Iterator<BinaryKeyValueItemRef> {
 public:
-    BinaryKeyValueItemIterator(const StateIdProviderRef &stateIdProvider, uint32_t maxParallelism,
+    BinaryKeyValueItemIterator(const StateIdProviderRef &stateIdProvider, const KeyGroupUtilRef &keyGroupUtil,
                                const KeyValueIteratorRef &kvIterator, const KeyValueIteratorRef &pqIterator,
                                const MemManagerRef &memManager, const BlobValueTransformFunc &func)
         : mStateIdProvider(stateIdProvider),
-          mMaxParallelism(maxParallelism),
+          mKeyGroupUtil(keyGroupUtil),
           mMemManager(memManager),
           mTransFunc(func),
           mKVIterator(kvIterator),
@@ -109,7 +109,7 @@ public:
 
 public:
     StateIdProviderRef mStateIdProvider = nullptr;
-    uint32_t mMaxParallelism = 0;
+    KeyGroupUtilRef mKeyGroupUtil = nullptr;
     BinaryKeyValueItemRef mCurrentItem = nullptr;
     MemManagerRef mMemManager = nullptr;
     std::function<BResult(uint64_t, uint32_t, uint64_t, Value &)> mTransFunc;

@@ -12,6 +12,8 @@
 #ifndef BOOST_SS_BUCKET_GROUP_RESCALE_UTIL_H
 #define BOOST_SS_BUCKET_GROUP_RESCALE_UTIL_H
 
+#include <algorithm>
+
 #include "slice_table/bucket_group_manager.h"
 #include "slice_table/bucket_group_range.h"
 
@@ -20,156 +22,94 @@ namespace bss {
 
 class BucketGroupRescaleUtil {
 public:
-    /**
-     * 处理slice bucket的缩放场景
-     *
-     * @param [in]oldSegmentGroup 恢复的segmentGroup
-     * @param [in]newSegmentGroup 当前配置的SegmentGroup
-     * @param [in]bucketGroupManager bucketGroupManager
-     * @param [out]rescaleRelation 缩放关系
-     */
-    static BResult Rescale(const SliceBucketGroupRangeGroupRef &oldSegmentGroup,
-                           const SliceBucketGroupRangeGroupRef &newSegmentGroup,
-                           const BucketGroupManagerRef &bucketGroupManager,
+    static BResult Rescale(const SliceBucketGroupRangeGroupRef &oldGroup, const SliceBucketGroupRangeGroupRef &newGroup,
+                           const BucketGroupManagerRef &bucketGroupManager, const SliceBucketMapperRef &oldMapper,
+                           const SliceBucketMapperRef &targetMapper,
                            std::unordered_map<uint32_t, std::vector<uint32_t>> &rescaleRelation)
     {
-        uint32_t oldGroupPoint = 0;
-        uint32_t newGroupPoint = 0;
-        std::vector<BucketGroupRangeRef> oldSegmentRanges = oldSegmentGroup->mSliceSegments;
-        std::vector<BucketGroupRangeRef> newSegmentRanges = newSegmentGroup->mSliceSegments;
+        if (UNLIKELY(oldGroup == nullptr || newGroup == nullptr || bucketGroupManager == nullptr ||
+                     oldMapper == nullptr || targetMapper == nullptr)) {
+            LOG_ERROR("Rescale slice buckets failed because input is nullptr.");
+            return BSS_INVALID_PARAM;
+        }
+        if (UNLIKELY(oldGroup->mTotalBucket != newGroup->mTotalBucket ||
+                     oldMapper->GetBucketNum() != targetMapper->GetBucketNum() ||
+                     oldMapper->GetBucketNum() != oldGroup->mTotalBucket)) {
+            LOG_ERROR("Rescale with different slice bucket counts is unsupported, oldGroup:"
+                      << oldGroup->mTotalBucket << ", newGroup:" << newGroup->mTotalBucket << ", oldMapper:"
+                      << oldMapper->GetBucketNum() << ", targetMapper:" << targetMapper->GetBucketNum());
+            return BSS_NOT_SUPPORTED;
+        }
+        if (UNLIKELY(oldGroup->mSliceSegments.size() != 1 || newGroup->mSliceSegments.size() != 1 ||
+                     oldGroup->mSliceSegments[0]->GetBucketGroupId() != 0 ||
+                     newGroup->mSliceSegments[0]->GetBucketGroupId() != 0)) {
+            LOG_ERROR("Rescale only supports one bucket group with id 0, oldGroupCount:"
+                      << oldGroup->mSliceSegments.size() << ", newGroupCount:" << newGroup->mSliceSegments.size());
+            return BSS_NOT_SUPPORTED;
+        }
 
-        while (oldGroupPoint < oldSegmentRanges.size() && newGroupPoint < newSegmentRanges.size()) {
-            auto curOldRange = oldSegmentRanges[oldGroupPoint];
-            auto curNewRange = newSegmentRanges[newGroupPoint];
-            int32_t cmp = curOldRange->OverlapCompare(curNewRange);
-            LOG_DEBUG("SliceTable handle rescale, cmpResult:" << cmp << ", oldGroupPoint:" << oldGroupPoint
-                                                              << ", newGroupPoint" << newGroupPoint);
-            if (UNLIKELY(cmp == ERROR_CASE_DIV_BY_ZERO)) {
-                LOG_ERROR("Failed to compare overlap.");
-                return BSS_ERR;
-            }
-            if (cmp == OVERLAP_COMPARE_RESULT_CASE_4) {
-                oldGroupPoint++;
+        rescaleRelation[0].push_back(0);
+        auto targetTaskRange = targetMapper->GetTaskRange();
+        RETURN_ERROR_AS_NULLPTR(targetTaskRange);
+        for (uint32_t oldBucket = 0; oldBucket < oldGroup->mTotalBucket; ++oldBucket) {
+            auto oldChain = oldGroup->mSliceBucketIndex->GetLogicChainedSlice(oldBucket);
+            RETURN_ERROR_AS_NULLPTR(oldChain);
+            if (oldChain->IsNone()) {
                 continue;
             }
-            if (cmp == OVERLAP_COMPARE_RESULT_CASE_2 || cmp == OVERLAP_COMPARE_RESULT_CASE_0) {
-                MergeBucketGroup(oldSegmentGroup, curOldRange, newSegmentGroup, curNewRange, bucketGroupManager);
-                std::vector<uint32_t> curGroupRescaleRelation;
-                auto iter = rescaleRelation.find(curNewRange->GetBucketGroupId());
-                if (iter != rescaleRelation.end()) {
-                    iter->second.push_back(curOldRange->GetBucketGroupId());
-                } else {
-                    curGroupRescaleRelation = std::vector<uint32_t>();
-                    curGroupRescaleRelation.push_back(curOldRange->GetBucketGroupId());
-                    rescaleRelation.emplace(curNewRange->GetBucketGroupId(), curGroupRescaleRelation);
+
+            auto oldRange = oldMapper->GetBucketRange(oldBucket);
+            RETURN_ERROR_AS_NULLPTR(oldRange);
+            const uint32_t overlapStart = std::max(oldRange->GetStartHashCode(), targetTaskRange->GetStartHashCode());
+            const uint32_t overlapEnd = std::min(oldRange->GetEndHashCode(), targetTaskRange->GetEndHashCode());
+            if (overlapStart > overlapEnd) {
+                continue;
+            }
+
+            const uint32_t targetStart = targetMapper->MapUnchecked(overlapStart);
+            const uint32_t targetEnd = targetMapper->MapUnchecked(overlapEnd);
+
+            const uint32_t fanout = targetEnd - targetStart + 1;
+            const bool rangeClipped = overlapStart != oldRange->GetStartHashCode() ||
+                                      overlapEnd != oldRange->GetEndHashCode();
+            const bool requireForceCompaction = fanout > 1 || rangeClipped;
+
+            for (uint32_t targetBucket = targetStart; targetBucket <= targetEnd; ++targetBucket) {
+                LogicalSliceChainRef targetChain = oldChain;
+                if (fanout > 1) {
+                    targetChain = oldChain->DeepCopy(true);
+                    RETURN_ALLOC_FAIL_AS_NULLPTR(targetChain);
                 }
-                oldGroupPoint++;
-                continue;
-            }
-            if (cmp == OVERLAP_COMPARE_RESULT_CASE_1) {
-                MergeBucketGroup(oldSegmentGroup, curOldRange, newSegmentGroup, curNewRange, bucketGroupManager);
-                auto iter = rescaleRelation.find(curNewRange->GetBucketGroupId());
-                if (iter != rescaleRelation.end()) {
-                    iter->second.push_back(curOldRange->GetBucketGroupId());
-                } else {
-                    std::vector<uint32_t> curGroupRescaleRelation = std::vector<uint32_t>();
-                    curGroupRescaleRelation.push_back(curOldRange->GetBucketGroupId());
-                    rescaleRelation.emplace(curNewRange->GetBucketGroupId(), curGroupRescaleRelation);
+
+                std::vector<FilePageRef> filePages;
+                targetChain->GetFilePages(filePages);
+                if (!filePages.empty()) {
+                    auto lsmStore = bucketGroupManager->GetLsmStoreByBucketIndex(targetBucket);
+                    RETURN_ERROR_AS_NULLPTR(lsmStore);
+                    targetChain->RestoreFilePage(lsmStore);
                 }
-                newGroupPoint++;
-                continue;
+                RETURN_NOT_OK(AddLogicalSliceChainIntoMappingTable(newGroup->mSliceBucketIndex, targetBucket,
+                                                                   targetChain, requireForceCompaction));
             }
-            // case: cmp == OVERLAP_COMPARE_RESULT_CASE_3
-            newGroupPoint++;
         }
         return BSS_OK;
     }
 
 private:
-    static BResult AddLogicalSLiceChainIntoMappingTable(SliceBucketIndexRef &sliceBucketIndex, uint32_t indexSlot,
-                                                        LogicalSliceChainRef &logicalSliceChain)
+    static BResult AddLogicalSliceChainIntoMappingTable(SliceBucketIndexRef &sliceBucketIndex, uint32_t indexSlot,
+                                                        LogicalSliceChainRef &logicalSliceChain,
+                                                        bool requireForceCompaction)
     {
-        auto logicChainedSlice = sliceBucketIndex->GetLogicChainedSlice(indexSlot);
-        if (UNLIKELY(logicChainedSlice == nullptr)) {
-            LOG_ERROR("LogicChainedSlice is null, indexSlot: " << indexSlot);
-            return BSS_ERR;
-        }
-        if (logicChainedSlice->IsNone()) {
+        auto nowChain = sliceBucketIndex->GetLogicChainedSlice(indexSlot);
+        RETURN_ERROR_AS_NULLPTR(nowChain);
+        if (nowChain->IsNone()) {
             sliceBucketIndex->SetLogicChainedSlice(indexSlot, std::make_shared<CompositeLogicalSliceChain>());
+            nowChain = sliceBucketIndex->GetLogicChainedSlice(indexSlot);
         }
-        LogicalSliceChainRef nowChain = sliceBucketIndex->GetLogicChainedSlice(indexSlot);
-        if (UNLIKELY(nowChain == nullptr)) {
-            LOG_ERROR("NowChain is null, indexSlot: " << indexSlot);
-            return BSS_ERR;
-        }
-        std::dynamic_pointer_cast<CompositeLogicalSliceChain>(nowChain)->AddLogicalSliceChain(logicalSliceChain);
+        auto composite = std::dynamic_pointer_cast<CompositeLogicalSliceChain>(nowChain);
+        RETURN_ERROR_AS_NULLPTR(composite);
+        RETURN_NOT_OK(composite->AddLogicalSliceChain(logicalSliceChain, requireForceCompaction));
         return BSS_OK;
-    }
-
-    static void MergeBucketGroup(SliceBucketGroupRangeGroupRef oldSegmentGroup, BucketGroupRangeRef oldRange,
-                                 SliceBucketGroupRangeGroupRef newSegmentGroup, BucketGroupRangeRef newRange,
-                                 BucketGroupManagerRef bucketGroupManager)
-    {
-        // 缩容
-        if (oldSegmentGroup->mTotalBucket >= newSegmentGroup->mTotalBucket && newSegmentGroup->mTotalBucket != 0) {
-            uint32_t shrink = oldSegmentGroup->mTotalBucket / newSegmentGroup->mTotalBucket;
-            for (auto i = oldRange->GetStartBucket(); i <= oldRange->GetEndBucket() && shrink != 0; i++) {
-                uint32_t mappingIndex = i / shrink;
-                LogicalSliceChainRef oldLogicalSliceChain = oldSegmentGroup->mSliceBucketIndex->GetLogicChainedSlice(i);
-                if (oldLogicalSliceChain->IsNone()) {
-                    continue;
-                }
-
-                if (mappingIndex < newRange->GetStartBucket() || mappingIndex > newRange->GetEndBucket()) {
-                    continue;
-                }
-
-                std::vector<FilePageRef> filePages;
-                oldLogicalSliceChain->GetFilePages(filePages);
-                if (!filePages.empty()) {
-                    LsmStoreRef lsmStore = bucketGroupManager->GetLsmStoreByBucketIndex(mappingIndex);
-                    if (lsmStore == nullptr) {
-                        return;
-                    }
-                    oldLogicalSliceChain->RestoreFilePage(lsmStore);
-                }
-                RETURN_AS_NOT_OK_NO_LOG(AddLogicalSLiceChainIntoMappingTable(newSegmentGroup->mSliceBucketIndex,
-                                                                             mappingIndex, oldLogicalSliceChain));
-            }
-            return;
-        }
-
-        // 扩容
-        if (oldSegmentGroup->mTotalBucket == 0) {
-            LOG_ERROR("Total bucket is 0.");
-            return;
-        }
-
-        uint32_t expand = newSegmentGroup->mTotalBucket / oldSegmentGroup->mTotalBucket;
-        for (auto i = oldRange->GetStartBucket(); i <= oldRange->GetEndBucket(); i++) {
-            LogicalSliceChainRef oldLogicalSliceChain = oldSegmentGroup->mSliceBucketIndex->GetLogicChainedSlice(i);
-            if (oldLogicalSliceChain->IsNone()) {
-                continue;
-            }
-
-            uint32_t mappingStartIndex = i * expand;
-            uint32_t mappingEndIndex = (i + 1) * expand - 1;
-            for (uint32_t j = std::max(mappingStartIndex, newRange->GetStartBucket());
-                 j <= std::min(mappingEndIndex, newRange->GetEndBucket()); j++) {
-                LogicalSliceChainRef logicalSliceChain = oldLogicalSliceChain->DeepCopy();
-                std::vector<FilePageRef> filePages;
-                logicalSliceChain->GetFilePages(filePages);
-                if (!filePages.empty()) {
-                    LsmStoreRef lsmStore = bucketGroupManager->GetLsmStoreByBucketIndex(j);
-                    if (lsmStore == nullptr) {
-                        return;
-                    }
-                    logicalSliceChain->RestoreFilePage(lsmStore);
-                }
-                RETURN_AS_NOT_OK_NO_LOG(
-                    AddLogicalSLiceChainIntoMappingTable(newSegmentGroup->mSliceBucketIndex, j, logicalSliceChain));
-            }
-        }
     }
 };
 

@@ -64,13 +64,15 @@ using SkiplistProcessorRef = std::shared_ptr<SkiplistProcessor>;
 class PQTable : public AutoCloseable {
 public:
     PQTable(const MemManagerRef &memManager, const ExecutorServicePtr &service, const LsmStoreRef &lsmStore,
-            const std::string &stateName, StateIdProviderRef provider, TableDescriptionRef &des)
+            const std::string &stateName, StateIdProviderRef provider, TableDescriptionRef &des,
+            const KeyGroupUtilRef &keyGroupUtil)
         : mMemManager(memManager),
           mService(service),
           mLsmStore(lsmStore),
           mStateName(stateName),
           mStateIdProvider(provider),
-          mDescription(des)
+          mDescription(des),
+          mKeyGroupUtil(keyGroupUtil)
     {
     }
 
@@ -221,6 +223,7 @@ private:
     StateIdProviderRef mStateIdProvider;
     TableDescriptionRef mDescription;
     uint16_t mStateId = 0;
+    KeyGroupUtilRef mKeyGroupUtil = nullptr;
 };
 using PQTableRef = std::shared_ptr<PQTable>;
 }  // namespace bss

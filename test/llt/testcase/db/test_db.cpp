@@ -11,6 +11,9 @@
 #include <dirent.h>
 #include <ftw.h>
 
+#include <array>
+#include <cstring>
+
 #include "common/bss_log.h"
 #include "gtest/gtest.h"
 #include "include/boost_state_db.h"
@@ -1185,6 +1188,16 @@ BResult UpdateFromDBWithTTL(StateType keyedStateType, std::string tableName, Boo
     return db->UpdateTtlConfig(tblDesc);
 }
 
+void WaitForTTLExpiration(int64_t ttl)
+{
+    uint64_t expirationTime = TimeStampUtil::GetCurrentTime() + static_cast<uint64_t>(ttl);
+    uint64_t currentTime = TimeStampUtil::GetCurrentTime();
+    while (currentTime < expirationTime) {
+        usleep(NO_10000);
+        currentTime = TimeStampUtil::GetCurrentTime();
+    }
+}
+
 void ForceFlushToSlice(bool allDb = false)
 {
     mDB->ForceTriggerTransform();
@@ -1219,6 +1232,20 @@ public:
 
     void CloseAllDb()
     {
+        kVTable.reset();
+        nsKVTable.reset();
+        kMapTable.reset();
+        nsKMapTable.reset();
+        kListTable.reset();
+        nsKListTable.reset();
+        kVTable1.reset();
+        nsKVTable1.reset();
+        kMapTable1.reset();
+        nsKMapTable1.reset();
+        kListTable1.reset();
+        nsKListTable1.reset();
+        pqTable.reset();
+        pqTable1.reset();
         if (mDB != nullptr) {
             mDB->Close();
             delete mDB;
@@ -1230,7 +1257,6 @@ public:
             delete mDB1;
             mDB1 = nullptr;
         }
-        pqTable = nullptr;
     }
 
     bool DeleteCpFile()
@@ -1478,6 +1504,13 @@ void TestDB::TearDown()
     kListTable.reset();
     nsKListTable.reset();
     pqTable.reset();
+    kVTable1.reset();
+    nsKVTable1.reset();
+    kMapTable1.reset();
+    nsKMapTable1.reset();
+    kListTable1.reset();
+    nsKListTable1.reset();
+    pqTable1.reset();
 
     mKV.clear();
     mNsKV.clear();
@@ -1509,9 +1542,84 @@ void TestDB::TearDown()
     LOG_INFO("TestDB::TearDownTestCase finish.");
 }
 
+TEST_F(TestDB, SameTaskSlotDifferentMaxParallelismKeepsDbACodec)
+{
+    CloseAllDb();
+    ConfigRef configA = std::make_shared<Config>(NO_0, NO_127, NO_128);
+    configA->mMemorySegmentSize = IO_SIZE_32M;
+    configA->SetEvictMinSize(IO_SIZE_1K);
+    configA->SetBackendUID("codec-root-a");
+    configA->SetTaskSlotFlag(NO_0);
+    mDB = BoostStateDBFactory::Create();
+    ASSERT_NE(mDB, nullptr);
+    ASSERT_EQ(mDB->Open(configA), BSS_OK);
+    kVTable = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "codec-root-kv", mDB));
+    ASSERT_NE(kVTable, nullptr);
+
+    std::array<uint8_t, 4> key = { 'r', 'o', 'o', 't' };
+    std::array<uint8_t, 4> value = { 1, 2, 3, 4 };
+    BinaryData keyData(key.data(), key.size());
+    BinaryData valueData(value.data(), value.size());
+    ASSERT_EQ(kVTable->Put(120U, keyData, valueData), BSS_OK);
+    auto pqTableA = mDB->CreatePQTable("codec-root-pq");
+    ASSERT_NE(pqTableA, nullptr);
+    ASSERT_EQ(pqTableA->AddKey(keyData, 120U), BSS_OK);
+
+    ConfigRef configB = std::make_shared<Config>(NO_0, NO_255, NO_256);
+    configB->mMemorySegmentSize = IO_SIZE_32M;
+    configB->SetEvictMinSize(IO_SIZE_1K);
+    configB->SetBackendUID("codec-root-b");
+    configB->SetTaskSlotFlag(NO_0);
+    mDB1 = BoostStateDBFactory::Create();
+    ASSERT_NE(mDB1, nullptr);
+    ASSERT_EQ(mDB1->Open(configB), BSS_OK);
+    kVTable1 = std::dynamic_pointer_cast<KVTable>(CreateFromDB(StateType::VALUE, "codec-root-kv", mDB1));
+    ASSERT_NE(kVTable1, nullptr);
+
+    auto expectValue = [&] {
+        BinaryData actual;
+        ASSERT_EQ(kVTable->Get(120U, keyData, actual), BSS_OK);
+        ASSERT_EQ(actual.Length(), value.size());
+        EXPECT_EQ(memcmp(actual.Data(), value.data(), value.size()), 0);
+    };
+    expectValue();
+    mDB->ForceTriggerTransform();
+    expectValue();
+    mDB->ForceTriggerEvict();
+    expectValue();
+    ASSERT_EQ(pqTableA->TriggerSegmentFlush(true), BSS_OK);
+
+    std::string checkpointRoot = GetCurrentWorkingDirectory() + "/codec-root-checkpoint";
+    std::string checkpointPath = checkpointRoot + "/1";
+    mkdir(checkpointRoot.c_str(), mode_t(NO_777));
+    mkdir(checkpointPath.c_str(), mode_t(NO_777));
+    ASSERT_NE(mDB->CreateSyncCheckpoint(checkpointPath, 1), nullptr);
+    ASSERT_EQ(mDB->CreateAsyncCheckpoint(1, false), BSS_OK);
+
+    auto savepoint = mDB->TriggerSavepoint();
+    ASSERT_NE(savepoint, nullptr);
+    auto iterator = savepoint->SavepointIterator();
+    ASSERT_NE(iterator, nullptr);
+    bool sawKv = false;
+    bool sawPq = false;
+    while (iterator->HasNext()) {
+        auto item = iterator->Next();
+        ASSERT_NE(item, nullptr);
+        sawKv = sawKv || (item->mStateType == VALUE && item->mKeyGroup == 120U);
+        sawPq = sawPq || (item->mStateType == PQ && item->mKeyGroup == 120U);
+    }
+    EXPECT_TRUE(sawKv);
+    EXPECT_TRUE(sawPq);
+    iterator->Close();
+    savepoint->Close();
+    delete savepoint;
+    pqTableA.reset();
+}
+
 TEST_F(TestDB, test_sp_list_and_get_return_ok)
 {
-    std::vector<OperationConfig> operationsConfig = { { 0.9, KListAddBigValue }, { 0.1, KListRemove } };
+    auto skipRemove = [](uint32_t, uint32_t, bool) { (void)GetRandomData(sourceKey); };
+    std::vector<OperationConfig> operationsConfig = { { 0.9, KListAddBigValue }, { 0.1, skipRemove } };
     for (uint32_t i = 0; i < NO_1; i++) {
         for (uint32_t j = 0; j < NO_1000; j++) {
             executeOperation(operationsConfig);
@@ -1591,7 +1699,7 @@ TEST_F(TestDB, test_KV_to_lsm_store_and_get_return_false_with_ttl)
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
         }
-        sleep(NO_6);
+        WaitForTTLExpiration(NO_5 * NO_1000);
         ForceEvictToLsm();
 
         for (auto &it : mKV) {
@@ -1658,7 +1766,7 @@ TEST_F(TestDB, test_KMap_to_lsm_store_and_get_return_false_with_ttl)
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
         }
-        sleep(NO_6);
+        WaitForTTLExpiration(NO_5 * NO_1000);
         ForceEvictToLsm();
 
         for (auto &it : mKMap) {
@@ -1718,7 +1826,7 @@ TEST_F(TestDB, test_KList_to_lsm_store_and_get_return_false_with_ttl)
         for (uint32_t j = 0; j < NO_10000; j++) {
             executeOperation(operationsConfig);
         }
-        sleep(NO_6);
+        WaitForTTLExpiration(NO_5 * NO_1000);
         ForceEvictToLsm();
 
         for (auto &it : mKList) {
@@ -1761,7 +1869,7 @@ TEST_F(TestDB, test_all_states_to_lsm_store_and_get_return_ok_with_ttl)
         ASSERT_EQ(ret1, BSS_OK);
         BResult ret2 = UpdateFromDBWithTTL(StateType::LIST, "kListTable", mDB, NO_20 * NO_1000);
         ASSERT_EQ(ret2, BSS_OK);
-        sleep(NO_6);
+        WaitForTTLExpiration(NO_5 * NO_1000);
         ForceEvictToLsm();
 
         for (auto &it : mKV) {

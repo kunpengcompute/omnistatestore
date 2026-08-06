@@ -388,12 +388,14 @@ BResult FreshTable::InitNewActiveBinarySegment()
     return CreateAndAssignBinarySegment(memorySegment);
 }
 
-BResult FreshTable::Initialize(const ConfigRef &config, const MemManagerRef &memManager)
+BResult FreshTable::Initialize(const ConfigRef &config, const MemManagerRef &memManager,
+                               const KeyGroupUtilRef &keyGroupUtil)
 {
     RETURN_INVALID_PARAM_AS_NULLPTR(config);
     RETURN_INVALID_PARAM_AS_NULLPTR(memManager);
     mConfig = config;
     mMemManager = memManager;
+    mKeyGroupUtil = keyGroupUtil;
     return InitNewActiveBinarySegment();
 }
 
@@ -554,7 +556,7 @@ BResult FreshTable::FillDataByMemorySegment(const BoostSegmentRef &boostSegment,
 
         BinaryKey binaryKey;
         binaryKey.Parse(primaryKey, stateType == VALUE);  // 构建binaryKey获取keyGroup.
-        auto curGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(binaryKey.mKeyHashCode);
+        auto curGroup = mKeyGroupUtil->ComputeKeyGroupForKeyHash(binaryKey.mKeyHashCode);
         if (!validKeyGroups.ContainsGroup(static_cast<int32_t>(curGroup))) {  // 过滤掉不属于该KeyGroup的kv数据.
             continue;
         }

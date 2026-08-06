@@ -12,6 +12,7 @@
 #include "slice_table_restore_operation.h"
 
 #include <iostream>
+#include <limits>
 
 #include "slice_table/bucket_group_range.h"
 #include "slice_table/bucket_group_rescale_util.h"
@@ -129,6 +130,61 @@ BResult ReadSliceSnapshotPayload(const FileInputViewRef &inputView, const SliceA
 }
 }  // namespace
 
+size_t SliceTableRestoreOperation::SliceRestoreCacheKeyHash::operator()(const SliceRestoreCacheKey &key) const
+{
+    size_t seed = std::hash<std::string>{}(key.localAddress);
+    auto combine = [&seed](size_t value) { seed ^= value + 0x9e3779b9U + (seed << 6U) + (seed >> 2U); };
+    combine(std::hash<uint64_t>{}(key.startOffset));
+    combine(std::hash<uint32_t>{}(key.rawLength));
+    combine(std::hash<uint32_t>{}(key.storedLength));
+    combine(std::hash<uint8_t>{}(static_cast<uint8_t>(key.compressAlgo)));
+    combine(std::hash<uint32_t>{}(key.checkSum));
+    return seed;
+}
+
+SliceTableRestoreOperation::SliceRestoreCacheKey SliceTableRestoreOperation::BuildSliceRestoreCacheKey(
+    const SliceAddressRef &sliceAddress)
+{
+    return { sliceAddress->GetLocalAddress(),  sliceAddress->GetStartOffset(),  sliceAddress->GetDataLen(),
+             sliceAddress->GetStoredDataLen(), sliceAddress->GetCompressAlgo(), sliceAddress->GetCheckSum() };
+}
+
+SliceRef SliceTableRestoreOperation::DataSliceRestoreCache::Find(const SliceRestoreCacheKey &key)
+{
+    auto current = currentSlot.find(key);
+    if (current != currentSlot.end()) {
+        return current->second;
+    }
+    auto previous = previousSlot.find(key);
+    if (previous == previousSlot.end()) {
+        return nullptr;
+    }
+    currentSlot.emplace(key, previous->second);
+    return previous->second;
+}
+
+void SliceTableRestoreOperation::DataSliceRestoreCache::Put(SliceRestoreCacheKey key, const SliceRef &slice)
+{
+    currentSlot.emplace(std::move(key), slice);
+}
+
+void SliceTableRestoreOperation::DataSliceRestoreCache::ClearPreviousSlot()
+{
+    previousSlot.clear();
+}
+
+void SliceTableRestoreOperation::DataSliceRestoreCache::CompleteSlot()
+{
+    previousSlot = std::move(currentSlot);
+    currentSlot.clear();
+}
+
+void SliceTableRestoreOperation::DataSliceRestoreCache::Clear()
+{
+    previousSlot.clear();
+    currentSlot.clear();
+}
+
 BResult SliceTableRestoreOperation::RestoreSliceBucketIndex(std::vector<RestoredDbMetaRef> &restoredDbMetas,
                                                             std::vector<SliceTableRestoreMetaRef> &restoreMetaList)
 {
@@ -177,8 +233,10 @@ BResult SliceTableRestoreOperation::RestoreSliceBucketIndex(std::vector<Restored
         uint64_t snapshotId = restoredDbMetas[0]->GetSnapshotId();
         metaFileInputView->Seek(restoreMeta->GetSliceTableMetaOffset());
         SliceBucketGroupRangeGroupRef oldSliceSegmentGroup = nullptr;
-        RETURN_NOT_OK(
-            RestoreSliceBucketIndex(metaFileInputView, dbMeta->GetSnapshotVersion(), oldSliceSegmentGroup, snapshotId));
+        SliceBucketMapperRef oldMapper = nullptr;
+        RETURN_NOT_OK(RestoreSliceBucketIndex(metaFileInputView, dbMeta->GetSnapshotVersion(), oldSliceSegmentGroup,
+                                              snapshotId, dbMeta->GetStartKeyGroup(), dbMeta->GetEndKeyGroup(),
+                                              oldMapper));
 
         // 缩放BucketGroup, 针对并行度并更场景.
         auto newSliceBucketGroupRangeGroup =
@@ -186,7 +244,9 @@ BResult SliceTableRestoreOperation::RestoreSliceBucketIndex(std::vector<Restored
                                                          mBucketGroupManager->GetBucketGroupRanges(),
                                                          mSliceBucketIndex);
         RETURN_NOT_OK(BucketGroupRescaleUtil::Rescale(oldSliceSegmentGroup, newSliceBucketGroupRangeGroup,
-                                                      mBucketGroupManager, restoreMeta->GetRescaleMappingInfo()));
+                                                      mBucketGroupManager, oldMapper,
+                                                      mSliceBucketIndex->GetBucketMapper(),
+                                                      restoreMeta->GetRescaleMappingInfo()));
         restoreMetaList.push_back(restoreMeta);
         LOG_DEBUG("Restore slice bucket index success, bucket group:" << newSliceBucketGroupRangeGroup->ToString());
     }
@@ -195,7 +255,8 @@ BResult SliceTableRestoreOperation::RestoreSliceBucketIndex(std::vector<Restored
 
 BResult SliceTableRestoreOperation::RestoreSliceBucketIndex(const FileInputViewRef &reader, uint32_t snapshotVersion,
                                                             SliceBucketGroupRangeGroupRef &oldSliceSegmentGroup,
-                                                            uint64_t snapshotId)
+                                                            uint64_t snapshotId, uint32_t oldStartKeyGroup,
+                                                            uint32_t oldEndKeyGroup, SliceBucketMapperRef &oldMapper)
 {
     if (snapshotVersion >= NO_3) {
         uint8_t kvSeparateMode = 0;
@@ -208,6 +269,13 @@ BResult SliceTableRestoreOperation::RestoreSliceBucketIndex(const FileInputViewR
         LOG_ERROR("Old bucket num resolve failed, oldBucketNum:" << oldBucketNum);
         return BSS_ERR;
     }
+    if (UNLIKELY(oldBucketNum != mCurTotalBucketNum)) {
+        LOG_ERROR("Restore with different slice bucket count is unsupported, old:" << oldBucketNum << ", current:"
+                                                                                   << mCurTotalBucketNum);
+        return BSS_NOT_SUPPORTED;
+    }
+    oldMapper = std::make_shared<SliceBucketMapper>();
+    RETURN_NOT_OK(oldMapper->Initialize(mConfig->GetMaxParallelism(), oldStartKeyGroup, oldEndKeyGroup, oldBucketNum));
 
     // 1. 恢复sliceChain和sliceAddress.
     uint64_t sliceTotalSize = 0;
@@ -277,6 +345,7 @@ void SliceTableRestoreOperation::TryEvictCompositeLogicalSliceChain(uint64_t cha
 BResult SliceTableRestoreOperation::LoadSlicesIntoSliceTable(uint32_t snapshotVersion, bool isFailOver)
 {
     RETURN_INVALID_PARAM_AS_NULLPTR(mSliceBucketIndex);
+    DataSliceRestoreCache cache;
     auto whole = mSliceBucketIndex->GetIndexCapacity();
     std::atomic<uint32_t> remaining{ whole };
 
@@ -284,13 +353,16 @@ BResult SliceTableRestoreOperation::LoadSlicesIntoSliceTable(uint32_t snapshotVe
         uint32_t slot = i;
         LogicalSliceChainRef sliceChain = mSliceBucketIndex->GetLogicChainedSlice(i);
         if (UNLIKELY(sliceChain == nullptr)) {
+            cache.Clear();
             mSliceBucketIndex->SetLogicChainedSlice(slot, LogicalSliceChain::mEmptySliceChain);
             remaining.fetch_sub(1);
             continue;
         }
         if (sliceChain->IsNone()) {
+            cache.Clear();
             remaining.fetch_sub(1);
         } else if (std::dynamic_pointer_cast<CompositeLogicalSliceChain>(sliceChain)->GetSliceSize() == 0) {
+            cache.Clear();
             std::shared_ptr<LogicalSliceChainImpl> chain = std::make_shared<LogicalSliceChainImpl>();
             auto chains = std::dynamic_pointer_cast<CompositeLogicalSliceChain>(sliceChain)->GetSliceChains();
             for (auto &item : chains) {
@@ -302,11 +374,32 @@ BResult SliceTableRestoreOperation::LoadSlicesIntoSliceTable(uint32_t snapshotVe
             remaining.fetch_sub(1);
         } else {
             // 1. 根据compact compositeLogicalSlice所需内存判断是否淘汰SliceTable的数据进行淘汰.
-            TryEvictCompositeLogicalSliceChain(sliceChain->GetSliceSize());
+            auto composite = std::dynamic_pointer_cast<CompositeLogicalSliceChain>(sliceChain);
+            RETURN_ERROR_AS_NULLPTR(composite);
+            bool useRollingCache = composite->GetCompositeNum() > NO_1 || composite->RequireForceCompaction();
+            if (!useRollingCache) {
+                cache.Clear();
+            }
+            TryEvictCompositeLogicalSliceChain(composite->GetCompositeSliceSize());
             // 2. 加载复合LogicSliceChain.
-            RETURN_NOT_OK(TryLoadCompositeLogicalSliceChain(sliceChain, snapshotVersion));
+            RETURN_NOT_OK(TryLoadCompositeLogicalSliceChain(sliceChain, snapshotVersion, cache));
+            if (useRollingCache) {
+                cache.ClearPreviousSlot();
+            } else {
+                cache.Clear();
+            }
             // 3. 同步合并CompositeLogicSliceChain.
             RETURN_NOT_OK(CompactCompositeLogicalSliceChain(slot));
+            if (useRollingCache) {
+                cache.CompleteSlot();
+            }
+        }
+    }
+    for (uint32_t slot = 0; slot < mSliceBucketIndex->GetIndexCapacity(); ++slot) {
+        auto chain = mSliceBucketIndex->GetLogicChainedSlice(slot);
+        if (UNLIKELY(chain == nullptr || std::dynamic_pointer_cast<CompositeLogicalSliceChain>(chain) != nullptr)) {
+            LOG_ERROR("Restore left invalid target chain, slot:" << slot);
+            return BSS_INNER_ERR;
         }
     }
     return BSS_OK;
@@ -315,15 +408,31 @@ BResult SliceTableRestoreOperation::LoadSlicesIntoSliceTable(uint32_t snapshotVe
 BResult SliceTableRestoreOperation::TryLoadCompositeLogicalSliceChain(const LogicalSliceChainRef &sliceChain,
                                                                       uint32_t snapshotVersion)
 {
+    DataSliceRestoreCache cache;
+    return TryLoadCompositeLogicalSliceChain(sliceChain, snapshotVersion, cache);
+}
+
+BResult SliceTableRestoreOperation::TryLoadCompositeLogicalSliceChain(const LogicalSliceChainRef &sliceChain,
+                                                                      uint32_t snapshotVersion,
+                                                                      DataSliceRestoreCache &cache)
+{
     std::vector<LogicalSliceChainRef> sliceChainList = sliceChain->GetSliceChains();
     for (const auto &chain : sliceChainList) {
-        RETURN_NOT_OK(LoadSlicesIntoLogicalSliceChain(chain, snapshotVersion));
+        RETURN_NOT_OK(LoadSlicesIntoLogicalSliceChain(chain, snapshotVersion, cache));
     }
     return BSS_OK;
 }
 
 BResult SliceTableRestoreOperation::LoadSlicesIntoLogicalSliceChain(const LogicalSliceChainRef &sliceChain,
                                                                     uint32_t snapshotVersion)
+{
+    DataSliceRestoreCache cache;
+    return LoadSlicesIntoLogicalSliceChain(sliceChain, snapshotVersion, cache);
+}
+
+BResult SliceTableRestoreOperation::LoadSlicesIntoLogicalSliceChain(const LogicalSliceChainRef &sliceChain,
+                                                                    uint32_t snapshotVersion,
+                                                                    DataSliceRestoreCache &cache)
 {
     uint32_t index = 0;
     IteratorRef<SliceAddressRef> sliceIterator = sliceChain->SliceIterator();
@@ -336,40 +445,83 @@ BResult SliceTableRestoreOperation::LoadSlicesIntoLogicalSliceChain(const Logica
 
         // 1. 读取dataSlice数据.
         RETURN_NOT_OK(ValidateSliceSnapshotCompressionMeta(sliceAddress));
-        auto buffer = MakeRef<ByteBuffer>(sliceAddress->GetDataLen(), MemoryType::SLICE_TABLE, mMemManager);
-        if (UNLIKELY(buffer == nullptr || !buffer->Valid())) {
-            LOG_ERROR("Alloc slice restore byte buffer failed, sliceId:" << sliceAddress->GetSliceId()
-                                                                         << ", dataLen:" << sliceAddress->GetDataLen());
-            return BSS_ALLOC_FAIL;
-        }
-        auto restoreFilePath = std::make_shared<Path>(sliceAddress->GetLocalAddress());
-        FileInputViewRef inputView = std::make_shared<FileInputView>();
-        auto ret = inputView->Init(FileSystemType::LOCAL, restoreFilePath);
-        if (UNLIKELY(ret != BSS_OK)) {
-            LOG_ERROR("Load slice chain failed, because of init restore input view failed, ret:"
-                      << ret << ", filePath:" << restoreFilePath->ExtractFileName());
-            return ret;
-        }
-        ret = ReadSliceSnapshotPayload(inputView, sliceAddress, buffer, mMemManager);
-        if (UNLIKELY(ret != BSS_OK)) {
-            LOG_ERROR("Load slice chain failed, because of read snapshot payload failed, ret:"
-                      << ret << ", filePath:" << restoreFilePath->ExtractFileName());
-            return ret;
-        }
+        SliceRestoreCacheKey cacheKey = BuildSliceRestoreCacheKey(sliceAddress);
+        SliceRef slice = cache.Find(cacheKey);
+        if (slice == nullptr) {
+            RETURN_NOT_OK(EnsureSliceRestoreMemory(sliceAddress, cache));
+            auto buffer = MakeRef<ByteBuffer>(sliceAddress->GetDataLen(), MemoryType::SLICE_TABLE, mMemManager);
+            if (UNLIKELY(buffer == nullptr || !buffer->Valid())) {
+                LOG_ERROR("Alloc slice restore byte buffer failed, sliceId:"
+                          << sliceAddress->GetSliceId() << ", dataLen:" << sliceAddress->GetDataLen());
+                return BSS_ALLOC_FAIL;
+            }
+            auto restoreFilePath = std::make_shared<Path>(sliceAddress->GetLocalAddress());
+            FileInputViewRef inputView = std::make_shared<FileInputView>();
+            auto ret = inputView->Init(FileSystemType::LOCAL, restoreFilePath);
+            if (UNLIKELY(ret != BSS_OK)) {
+                LOG_ERROR("Load slice chain failed, because of init restore input view failed, ret:"
+                          << ret << ", filePath:" << restoreFilePath->ExtractFileName());
+                return ret;
+            }
+            ret = ReadSliceSnapshotPayload(inputView, sliceAddress, buffer, mMemManager);
+            if (UNLIKELY(ret != BSS_OK)) {
+                LOG_ERROR("Load slice chain failed, because of read snapshot payload failed, ret:"
+                          << ret << ", filePath:" << restoreFilePath->ExtractFileName());
+                return ret;
+            }
 
-        // 2. 构建dataSlice.
-        SliceRef slice = std::make_shared<Slice>();
-        slice->RestoreSliceUseByteBuffer(buffer, mMemManager);
+            // 2. 构建slice.
+            slice = std::make_shared<Slice>();
+            slice->RestoreSliceUseByteBuffer(buffer, mMemManager);
+            cache.Put(std::move(cacheKey), slice);
+        }
         DataSliceRef dataSlice = std::make_shared<DataSlice>();
         dataSlice->Init(slice);
-        dataSlice->SetChainIndex(index);
-        index++;
+        dataSlice->SetChainIndex(index++);
         sliceAddress->SetDataSlice(dataSlice);
         // 更新slice链上占用内存
         mSliceTable->AddSliceUsedMemory(dataSlice->GetSize());
         if (mConfig->GetIsNewJob()) {
             // 清空localAddress，增量Checkpoint要用这个标识做判断.
             sliceAddress->SetLocalAddress("");
+        }
+    }
+    return BSS_OK;
+}
+
+BResult SliceTableRestoreOperation::EnsureSliceRestoreMemory(const SliceAddressRef &sliceAddress,
+                                                             DataSliceRestoreCache &cache)
+{
+    RETURN_INVALID_PARAM_AS_NULLPTR(sliceAddress);
+    uint64_t rawLength = sliceAddress->GetDataLen();
+    uint64_t storedLength = sliceAddress->GetStoredDataLen();
+    uint64_t required = mMemManager->CalcSize(rawLength);
+    if (sliceAddress->GetCompressAlgo() != CompressAlgo::NONE) {
+        required += mMemManager->CalcSize(storedLength);
+    }
+    uint64_t capacity = mMemManager->GetMemoryTypeMaxSize(MemoryType::SLICE_TABLE);
+    if (UNLIKELY(required > capacity)) {
+        LOG_ERROR("Slice restore decode working set exceeds SliceTable capacity, rawLength:"
+                  << rawLength << ", storedLength:" << storedLength << ", required:" << required
+                  << ", capacity:" << capacity);
+        return BSS_ALLOC_FAIL;
+    }
+
+    uint64_t usedMemory = mMemManager->GetMemoryUseSize(MemoryType::SLICE_TABLE);
+    if (usedMemory <= capacity - required) {
+        return BSS_OK;
+    }
+    LOG_DEBUG("Release previous restore cache for decode memory, rawLength:"
+              << rawLength << ", storedLength:" << storedLength << ", usedMemory:" << usedMemory
+              << ", capacity:" << capacity);
+    cache.ClearPreviousSlot();
+    usedMemory = mMemManager->GetMemoryUseSize(MemoryType::SLICE_TABLE);
+    if (usedMemory > capacity - required) {
+        auto ret = mSliceTable->TryCurrentDBEvict(0, true, true);
+        if (UNLIKELY(ret != BSS_OK)) {
+            LOG_ERROR("Force sync evict before slice restore decode failed, ret:"
+                      << ret << ", rawLength:" << rawLength << ", storedLength:" << storedLength
+                      << ", usedMemory:" << usedMemory << ", capacity:" << capacity);
         }
     }
     return BSS_OK;
@@ -440,7 +592,7 @@ BResult SliceTableRestoreOperation::DoCompositeCompaction(const SliceIndexContex
         return BSS_OK;
     }
 
-    auto compactDataSlice = std::make_shared<DataSlice>();
+    DataSliceRef compactDataSlice = nullptr;
     auto ret = DoCompactCompositeSlice(canCompactSliceListReversed, compactDataSlice, true, bucketIndex);
     auto tombstoneService = mSliceTable->GetTombstoneService();
     if (tombstoneService != nullptr) {
@@ -488,7 +640,9 @@ BResult SliceTableRestoreOperation::CompactCompositeLogicalSliceChain(uint32_t s
     }
 
     // 当compositeSliceChain仅有一个元素, 则不执行compaction, 直接将之替换为signalSliceChain.
-    if (logicalSliceChain->GetCompositeNum() == NO_1) {
+    auto composite = std::dynamic_pointer_cast<CompositeLogicalSliceChain>(logicalSliceChain);
+    RETURN_ERROR_AS_NULLPTR(composite);
+    if (composite->GetCompositeNum() == NO_1 && !composite->RequireForceCompaction()) {
         return DirectReplaceCompositeSlice(sliceIndexContext);
     }
 
@@ -504,20 +658,39 @@ BResult SliceTableRestoreOperation::ReplaceCompositeLogicalSlice(LogicalSliceCha
                                                                  const DataSliceRef &compactedDataSlice,
                                                                  std::vector<SliceAddressRef> &invalidSliceAddressList)
 {
+    constexpr uint64_t maxUsedMemory = static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+    uint64_t loadedInputBytes = 0;
+    for (const auto &sliceAddress : invalidSliceAddressList) {
+        if (sliceAddress == nullptr) {
+            continue;
+        }
+        uint64_t dataLen = sliceAddress->GetDataLen();
+        if (UNLIKELY(dataLen > maxUsedMemory - loadedInputBytes)) {
+            LOG_ERROR("Restore compacted input size exceeds used memory range, inputBytes:"
+                      << loadedInputBytes << ", dataLen:" << dataLen << ", slot:" << sliceIndexSlot);
+            return BSS_INVALID_PARAM;
+        }
+        loadedInputBytes += dataLen;
+    }
+    uint64_t outputBytes = compactedDataSlice == nullptr ? 0 : compactedDataSlice->GetSize();
+    int64_t usedMemoryDelta = static_cast<int64_t>(outputBytes) - static_cast<int64_t>(loadedInputBytes);
+
     // 1. 创建新的LogicSliceChain.
     LogicalSliceChainRef compactedLogicalSliceChain = mSliceBucketIndex->CreateLogicalChainedSlice();
     RETURN_ERROR_AS_NULLPTR(compactedLogicalSliceChain);
 
-    // 2. 创建新的DataSliceAddress.
-    SliceAddressRef compactedSliceAddress = compactedLogicalSliceChain->CreateSlice(compactedDataSlice, 0);
-    RETURN_ERROR_AS_NULLPTR(compactedSliceAddress);
-    compactedSliceAddress->ReduceRequestCount(invalidSliceAddressList);
+    // 2. 创建新的DataSliceAddress. 过滤结果为空时保留合法空chain，避免生成零长度SliceAddress.
+    if (compactedDataSlice != nullptr) {
+        SliceAddressRef compactedSliceAddress = compactedLogicalSliceChain->CreateSlice(compactedDataSlice, 0);
+        RETURN_ERROR_AS_NULLPTR(compactedSliceAddress);
+        compactedSliceAddress->ReduceRequestCount(invalidSliceAddressList);
+    }
 
     // 3. 设置新的LogicSliceChain的filePages和baseSliceIndex.
     std::vector<FilePageRef> filePages;
     logicalSliceChain->GetFilePages(filePages);
     compactedLogicalSliceChain->SetFilePages(filePages);
-    if (compactedDataSlice->GetSize() > mConfig->GetSliceMaxSize()) {
+    if (compactedDataSlice != nullptr && compactedDataSlice->GetSize() > mConfig->GetSliceMaxSize()) {
         compactedLogicalSliceChain->SetBaseSliceIndex(NO_1);
     } else {
         compactedLogicalSliceChain->SetBaseSliceIndex(0);
@@ -525,6 +698,11 @@ BResult SliceTableRestoreOperation::ReplaceCompositeLogicalSlice(LogicalSliceCha
 
     // 4. 更新LogicSliceChain.
     SyncUpdateChain(logicalSliceChain, compactedLogicalSliceChain, sliceIndexSlot);
+    if (UNLIKELY(mSliceBucketIndex->GetLogicChainedSlice(sliceIndexSlot) != compactedLogicalSliceChain)) {
+        LOG_ERROR("Restore compacted logical slice chain replacement failed, slot:" << sliceIndexSlot);
+        return BSS_INNER_ERR;
+    }
+    mSliceTable->AddSliceUsedMemory(usedMemoryDelta);
     return BSS_OK;
 }
 

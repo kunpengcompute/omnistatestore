@@ -49,7 +49,7 @@ public:
     {
     }
 
-    SliceAddress(SliceAddress &other)
+    SliceAddress(SliceAddress &other, bool allowMetadataOnly = false)
         : mOriDataLen(other.mOriDataLen),
           mStoredDataLen(other.mStoredDataLen),
           mCompressAlgo(other.mCompressAlgo),
@@ -63,31 +63,14 @@ public:
         mSliceStatus.store(other.mSliceStatus.load());
         if (LIKELY(other.mDataSlice != nullptr)) {
             mDataSlice = std::make_shared<DataSlice>(*other.mDataSlice);
-        } else {
-            LOG_ERROR("Snapshot copy failed, data slice is nullptr, dataLen:"
+        } else if (!allowMetadataOnly && !other.IsEvicted()) {
+            LOG_ERROR("Copy slice address failed, data slice is nullptr, dataLen:"
                       << other.mOriDataLen << ", status:" << static_cast<uint32_t>(other.mSliceStatus.load())
                       << ", checkSum:" << other.mCheckSum);
         }
     }
 
-    SliceAddress &operator=(const SliceAddress &other)
-    {
-        if (this == &other) {
-            return *this;  // 防止自赋值
-        }
-        mSliceStatus.store(other.mSliceStatus.load());
-        mOriDataLen = other.mOriDataLen;
-        mStoredDataLen = other.mStoredDataLen;
-        mCompressAlgo = other.mCompressAlgo;
-        mCheckSum = other.mCheckSum;
-        mBorn = other.mBorn;
-        mHitCount = other.mHitCount;
-        mLocalAddress = other.mLocalAddress;
-        mStartOffset = other.mStartOffset;
-        mSliceId = other.mSliceId;
-        mDataSlice = std::make_shared<DataSlice>(*other.mDataSlice);
-        return *this;
-    }
+    SliceAddress &operator=(const SliceAddress &other) = delete;
 
     void Init(const DataSliceRef &dataSlice, uint64_t accessNumber);
 

@@ -28,7 +28,7 @@ BResult PQTable::Initialize()
 BResult PQTable::AddKey(const BinaryData &key, uint32_t hashcode)
 {
     uint32_t keyGroup = hashcode % mDescription->GetMaxParallelism();
-    KeyGroupUtil::SetKeyGroup(hashcode, keyGroup);
+    mKeyGroupUtil->SetPQKeyGroup(hashcode, keyGroup);
     auto writer = [this, key, hashcode]() -> BResult {
         PQBinaryData pqBinaryData;
         pqBinaryData.mData = GetCopyData(key);
@@ -47,7 +47,7 @@ BResult PQTable::AddKey(const BinaryData &key, uint32_t hashcode)
 BResult PQTable::RemoveKey(const BinaryData &key, uint32_t hashcode)
 {
     uint32_t keyGroup = hashcode % mDescription->GetMaxParallelism();
-    KeyGroupUtil::SetKeyGroup(hashcode, keyGroup);
+    mKeyGroupUtil->SetPQKeyGroup(hashcode, keyGroup);
     auto writer = [this, key, hashcode]() -> BResult {
         PQBinaryData pqBinaryData;
         pqBinaryData.mData = GetCopyData(key);

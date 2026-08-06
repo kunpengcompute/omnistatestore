@@ -94,9 +94,12 @@ public:
         auto fileCache = cacheFactory->GetFileCache();
         auto tableFactory = std::make_shared<FileFactory>(config, std::make_shared<BlockCache>(NO_10000));
         tableFactory->Initialize(mMemManager);
+        KeyGroupUtilRef codec;
+        uint32_t maxParallelism = config->GetMaxParallelism() == 0 ? NO_128 : config->GetMaxParallelism();
+        ASSERT_EQ(KeyGroupUtil::Create(maxParallelism, codec), BSS_OK);
         auto stateFilterManager =
             std::make_shared<StateFilterManager>(std::make_shared<StateIdProvider>(0, NO_65535, mMemManager), config, 0,
-                                                 NO_65535);
+                                                 NO_65535, codec);
         mLsmStore = std::make_shared<LsmStore>(fileStoreId, config, tableFactory, fileCache, stateFilterManager,
                                                mMemManager);
         mLsmStore->Initialize();

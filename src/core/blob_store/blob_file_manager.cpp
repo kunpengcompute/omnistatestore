@@ -319,9 +319,10 @@ std::vector<BlobImmutableFileRef> BlobFileManager::SelectContinuousFilesByMaxDel
     return ret;
 }
 
-TombstoneServiceRef BlobFileManager::RegisterTombstoneService(const std::string &name)
+TombstoneServiceRef BlobFileManager::RegisterTombstoneService(const std::string &name,
+                                                              const KeyGroupUtilRef &keyGroupUtil)
 {
-    return mBlobCleaner->RegisterTombstoneService(name);
+    return mBlobCleaner->RegisterTombstoneService(name, keyGroupUtil);
 }
 
 void BlobFileManager::ReleaseTombstoneSnapshot(uint64_t snapshotId)

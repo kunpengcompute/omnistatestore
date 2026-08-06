@@ -16,6 +16,7 @@
 
 #include "common/bss_metric.h"
 #include "common/concurrent_deque.h"
+#include "common/util/key_group_util.h"
 #include "executor/executor_service.h"
 #include "fresh_table/boost/boost_segment.h"
 #include "fresh_table/handle/slice_handle.h"
@@ -44,7 +45,7 @@ public:
      * @param memManager memory manager.
      * @return return BSS_OK if success, else return BSS_ERR.
      */
-    BResult Initialize(const ConfigRef &config, const MemManagerRef &memManager);
+    BResult Initialize(const ConfigRef &config, const MemManagerRef &memManager, const KeyGroupUtilRef &keyGroupUtil);
 
     /**
      * Exit fresh table.
@@ -407,6 +408,7 @@ private:
     std::function<void()> mTransformTrigger;
 
     BoostNativeMetricPtr mBoostNativeMetric = nullptr;
+    KeyGroupUtilRef mKeyGroupUtil = nullptr;
 };
 using FreshTableRef = std::shared_ptr<FreshTable>;
 

@@ -419,7 +419,9 @@ BResult LsmStore::BuildLsmStoreFlushFile(const IteratorRef<std::vector<DataSlice
     RETURN_ERROR_AS_NULLPTR(fileInfo);
     FileProcHolder holder = FileProcHolder::FILE_STORE_FLUSH;  // 标记该流程是Flush写流程
     auto fileBuilder = mFileCache->CreateBuilder(fileInfo->GetFilePath(), 0, holder);
-    SliceKVIterator iterator(dataSliceVectorIterator, mMemManager, mTombstoneService);
+    SliceKVIterator iterator(dataSliceVectorIterator, mMemManager, mStateFilterManager->GetKeyGroupUtil(),
+                             mStateFilterManager->GetStartKeyGroup(), mStateFilterManager->GetEndKeyGroup(),
+                             mTombstoneService);
     Iterator_Result result;
     uint32_t keyCount = 0;
     while ((result = iterator.HasNext()) == Iterator_Result_Continue) {
@@ -737,7 +739,7 @@ BResult LsmStore::InternalGet(const Key &key, Value &value)
     VersionPtr current = GetCurrentVersion();
 
     // 2. 计算当前key的keyGroup.
-    uint32_t keyGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(key.KeyHashCode());
+    uint32_t keyGroup = static_cast<uint32_t>(mStateFilterManager->GetGroup(key.KeyHashCode(), key.StateId()));
     std::vector<FileMetaDataRef> filesForKey;
 
     // 3. 在当前version中逐层遍历.
@@ -774,7 +776,7 @@ BResult LsmStore::InternalGet(const Key &key, CompositeValue &value, SectionsRea
     VersionPtr current = GetCurrentVersion();
 
     // 2. 计算当前key的keyGroup.
-    auto keyGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(key.KeyHashCode());
+    auto keyGroup = static_cast<uint32_t>(mStateFilterManager->GetGroup(key.KeyHashCode(), key.StateId()));
 
     // 3. 在当前version中逐层遍历.
     std::vector<FileMetaDataRef> filesForKey;
@@ -1053,7 +1055,8 @@ KeyValueIteratorRef LsmStore::PrefixIterator(const Key &prefixKey, bool reverseO
 
 {
     VersionPtr current = GetCurrentVersion();
-    uint32_t keyGroup = KeyGroupUtil::ComputeKeyGroupForKeyHash(prefixKey.KeyHashCode());
+    uint32_t keyGroup =
+        static_cast<uint32_t>(mStateFilterManager->GetGroup(prefixKey.KeyHashCode(), prefixKey.StateId()));
     auto buildFunc = [this, current, prefixKey,
                       reverseOrder](const FileMetaDataRef &fileMetaData) -> KeyValueIteratorRef {
         FullKeyFilterRef keyFilter = current->IsVersionAligned() ?

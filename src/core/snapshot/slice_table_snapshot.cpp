@@ -20,7 +20,8 @@ const std::shared_ptr<SliceTableSnapshot::LogicalSliceChainSnapshotMeta> SliceTa
 
 BResult SliceTableSnapshot::Initialize(const SliceBucketIndexRef &sliceBucketIndex,
                                        const BucketGroupManagerRef &bucketGroupManager, const MemManagerRef &memManager,
-                                       bool isSavepoint, uint64_t snapshotId)
+                                       bool isSavepoint, uint64_t snapshotId, const KeyGroupUtilRef &keyGroupUtil,
+                                       uint32_t startKeyGroup, uint32_t endKeyGroup)
 {
     if (UNLIKELY(sliceBucketIndex == nullptr || bucketGroupManager == nullptr)) {
         LOG_ERROR("Slice bucketIndex or bucketGroupManager is nullptr");
@@ -32,6 +33,9 @@ BResult SliceTableSnapshot::Initialize(const SliceBucketIndexRef &sliceBucketInd
     mMemManager = memManager;
     mIsSavepoint = isSavepoint;
     mSnapshotId = snapshotId;
+    mKeyGroupUtil = keyGroupUtil;
+    mStartKeyGroup = startKeyGroup;
+    mEndKeyGroup = endKeyGroup;
     return BSS_OK;
 }
 
@@ -223,7 +227,8 @@ SliceKVIteratorPtr SliceTableSnapshot::Iterator()
     Ref<FlushingBucketGroupIterator> dataSliceVectorIterator = MakeRef<FlushingBucketGroupIterator>();
     RETURN_NULLPTR_AS_NULLPTR(dataSliceVectorIterator);
     dataSliceVectorIterator->Initialize(dataSlices);
-    auto sliceKVIterator = std::make_shared<SliceKVIterator>(dataSliceVectorIterator, mMemManager);
+    auto sliceKVIterator = std::make_shared<SliceKVIterator>(dataSliceVectorIterator, mMemManager, mKeyGroupUtil,
+                                                             mStartKeyGroup, mEndKeyGroup);
     sliceKVIterator->SetSavepointFlag(true);
     return sliceKVIterator;
 }

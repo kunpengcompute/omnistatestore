@@ -114,7 +114,8 @@ BResult SliceTableSnapshotOperator::SyncSnapshot(bool isSavepoint)
     SliceTableSnapshotRef sliceTableSnapshot = std::make_shared<SliceTableSnapshot>();
     RETURN_NOT_OK(sliceTableSnapshot->Initialize(mSliceTable->GetSliceBucketIndex(),
                                                  mSliceTable->GetBucketGroupManager(), mMemManager, isSavepoint,
-                                                 mSnapshotId));
+                                                 mSnapshotId, mSliceTable->GetKeyGroupUtil(),
+                                                 mSliceTable->GetStartKeyGroup(), mSliceTable->GetEndKeyGroup()));
     mSliceTable->AddSliceTableSnapshot(mSnapshotId, sliceTableSnapshot);
     mSliceTableSnapshot = sliceTableSnapshot;
 

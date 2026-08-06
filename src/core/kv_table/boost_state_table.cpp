@@ -51,6 +51,7 @@ BResult AbstractTable::Init(const FreshTableRef &freshTable, const SliceTableMan
     mSliceTable = sliceTable;
     mSeqGenerator = seqGenerator;
     mMaxParallelism = description->GetMaxParallelism();
+    mKeyGroupUtil = stateFilterManager->GetKeyGroupUtil();
     if (stateIdProvider == nullptr) {
         return BSS_ERR;
     }
@@ -68,7 +69,7 @@ uint16_t AbstractTable::GetStateId(uint32_t &keyHashCode)
 {
     uint32_t keyGroupIndex = keyHashCode % mMaxParallelism;
     // 先计算stateId，再修改hash，避免修改hash影响计算stateId
-    KeyGroupUtil::SetKeyGroup(keyHashCode, keyGroupIndex);
+    mKeyGroupUtil->SetKeyGroup(keyHashCode, keyGroupIndex);
     return mStateIdHelper->GetStateId(keyGroupIndex);
 }
 
@@ -300,10 +301,10 @@ BResult AbstractKMapTable::Remove(uint32_t hashCode, const BinaryData &priKey)
         return BSS_OK;
     }
     MapIterator *mapIterator = EntryIterator(hashCode, priKey);
+    uint16_t stateId = GetStateId(hashCode);
     while (mapIterator->HasNext()) {
         KeyValueRef pair = mapIterator->Next();
         BinaryData secKey(pair->key.SecKey().KeyData(), pair->key.SecKey().KeyLen());
-        uint16_t stateId = GetStateId(hashCode);
         QueryKey queryKey(stateId, hashCode, priKey, secKey);
         Value putVal;
         putVal.Init(ValueType::DELETE, mSeqGenerator->Next());

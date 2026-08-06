@@ -239,6 +239,7 @@ public abstract class AbstractOckDBKeyedStateBackendBuilder<K> extends AbstractK
             LOG.info("restore from SavepointKeyedStateHandle");
             return new BoostSavepointRestoreOperation<>(
                 keyGroupRange,
+                keyGroupPrefixBytes,
                 userCodeClassLoader,
                 keySerializerProvider,
                 db,

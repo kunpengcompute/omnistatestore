@@ -11,6 +11,12 @@
 
 #include "test_slice_table_br_cov.h"
 
+#include <cstdio>
+
+#define private public
+#include "snapshot/slice_table_restore_operation.h"
+#undef private
+
 using namespace ock::bss;
 
 BoostStateDBImpl *TestSliceTableBrCov::mBoostStateDb = nullptr;
@@ -50,6 +56,283 @@ void TestSliceTableBrCov::TearDown()
     mOutputView = nullptr;
     mBoostStateDb->Close();
     mBoostStateDb = nullptr;
+}
+
+TEST_F(TestSliceTableBrCov, Composite_ForceCompactionFlagIsSticky)
+{
+    auto composite = std::make_shared<CompositeLogicalSliceChain>();
+    auto chain1 = std::make_shared<LogicalSliceChainImpl>();
+    auto chain2 = std::make_shared<LogicalSliceChainImpl>();
+    ASSERT_EQ(composite->AddLogicalSliceChain(chain1, false), BSS_OK);
+    EXPECT_FALSE(composite->RequireForceCompaction());
+    ASSERT_EQ(composite->AddLogicalSliceChain(chain2, true), BSS_OK);
+    EXPECT_TRUE(composite->RequireForceCompaction());
+    ASSERT_EQ(composite->AddLogicalSliceChain(chain1, false), BSS_OK);
+    EXPECT_TRUE(composite->RequireForceCompaction());
+    EXPECT_EQ(composite->AddLogicalSliceChain(nullptr, false), BSS_INVALID_PARAM);
+}
+
+TEST_F(TestSliceTableBrCov, Restore_ForceCompactionDoesNotDirectReplaceSingleChild)
+{
+    auto child = mSliceTable->mSliceBucketIndex->CreateLogicalChainedSlice();
+    auto slice = getSlice();
+    auto dataSlice = std::make_shared<DataSlice>();
+    dataSlice->Init(slice);
+    ASSERT_NE(child->CreateSlice(dataSlice, 0), nullptr);
+
+    auto composite = std::make_shared<CompositeLogicalSliceChain>();
+    ASSERT_EQ(composite->AddLogicalSliceChain(child, true), BSS_OK);
+    mSliceTable->mSliceBucketIndex->mMappingTable[0] = composite;
+
+    SliceTableRestoreOperation restoreOperation(mSliceTable->mConfig, mSliceTable);
+    ASSERT_EQ(restoreOperation.CompactCompositeLogicalSliceChain(0), BSS_OK);
+    EXPECT_NE(mSliceTable->mSliceBucketIndex->mMappingTable[0], child);
+}
+
+TEST_F(TestSliceTableBrCov, Restore_ForceCompactionCreatesValidEmptyChainWhenAllKeysAreFiltered)
+{
+    auto kvPair = getOneKVPair();
+    uint32_t sourceBucket = 0;
+    auto mapper = mSliceTable->mSliceBucketIndex->GetBucketMapper();
+    ASSERT_NE(mapper, nullptr);
+    ASSERT_EQ(mapper->Map(kvPair.first.KeyHashCode(), sourceBucket), BSS_OK);
+    const uint32_t targetBucket = (sourceBucket + 1) % mSliceTable->mSliceBucketIndex->GetIndexCapacity();
+
+    std::vector<std::pair<SliceKey, Value>> kvPairs{ kvPair };
+    auto slice = std::make_shared<Slice>();
+    SliceCreateMeta meta = { 0L, 1L, 0L };
+    ASSERT_EQ(slice->Initialize(kvPairs, meta, mSliceTable->mMemManager), BSS_OK);
+    auto dataSlice = std::make_shared<DataSlice>();
+    dataSlice->Init(slice);
+    auto child = mSliceTable->mSliceBucketIndex->CreateLogicalChainedSlice();
+    ASSERT_NE(child->CreateSlice(dataSlice, 0), nullptr);
+    auto lsmStore = mSliceTable->GetBucketGroupManager()->GetLsmStoreByBucketIndex(targetBucket);
+    ASSERT_NE(lsmStore, nullptr);
+    child->InsertFilePage(std::make_shared<FilePage>(lsmStore));
+
+    auto composite = std::make_shared<CompositeLogicalSliceChain>();
+    ASSERT_EQ(composite->AddLogicalSliceChain(child, true), BSS_OK);
+    mSliceTable->mSliceBucketIndex->mMappingTable[targetBucket] = composite;
+
+    auto usedMemory = mSliceTable->mEvictManager->mSliceEvictManager;
+    ASSERT_NE(usedMemory, nullptr);
+    const int64_t baseline = usedMemory->GetUsedMemorySize();
+    mSliceTable->AddSliceUsedMemory(dataSlice->GetSize());
+
+    SliceTableRestoreOperation restoreOperation(mSliceTable->mConfig, mSliceTable);
+    ASSERT_EQ(restoreOperation.CompactCompositeLogicalSliceChain(targetBucket), BSS_OK);
+    auto restoredChain = mSliceTable->mSliceBucketIndex->mMappingTable[targetBucket];
+    ASSERT_NE(restoredChain, nullptr);
+    EXPECT_EQ(std::dynamic_pointer_cast<CompositeLogicalSliceChain>(restoredChain), nullptr);
+    EXPECT_TRUE(restoredChain->IsEmpty());
+    EXPECT_TRUE(restoredChain->HasFilePage());
+    EXPECT_EQ(usedMemory->GetUsedMemorySize(), baseline);
+}
+
+TEST_F(TestSliceTableBrCov, Restore_FilteredCompactionReconcilesUsedMemory)
+{
+    auto firstKv = getOneKVPair();
+    auto secondKv = getOneKVPair();
+    std::vector<std::pair<SliceKey, Value>> kvPairs{ firstKv, secondKv };
+    auto inputSlice = std::make_shared<Slice>();
+    SliceCreateMeta meta = { 0L, 1L, 0L };
+    ASSERT_EQ(inputSlice->Initialize(kvPairs, meta, mSliceTable->mMemManager), BSS_OK);
+    auto inputDataSlice = std::make_shared<DataSlice>();
+    inputDataSlice->Init(inputSlice);
+    const uint32_t inputSize = inputDataSlice->GetSize();
+
+    auto child = mSliceTable->mSliceBucketIndex->CreateLogicalChainedSlice();
+    ASSERT_NE(child, nullptr);
+    auto inputAddress = child->CreateSlice(inputDataSlice, 0);
+    ASSERT_NE(inputAddress, nullptr);
+    auto composite = std::make_shared<CompositeLogicalSliceChain>();
+    ASSERT_EQ(composite->AddLogicalSliceChain(child, true), BSS_OK);
+    const uint32_t targetBucket = 0;
+    mSliceTable->mSliceBucketIndex->mMappingTable[targetBucket] = composite;
+
+    std::vector<std::pair<SliceKey, Value>> filteredKvPairs{ firstKv };
+    auto outputSlice = std::make_shared<Slice>();
+    ASSERT_EQ(outputSlice->Initialize(filteredKvPairs, meta, mSliceTable->mMemManager), BSS_OK);
+    auto outputDataSlice = std::make_shared<DataSlice>();
+    outputDataSlice->Init(outputSlice);
+    const uint32_t outputSize = outputDataSlice->GetSize();
+    ASSERT_LT(outputSize, inputSize);
+
+    auto usedMemory = mSliceTable->mEvictManager->mSliceEvictManager;
+    ASSERT_NE(usedMemory, nullptr);
+    const int64_t baseline = usedMemory->GetUsedMemorySize();
+    mSliceTable->AddSliceUsedMemory(inputSize);
+
+    SliceTableRestoreOperation operation(mSliceTable->mConfig, mSliceTable);
+    LogicalSliceChainRef logicalSliceChain = composite;
+    std::vector<SliceAddressRef> invalidSliceAddressList{ inputAddress };
+    ASSERT_EQ(operation.ReplaceCompositeLogicalSlice(logicalSliceChain, targetBucket, outputDataSlice,
+                                                     invalidSliceAddressList),
+              BSS_OK);
+
+    auto outputChain = mSliceTable->mSliceBucketIndex->mMappingTable[targetBucket];
+    ASSERT_NE(outputChain, nullptr);
+    auto outputAddress = outputChain->GetSliceAddress(0);
+    ASSERT_NE(outputAddress, nullptr);
+    EXPECT_EQ(outputAddress->GetDataLen(), outputSize);
+    EXPECT_EQ(usedMemory->GetUsedMemorySize(), baseline + static_cast<int64_t>(outputAddress->GetDataLen()));
+}
+
+TEST_F(TestSliceTableBrCov, RestoreCacheKeyIncludesAllDecodeMetadata)
+{
+    SliceTableRestoreOperation::SliceRestoreCacheKey base{ "restore-cache.slice", 17,   1024, 512,
+                                                           CompressAlgo::LZ4,     12568 };
+
+    auto expectDifferent = [&base](SliceTableRestoreOperation::SliceRestoreCacheKey changed) {
+        EXPECT_FALSE(base == changed);
+    };
+    expectDifferent({ "other.slice", 17, 1024, 512, CompressAlgo::LZ4, 12568 });
+    expectDifferent({ "restore-cache.slice", 18, 1024, 512, CompressAlgo::LZ4, 12568 });
+    expectDifferent({ "restore-cache.slice", 17, 1025, 512, CompressAlgo::LZ4, 12568 });
+    expectDifferent({ "restore-cache.slice", 17, 1024, 513, CompressAlgo::LZ4, 12568 });
+    expectDifferent({ "restore-cache.slice", 17, 1024, 512, CompressAlgo::NONE, 12568 });
+    expectDifferent({ "restore-cache.slice", 17, 1024, 512, CompressAlgo::LZ4, 12569 });
+}
+
+TEST_F(TestSliceTableBrCov, RestoreReusesLoadedSliceAfterPreviousFanoutSlotCompaction)
+{
+    const std::string path = "test.txt";
+    auto sourceSlice = getSlice();
+    ASSERT_NE(sourceSlice, nullptr);
+    auto sourceBuffer = sourceSlice->GetByteBuffer();
+    ASSERT_NE(sourceBuffer, nullptr);
+    uint32_t rawLength = 0;
+    ASSERT_EQ(sourceSlice->BytesSize(rawLength), BSS_OK);
+    ASSERT_GT(rawLength, 0U);
+    ASSERT_EQ(mOutputView->WriteByteBuffer(sourceBuffer, 0, rawLength), BSS_OK);
+    ASSERT_EQ(mOutputView->Flush(), BSS_OK);
+    mOutputView->Close();
+
+    struct FanoutCopy {
+        CompositeLogicalSliceChainRef composite;
+        LogicalSliceChainRef child;
+        SliceAddressRef address;
+    };
+    auto makeFanoutCopy = [&]() {
+        FanoutCopy copy;
+        copy.child = mSliceTable->mSliceBucketIndex->CreateLogicalChainedSlice();
+        EXPECT_NE(copy.child, nullptr);
+        copy.address = std::make_shared<SliceAddress>(rawLength, 12568, 0, 0);
+        copy.address->SetLocalAddress(path);
+        copy.address->SetSnapshotCompressionMeta(rawLength, CompressAlgo::NONE);
+        EXPECT_NE(copy.child->InsertSlice(copy.address), INVALID_U32);
+        copy.composite = std::make_shared<CompositeLogicalSliceChain>();
+        EXPECT_EQ(copy.composite->AddLogicalSliceChain(copy.child, true), BSS_OK);
+        return copy;
+    };
+    auto first = makeFanoutCopy();
+    auto second = makeFanoutCopy();
+
+    SliceTableRestoreOperation operation(mSliceTable->mConfig, mSliceTable);
+    SliceTableRestoreOperation::DataSliceRestoreCache cache;
+    mSliceTable->mSliceBucketIndex->mMappingTable[0] = first.composite;
+    ASSERT_EQ(operation.TryLoadCompositeLogicalSliceChain(first.composite, 0, cache), BSS_OK);
+    cache.ClearPreviousSlot();
+    ASSERT_EQ(operation.CompactCompositeLogicalSliceChain(0), BSS_OK);
+    cache.CompleteSlot();
+
+    std::weak_ptr<Slice> restoredSlice = first.address->GetDataSlice()->GetSlice();
+    first = {};
+    ASSERT_FALSE(restoredSlice.expired());
+    ASSERT_EQ(std::remove(path.c_str()), 0);
+    ASSERT_EQ(operation.TryLoadCompositeLogicalSliceChain(second.composite, 0, cache), BSS_OK);
+    cache.ClearPreviousSlot();
+
+    auto secondDataSlice = second.address->GetDataSlice();
+    ASSERT_NE(secondDataSlice, nullptr);
+    EXPECT_EQ(secondDataSlice->GetSlice(), restoredSlice.lock());
+}
+
+TEST_F(TestSliceTableBrCov, RestoreProductionFlowReusesLoadedSliceAcrossFanoutSlots)
+{
+    const std::string path = "test.txt";
+    auto sourceSlice = getSlice();
+    ASSERT_NE(sourceSlice, nullptr);
+    auto sourceBuffer = sourceSlice->GetByteBuffer();
+    ASSERT_NE(sourceBuffer, nullptr);
+    uint32_t rawLength = 0;
+    ASSERT_EQ(sourceSlice->BytesSize(rawLength), BSS_OK);
+    ASSERT_GT(rawLength, 0U);
+    ASSERT_EQ(mOutputView->WriteByteBuffer(sourceBuffer, 0, rawLength), BSS_OK);
+    ASSERT_EQ(mOutputView->Flush(), BSS_OK);
+    mOutputView->Close();
+
+    auto makeFanoutCopy = [&]() {
+        auto child = mSliceTable->mSliceBucketIndex->CreateLogicalChainedSlice();
+        EXPECT_NE(child, nullptr);
+        auto address = std::make_shared<SliceAddress>(rawLength, 12568, 0, 0);
+        address->SetLocalAddress(path);
+        address->SetSnapshotCompressionMeta(rawLength, CompressAlgo::NONE);
+        EXPECT_NE(child->InsertSlice(address), INVALID_U32);
+        auto composite = std::make_shared<CompositeLogicalSliceChain>();
+        EXPECT_EQ(composite->AddLogicalSliceChain(child, true), BSS_OK);
+        return std::make_pair(composite, address);
+    };
+    auto first = makeFanoutCopy();
+    auto second = makeFanoutCopy();
+    ASSERT_GE(mSliceTable->mSliceBucketIndex->GetIndexCapacity(), NO_2);
+    mSliceTable->mSliceBucketIndex->mMappingTable[0] = first.first;
+    mSliceTable->mSliceBucketIndex->mMappingTable[1] = second.first;
+
+    SliceTableRestoreOperation operation(mSliceTable->mConfig, mSliceTable);
+    ASSERT_EQ(operation.LoadSlicesIntoSliceTable(0, true), BSS_OK);
+
+    auto firstDataSlice = first.second->GetDataSlice();
+    auto secondDataSlice = second.second->GetDataSlice();
+    ASSERT_NE(firstDataSlice, nullptr);
+    ASSERT_NE(secondDataSlice, nullptr);
+    EXPECT_EQ(firstDataSlice->GetSlice(), secondDataSlice->GetSlice());
+}
+
+TEST_F(TestSliceTableBrCov, RestoreReleasesUnusedPreviousPayloadBeforeCompaction)
+{
+    auto sliceA = getSlice();
+    auto sliceB = getSlice();
+    ASSERT_NE(sliceA, nullptr);
+    ASSERT_NE(sliceB, nullptr);
+    std::weak_ptr<Slice> weakA = sliceA;
+    std::weak_ptr<Slice> weakB = sliceB;
+
+    SliceTableRestoreOperation::SliceRestoreCacheKey keyA{ "payload-a.slice", 0, 16, 16, CompressAlgo::NONE, 100 };
+    SliceTableRestoreOperation::SliceRestoreCacheKey keyB{ "payload-b.slice", 0, 16, 16, CompressAlgo::NONE, 200 };
+    SliceTableRestoreOperation::DataSliceRestoreCache cache;
+    cache.Put(keyA, sliceA);
+    cache.Put(keyB, sliceB);
+    cache.CompleteSlot();
+    sliceA.reset();
+    sliceB.reset();
+
+    auto currentA = cache.Find(keyA);
+    cache.ClearPreviousSlot();
+
+    EXPECT_FALSE(weakA.expired());
+    EXPECT_TRUE(weakB.expired());
+    EXPECT_EQ(currentA, weakA.lock());
+}
+
+TEST_F(TestSliceTableBrCov, RestoreRejectsDecodeWorkingSetLargerThanSliceTableCapacity)
+{
+    SliceTableRestoreOperation operation(mSliceTable->mConfig, mSliceTable);
+    auto memManager = mSliceTable->mMemManager;
+    ASSERT_NE(memManager, nullptr);
+    const auto index = static_cast<size_t>(MemoryType::SLICE_TABLE);
+    const uint64_t oldCapacity = memManager->mTypeMaxSize[index];
+    memManager->mTypeMaxSize[index] = memManager->CalcSize(2);
+
+    auto chain = mSliceTable->mSliceBucketIndex->CreateLogicalChainedSlice();
+    ASSERT_NE(chain, nullptr);
+    auto address = std::make_shared<SliceAddress>(2, 12568, 0, 0);
+    address->SetLocalAddress("test.txt");
+    address->SetSnapshotCompressionMeta(1, CompressAlgo::LZ4);
+    ASSERT_NE(chain->InsertSlice(address), INVALID_U32);
+    EXPECT_EQ(operation.LoadSlicesIntoLogicalSliceChain(chain, 0), BSS_ALLOC_FAIL);
+
+    memManager->mTypeMaxSize[index] = oldCapacity;
 }
 
 /**
@@ -467,6 +750,23 @@ TEST_F(TestSliceTableBrCov, Index_Initialize_ShouldReturnBSSERR_WhenConfigIsNull
     EXPECT_EQ(result, BSS_ERR);
 }
 
+TEST_F(TestSliceTableBrCov, Index_TaskLocalMapperUsesAllBuckets)
+{
+    auto config = std::make_shared<Config>(8, 15, 1024);
+    auto index = std::make_shared<SliceBucketIndex>();
+    ASSERT_EQ(index->Initialize(1024, config), BSS_OK);
+    auto mapper = index->GetBucketMapper();
+    ASSERT_NE(mapper, nullptr);
+
+    for (uint32_t bucket = 0; bucket < 1024; ++bucket) {
+        auto range = mapper->GetBucketRange(bucket);
+        ASSERT_NE(range, nullptr);
+        auto context = index->GetSliceIndexContext(range->GetStartHashCode(), true);
+        ASSERT_NE(context, nullptr);
+        EXPECT_EQ(context->GetSliceIndexSlot(), bucket);
+    }
+}
+
 /**
  * @tc.name  : DataSlice_Init_ShouldReturnBSSERR_WhenSliceIsNullptr
  * @tc.number: DataSlice_Init_001
@@ -680,8 +980,10 @@ TEST_F(TestSliceTableBrCov, LogicalSliceChain_RestoreFilePage_ShouldRestoreFileP
     std::shared_ptr<StateIdProvider> stateIdProvider = std::make_shared<StateIdProvider>(1, 1, memManager);
     std::shared_ptr<FileFactory> tableFactory = std::make_shared<FileFactory>(config, memManager);
     std::shared_ptr<FileCacheManager> fileCache = std::make_shared<FileCacheManager>();
+    KeyGroupUtilRef codec;
+    ASSERT_EQ(KeyGroupUtil::Create(NO_128, codec), BSS_OK);
     std::shared_ptr<StateFilterManager> stateFilterManager = std::make_shared<StateFilterManager>(stateIdProvider,
-                                                                                                  config, 1, 1);
+                                                                                                  config, 1, 1, codec);
     LsmStoreRef lsmStore = std::make_shared<LsmStore>(fileStoreId, config, tableFactory, fileCache, stateFilterManager,
                                                       memManager);
 

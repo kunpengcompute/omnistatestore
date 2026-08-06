@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "common/util/key_group_util.h"
 #include "table.h"
 
 namespace ock {
@@ -133,6 +134,7 @@ protected:
     SequenceIdFilterRef mStateFilter;
     SeqGeneratorRef mSeqGenerator;
     uint32_t mMaxParallelism = 0;
+    KeyGroupUtilRef mKeyGroupUtil = nullptr;
 };
 using AbstractTableRef = std::shared_ptr<AbstractTable>;
 
@@ -166,6 +168,7 @@ public:
 using NsKVTableRef = std::shared_ptr<NsKVTable>;
 
 class KMapTable : public AbstractKMapTable {
+    // Empty by design.
 };
 using KMapTableRef = std::shared_ptr<KMapTable>;
 
@@ -204,6 +207,7 @@ private:
 using AbstractKListTableRef = std::shared_ptr<AbstractKListTable>;
 
 class KListTable : public AbstractKListTable {
+    // Empty by design.
 };
 using KListTableRef = std::shared_ptr<KListTable>;
 

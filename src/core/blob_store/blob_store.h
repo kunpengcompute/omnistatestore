@@ -72,7 +72,7 @@ public:
 
     void ReleaseSnapshot(uint64_t snapshotId);
 
-    TombstoneServiceRef CreateTombstoneService(const std::string &name);
+    TombstoneServiceRef CreateTombstoneService(const std::string &name, const KeyGroupUtilRef &keyGroupUtil);
 
 private:
     MemManagerRef mMemManager = nullptr;

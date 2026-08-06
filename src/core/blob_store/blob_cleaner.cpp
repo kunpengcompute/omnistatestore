@@ -313,10 +313,10 @@ void BlobCleaner::StartScheduleCompaction()
     LOG_INFO("Blob cleaner compaction processor start.");
 }
 
-TombstoneServiceRef BlobCleaner::RegisterTombstoneService(const std::string &name)
+TombstoneServiceRef BlobCleaner::RegisterTombstoneService(const std::string &name, const KeyGroupUtilRef &keyGroupUtil)
 {
     if (mEnableTombstone) {
-        return mTombstoneFileManager->AddLevel0(name);
+        return mTombstoneFileManager->AddLevel0(name, keyGroupUtil);
     }
     return nullptr;
 }

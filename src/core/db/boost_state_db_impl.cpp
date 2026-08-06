@@ -27,12 +27,16 @@ std::atomic<uint64_t> AutoCloseable::GLOBAL_COUNT(0);
 BResult BoostStateDBImpl::Open(const ConfigRef &config)
 {
     mConfig = config;
-    KeyGroupUtil::Init(mConfig->GetMaxNumberOfParallelSubtasks());
+    auto ret = KeyGroupUtil::Create(mConfig->GetMaxNumberOfParallelSubtasks(), mKeyGroupUtil);
+    if (UNLIKELY(ret != BSS_OK)) {
+        LOG_ERROR("Failed to initialize key group util, ret:" << ret);
+        return ret;
+    }
     ReadWriteLock &taskSlotLock = BoostStateDbGroupMgr::GetOrCreateLock(config->GetTaskSlotFlag());
     WriteLocker<ReadWriteLock> lock(&taskSlotLock);
 
     // initialize memory manager.
-    auto ret = BoostStateDbGroupMgr::Create(config->GetTaskSlotFlag(), mConfig);
+    ret = BoostStateDbGroupMgr::Create(config->GetTaskSlotFlag(), mConfig);
     if (ret != BSS_OK) {
         LOG_ERROR("Failed create db group, ret:" << ret);
         InnerClose();
@@ -50,11 +54,11 @@ BResult BoostStateDBImpl::Open(const ConfigRef &config)
     // create stateIdProvider, filterManager and stateMigration.
     mStateIdProvider = std::make_shared<StateIdProvider>(mConfig->GetStartGroup(), mConfig->GetEndGroup(), mMemManager);
     mStateFilterManager = std::make_shared<StateFilterManager>(mStateIdProvider, config, mConfig->GetStartGroup(),
-                                                               mConfig->GetEndGroup());
+                                                               mConfig->GetEndGroup(), mKeyGroupUtil);
 
     // initialize fresh table.
     mFreshTable = std::make_shared<FreshTable>();
-    ret = mFreshTable->Initialize(mConfig, mMemManager);
+    ret = mFreshTable->Initialize(mConfig, mMemManager, mKeyGroupUtil);
     if (ret != BSS_OK) {
         LOG_ERROR("Failed to initialize fresh table. ret:" << ret);
         InnerClose();
@@ -231,7 +235,7 @@ PQTableRef BoostStateDBImpl::CreatePQTable(const std::string &str)
         }
         auto lsmStore = bucketGroupManager->GetBucketGroupVector()[0]->GetLsmStore();
         table = std::make_shared<PQTable>(mMemManager, mFreshTransformer->GetTransformExecutor(), lsmStore, str,
-                                          mStateIdProvider, des);
+                                          mStateIdProvider, des, mKeyGroupUtil);
         auto ret = table->Initialize();
         if (ret != BSS_OK) {
             return nullptr;
@@ -350,8 +354,17 @@ BResult BoostStateDBImpl::Restore(std::vector<std::string> &restorePath,
     auto restoreOperator = std::make_shared<RestoreOperator>(mConfig, mLocalFileManager, mRemoteFileManager,
                                                              mSliceTable, mFreshTable, mStateIdProvider, mTables,
                                                              mFileCacheFactory, mSnapshotManager, mPQTable);
+    auto stateIdProviderBackup = mStateIdProvider->Copy();
     uint64_t seqId = 0;
     BResult ret = restoreOperator->Restore(restoredMetaPaths, lazyPathMapping, seqId, isLazyDownload);
+    if (UNLIKELY(ret != BSS_OK)) {
+        BResult rollbackRet = mStateIdProvider->RestoreFrom(stateIdProviderBackup);
+        if (UNLIKELY(rollbackRet != BSS_OK)) {
+            LOG_ERROR("Rollback state id provider failed, ret:" << rollbackRet);
+        }
+        LOG_ERROR("Restore operator failed, ret:" << ret);
+        return ret;
+    }
     mSeqGenerator->Restore(seqId);
     for (const auto &item : mTables) {
         std::dynamic_pointer_cast<AbstractTable>(item.second)->SetStateIdProvider(mStateIdProvider);
@@ -361,7 +374,7 @@ BResult BoostStateDBImpl::Restore(std::vector<std::string> &restorePath,
     }
     // restore完成, 调用lsm compaction
     mSliceTable->Open();
-    return ret;
+    return BSS_OK;
 }
 
 SavepointDataView *BoostStateDBImpl::TriggerSavepoint()
@@ -386,8 +399,7 @@ SavepointDataView *BoostStateDBImpl::TriggerSavepoint()
         return nullptr;
     }
 
-    return new (std::nothrow)
-        SavepointDataView(mSnapshotManager, pendingSavepoint, mConfig->GetMaxParallelism(), mMemManager);
+    return new (std::nothrow) SavepointDataView(mSnapshotManager, pendingSavepoint, mKeyGroupUtil, mMemManager);
 }
 
 void BoostStateDBImpl::NotifyDBSnapshotAbort(uint64_t checkpointId)
