@@ -155,8 +155,9 @@ private:
                     break;
                 }
 
-                // keys are the same, if singKey value len > 4m, return to output to a file.
-                if (mSectionRead && (mCurrentPair->value.ValueLen() > IO_SIZE_4M) && StateId::IsList(key1.StateId())) {
+                // Keep oversized APPEND values in sections, but let PUT/DELETE consume obsolete values for the key.
+                if (mSectionRead && (mCurrentPair->value.ValueType() == ValueType::APPEND) &&
+                    (mCurrentPair->value.ValueLen() > IO_SIZE_4M) && StateId::IsList(key1.StateId())) {
                     break;
                 }
 
