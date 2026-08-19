@@ -152,6 +152,7 @@ Log模块、StateStore模块和Metric模块的具体配置项说明请参见[表
 |state.backend.ockdb.jni.slice.watermark.ratio|缓存层通过设定高/低水位线比例阈值触发数据淘汰机制，将冷数据按预设策略迁移至LSM文件存储层，实现存储资源动态平衡。|0.8|(0, 1)|一般情况下不需要单独设置。|
 |state.backend.ockdb.file.memory.fraction|控制用于读写LSM层数据的内存缓存空间大小占整个DB实例的内存上限的比例。|0.2|[0.1, 0.5]|一般情况下不需要单独设置。|
 |state.backend.ockdb.jni.lsmstore.compaction.switch|LSM文件存储层整理合并开关。LSM文件存储层的分层合并机制通过开关控制数据文件的整理与合并操作，以优化存储性能和空间利用率。|1|0：关闭<br>1：开启|建议开启。|
+|state.backend.ockdb.zero-copy.switch|大ListState覆盖写场景的SST文件免拷贝复用开关。开启后，在文件数触发的Level 0到Level 1 Compaction中，对满足条件的单记录大PUT文件尝试直接复用原SST；未命中时执行普通合并。|false|false：关闭<br>true：开启|默认关闭。适用于频繁使用ListState.update且单个序列化Value严格大于4 MiB的场景。开启前建议评估目标层文件数量和压缩策略影响。|
 |state.backend.ockdb.ttl.filter.switch|TTL过期数据后台压缩清理。|false|false：关闭<br>true：开启|当存在使用TTL State的业务场景时，建议开启。|
 |state.backend.ockdb.lsmstore.compression.policy|LsmStore中的各层级Level的压缩策略。state.backend.ockdb.lsmstore.compression.level.policy默认值配合使用。<br>level0：不开启压缩<br>level1：不开启压缩<br>level2：开启lz4压缩<br>其余level：全压缩|lz4|none：不压缩<br>lz4：使用lz4压缩|当Checkpoint文件上传过大时，建议开启。|
 |state.backend.ockdb.lsmstore.compression.level.policy|手动配置LSM文件不同level配置压缩策略，默认值为“none,none,lz4”，表示level0不开启压缩，level1不开启压缩，level2开启lz4压缩。|none,none,lz4|none：不压缩<br>lz4：使用lz4压缩|当Checkpoint成为瓶颈时，可适当将压缩策略往低层级提前，默认level层级范围[0, 5]。<br>level0为前台写压缩，建议使用None。<br>其余level为后台压缩。|

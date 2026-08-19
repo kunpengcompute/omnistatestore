@@ -387,6 +387,13 @@ Log模块、StateStore模块和Metric模块的具体配置项说明请参见[表
     <td>建议开启。</td>
   </tr>
   <tr>
+    <td>state.backend.ockdb.zero-copy.switch</td>
+    <td>大ListState覆盖写场景的SST文件免拷贝复用开关。开启后，在文件数触发的Level 0到Level 1 Compaction中，对满足条件的单记录大PUT文件尝试直接复用原SST；未命中时执行普通合并。</td>
+    <td>false</td>
+    <td>false：关闭<br>true：开启</td>
+    <td>默认关闭。适用于频繁使用ListState.update且单个序列化Value严格大于4 MiB的场景。开启前建议评估目标层文件数量和压缩策略影响。</td>
+  </tr>
+  <tr>
     <td>state.backend.ockdb.ttl.filter.switch</td>
     <td>TTL过期数据后台压缩清理。</td>
     <td>false</td>
