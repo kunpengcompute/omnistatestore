@@ -71,47 +71,46 @@ BResult SliceTableSnapshot::GenSliceTableIndexSnapshot()
             continue;
         }
 
-        // case 3: 当前SliceChain有dataSlice数据.
-        int32_t tailIndex = curLogicSliceChain->GetSliceChainTailIndex();
-        int32_t headIndex = -1;
-        bool hasEvictedSlice = false;
-        for (int32_t j = 0; j <= tailIndex; j++) {  // 从前往后找到第一个状态为非evicted的,
-                                                    // 状态为Flushing的slice也打入到快照中.
-            SliceAddressRef curSliceAddress = curLogicSliceChain->GetSliceAddress(j);
-            if (UNLIKELY(curSliceAddress == nullptr)) {
-                mSliceBucketIndex->Unlock(idx);
-                return BSS_INVALID_PARAM;
-            }
-            if (!curSliceAddress->IsEvicted()) {
-                headIndex = j;
-                break;
-            }
-            hasEvictedSlice = true;
+        // case 3: 当前SliceChain有dataSlice数据, 在chain读锁内一次性捕获sliceAddress强引用和状态.
+        auto simpleSliceChain = std::dynamic_pointer_cast<LogicalSliceChainImpl>(curLogicSliceChain);
+        if (UNLIKELY(simpleSliceChain == nullptr)) {
+            LOG_ERROR("Generate snapshot for composite logical slice chain is not supported, bucketIndex:" << idx);
+            mSliceBucketIndex->Unlock(idx);
+            return BSS_NOT_SUPPORTED;
+        }
+        LogicalSliceChainSnapshotView snapshotView;
+        auto ret = simpleSliceChain->CaptureSnapshotView(snapshotView);
+        if (UNLIKELY(ret != BSS_OK)) {
+            LOG_ERROR("Capture logical slice chain snapshot failed, bucketIndex:"
+                      << idx << ", invalidIndex:" << snapshotView.mInvalidIndex << ", ret:" << ret);
+            mSliceBucketIndex->Unlock(idx);
+            return ret;
         }
 
         std::vector<FilePageRef> filePages;
         curLogicSliceChain->GetFilePages(filePages);
-        bool hasFilePage = hasEvictedSlice || !filePages.empty();
-        if (headIndex == -1) {  // 表示当前SliceChain上的数据已经处于evicted, 按照case2处理.
+        bool hasFilePage = snapshotView.mHasEvictedSlice || !filePages.empty();
+        if (snapshotView.mHeadIndex == -1) {  // 表示当前SliceChain上的数据已经处于evicted, 按照case2处理.
             SnapshotNoDataSlicesLogicalSliceChain(idx, hasFilePage);
             mSliceBucketIndex->Unlock(idx);
             continue;
         }
-        auto chainSnapshotMeta = std::make_shared<LogicalSliceChainSnapshotMeta>(headIndex, tailIndex, hasFilePage);
-        CopySliceChainParams params{ {}, {}, true, true };  // 此处需要深拷贝sliceAddress.
+        auto chainSnapshotMeta = std::make_shared<LogicalSliceChainSnapshotMeta>(snapshotView.mHeadIndex,
+                                                                                 snapshotView.mTailIndex, hasFilePage);
+        CopySliceChainParams params{ {}, {}, true, true };  // 此处在chain锁外深拷贝已捕获的sliceAddress.
         LogicalSliceChainRef snapshotSliceChain = nullptr;
-        auto ret = CopyLogicSliceChain(curLogicSliceChain, chainSnapshotMeta, params, snapshotSliceChain);
+        ret = CopyLogicSliceChain(curLogicSliceChain, snapshotView, chainSnapshotMeta, params, snapshotSliceChain);
         mSliceBucketIndex->Unlock(idx);
         if (UNLIKELY(ret != BSS_OK)) {
             LOG_ERROR("Copy logic slice chain failed, ret:" << ret);
             return BSS_ERR;
         }
-        totalSlice += (tailIndex - headIndex + 1);
+        totalSlice += static_cast<uint32_t>(snapshotView.mSliceAddresses.size());
         std::lock_guard<std::mutex> lock(mChainSnapMutex);
         mSliceChainSnapshotArray.emplace_back(snapshotSliceChain, chainSnapshotMeta);
-        LOG_DEBUG("Insert slice chain, bucketIndex:" << idx << ", snapshotId:" << mSnapshotId
-                                                     << ", sliceSize:" << snapshotSliceChain->GetSliceSize()
-                                                     << ", headIndex:" << headIndex << ", tailIndex:" << tailIndex);
+        LOG_DEBUG("Insert slice chain, bucketIndex:"
+                  << idx << ", snapshotId:" << mSnapshotId << ", sliceSize:" << snapshotSliceChain->GetSliceSize()
+                  << ", headIndex:" << snapshotView.mHeadIndex << ", tailIndex:" << snapshotView.mTailIndex);
     }
     LOG_INFO("Generate slice table snapshot success, totalSlice:" << totalSlice << ", snapshotId:" << mSnapshotId);
     return BSS_OK;
@@ -134,13 +133,14 @@ void SliceTableSnapshot::SnapshotNoDataSlicesLogicalSliceChain(uint32_t slot, bo
 }
 
 BResult SliceTableSnapshot::CopyLogicSliceChain(const LogicalSliceChainRef &sliceChainBeforeCopy,
+                                                const LogicalSliceChainSnapshotView &snapshotView,
                                                 const LogicalSliceChainSnapshotMetaRef &chainMeta,
                                                 CopySliceChainParams &params, LogicalSliceChainRef &copiedChain)
 {
-    copiedChain = std::make_shared<LogicalSliceChainImpl>();
-    RETURN_NOT_OK(copiedChain->Initialize(sliceChainBeforeCopy, chainMeta->mSliceChainHeadIndex,
-                                          chainMeta->mSliceChainTailIndex, params.copiedDataSliceReference,
-                                          params.deepCopySliceAddress, chainMeta->mHasFilePage));
+    auto copiedChainImpl = std::make_shared<LogicalSliceChainImpl>();
+    copiedChain = copiedChainImpl;
+    RETURN_NOT_OK(
+        copiedChainImpl->InitializeSnapshot(snapshotView, params.copiedDataSliceReference, chainMeta->mHasFilePage));
     if (sliceChainBeforeCopy->HasFilePage()) {
         auto bucketGroup = GetBucketGroup();
         RETURN_ERROR_AS_NULLPTR(bucketGroup);

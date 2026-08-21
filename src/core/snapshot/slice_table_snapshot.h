@@ -124,6 +124,7 @@ public:
     BResult GenSliceTableIndexSnapshot();
 
     BResult CopyLogicSliceChain(const LogicalSliceChainRef &sliceChainBeforeCopy,
+                                const LogicalSliceChainSnapshotView &snapshotView,
                                 const LogicalSliceChainSnapshotMetaRef &chainMeta, CopySliceChainParams &params,
                                 LogicalSliceChainRef &copiedChain);
 

@@ -35,6 +35,7 @@ public:
     {
         mCompressionLevelPolicy = config->GetCompressionLevelPolicy();
         mLsmStoreCompressionPolicy = config->GetLsmStoreCompressionPolicy();
+        mZeroCopySwitch = config->GetZeroCopySwitch();
         PrintCompressionPolicy();
     }
 
@@ -54,7 +55,9 @@ public:
         }
         LOG_DEBUG("Write file using compression policy: "
                   << CompressAlgoUtil::ReverseCompressAlgoTransform(compressPolicy) << ", level: " << levelId << ".");
-        return mFileFactory->CreateFileWriter(path, mConfig, compressPolicy, mMemManager, holder);
+        // The current reuse planner only participates in L0-to-L1 compaction.
+        bool maintainRecordMeta = mZeroCopySwitch && levelId <= 1;
+        return mFileFactory->CreateFileWriter(path, mConfig, compressPolicy, mMemManager, holder, maintainRecordMeta);
     }
 
     BResult Get(uint64_t fileAddress, const Key &key, Value &value);
@@ -175,6 +178,7 @@ private:
     MemManagerRef mMemManager;
     std::vector<CompressAlgo> mCompressionLevelPolicy;
     CompressAlgo mLsmStoreCompressionPolicy;
+    bool mZeroCopySwitch = false;
     uint32_t mFileStoreSeqId;
     ReadWriteLock mRwLock;
     BoostNativeMetricPtr mBoostNativeMetric = nullptr;

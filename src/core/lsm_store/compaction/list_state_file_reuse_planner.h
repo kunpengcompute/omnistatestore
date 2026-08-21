@@ -9,18 +9,26 @@
  * See the Mulan PSL v2 for more details.
  */
 
-#ifndef BSS_DEV_COMPACTION_COMM_H
-#define BSS_DEV_COMPACTION_COMM_H
+#ifndef BOOST_SS_LIST_STATE_FILE_REUSE_PLANNER_H
+#define BOOST_SS_LIST_STATE_FILE_REUSE_PLANNER_H
+
+#include <functional>
+
+#include "compaction.h"
 
 namespace ock {
 namespace bss {
-enum class Reason {
-    KEY_GROUP_RESCALED,
-    ORDER_RANGE_REDUNDANT,
-    LEVEL0_NUM_TRIGGERED,
-    LEVEL_SIZE_TRIGGERED,
-    NO_NEED_COMPACTION,
+/**
+ * Builds a conservative ADOPT/DROP/MERGE plan for single-record large
+ * ListState PUT files. The planner only uses persisted file metadata.
+ */
+class ListStateFileReusePlanner {
+public:
+    using AdoptableFilter = std::function<bool(uint16_t stateId, uint64_t seqId)>;
+
+    static void Build(const CompactionRef &compaction, const AdoptableFilter &adoptableFilter);
 };
 }  // namespace bss
 }  // namespace ock
-#endif  // BSS_DEV_COMPACTION_COMM_H
+
+#endif  // BOOST_SS_LIST_STATE_FILE_REUSE_PLANNER_H

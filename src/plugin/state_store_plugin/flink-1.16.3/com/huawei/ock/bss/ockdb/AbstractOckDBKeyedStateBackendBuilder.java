@@ -348,6 +348,7 @@ public abstract class AbstractOckDBKeyedStateBackendBuilder<K> extends AbstractK
         boostConfig.setBackendUID(getExecutionID());
         boostConfig.setLsmCompactionSwitch(this.config.get(OckDBOptions.OCKDB_JNI_LSM_CMPCT_SWITCH));
         boostConfig.setTtlFilterSwitch(this.config.get(OckDBOptions.OCKDB_TTL_FILTER_SWITCH));
+        boostConfig.setZeroCopySwitch(this.config.get(OckDBOptions.OCKDB_ZERO_COPY_SWITCH));
         boostConfig.setCacheFilterAndIndexSwitch(this.config.get(OckDBOptions.OCKDB_CACHE_FILTER_AND_INDEX_SWITCH));
         boostConfig.setKVSeparateSwitch(this.config.get(OckDBOptions.OCKDB_KV_SEPARATE_SWITCH));
         boostConfig.setKVSeparateThreshold(this.config.get(OckDBOptions.OCKDB_KV_SEPARATE_THRESHOLD));

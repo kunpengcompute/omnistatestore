@@ -211,20 +211,21 @@ public:
         uint32_t levelId = compaction->GetInputLevelId();
         std::vector<KeyValueIteratorRef> iterators;
         if (levelId == 0) {
-            for (auto &fileMetaData : compaction->GetLevelInputs()) {
+            for (auto &fileMetaData : compaction->GetMergeLevelInputs()) {
                 iterators.emplace_back(InputSortedRun::BuildInputSortedRunIterator(fileMetaData, mFileIteratorBuilder));
             }
         } else {
             std::vector<InputSortedRunRef> inputSortedRunList =
-                InputSortedRun::BuildInputSortedRun(compaction->GetLevelInputs(), GetFileMetaDataComparator());
+                InputSortedRun::BuildInputSortedRun(compaction->GetMergeLevelInputs(), GetFileMetaDataComparator());
             for (auto &inputSortedRun : inputSortedRunList) {
                 iterators.emplace_back(inputSortedRun->GetIterator(mFileIteratorBuilder));
             }
         }
 
-        if (!compaction->GetOutputLevelInputs().empty()) {
+        if (!compaction->GetMergeOutputLevelInputs().empty()) {
             std::vector<InputSortedRunRef> inputSortedRunList =
-                InputSortedRun::BuildInputSortedRun(compaction->GetOutputLevelInputs(), GetFileMetaDataComparator());
+                InputSortedRun::BuildInputSortedRun(compaction->GetMergeOutputLevelInputs(),
+                                                    GetFileMetaDataComparator());
             for (auto &inputSortedRun : inputSortedRunList) {
                 iterators.emplace_back(inputSortedRun->GetIterator(mFileIteratorBuilder));
             }
@@ -279,7 +280,7 @@ public:
             fileBuilder->Fill(file->GetSmallest(), file->GetLargest(), file->GetFileSize(), file->GetFileAddress(),
                               file->GetSeqId(), std::make_shared<GroupRange>(intersectionGroupRange),
                               std::make_shared<HashCodeOrderRange>(intersectionOrderRange), file->GetIdentifier(),
-                              file->GetStateIdInterval(), file->GetFileStatus());
+                              file->GetStateIdInterval(), file->GetFileStatus(), file->GetRecordMeta());
             FileMetaDataRef newFile = fileBuilder->Build();
             builder->AddFileMeta(newFile);
         }

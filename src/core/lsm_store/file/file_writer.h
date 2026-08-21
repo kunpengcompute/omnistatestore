@@ -33,8 +33,12 @@ namespace bss {
 class FileWriter {
 public:
     FileWriter(const PathRef &filePath, const ConfigRef &config, CompressAlgo compressAlgorithm,
-               const MemManagerRef &memManager, FileProcHolder holder)
-        : mFilePath(filePath), mCompressAlgorithm(compressAlgorithm), mMemManager(memManager), mHolder(holder)
+               const MemManagerRef &memManager, FileProcHolder holder, bool maintainRecordMeta)
+        : mFilePath(filePath),
+          mCompressAlgorithm(compressAlgorithm),
+          mMemManager(memManager),
+          mMaintainRecordMeta(maintainRecordMeta),
+          mHolder(holder)
     {
         mDataBlockWriter = std::make_shared<DataBlockWriter>(config->GetHashIndexLoadRatio(), memManager, holder);
         mIndexBlockWriter = CreateIndexBlockWriter(config, memManager, holder);
@@ -128,8 +132,11 @@ private:
     IndexBlockStatRef mIndexBlockStat = nullptr;
     MemManagerRef mMemManager = nullptr;
     StateIdInterval mStateIdInterval;
+    FileRecordMeta mRecordMeta;
     bool mFinished = false;
     bool mClosed = false;
+    bool mMaintainRecordMeta = false;
+    bool mHasTrackedRecord = false;
     FileProcHolder mHolder;
 };
 using FileWriterRef = std::shared_ptr<FileWriter>;

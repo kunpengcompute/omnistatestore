@@ -107,6 +107,15 @@ public class OckDBOptions {
             .withDescription("lsm store compaction switch");
 
     /**
+     * Enable ListState compaction file reuse.
+     */
+    public static final ConfigOption<Boolean> OCKDB_ZERO_COPY_SWITCH =
+        ConfigOptions.key("state.backend.ockdb.zero-copy.switch")
+            .booleanType()
+            .defaultValue(false)
+            .withDescription("enable ListState compaction file reuse");
+
+    /**
      * enable ttl filter switch
      */
     public static final ConfigOption<Boolean> OCKDB_TTL_FILTER_SWITCH =

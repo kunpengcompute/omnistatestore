@@ -89,9 +89,10 @@ public:
     }
 
     inline FileWriterRef CreateFileWriter(const PathRef &path, const ConfigRef &config, CompressAlgo compressAlgorithm,
-                                          const MemManagerRef &memManager, FileProcHolder holder)
+                                          const MemManagerRef &memManager, FileProcHolder holder,
+                                          bool maintainRecordMeta)
     {
-        return std::make_shared<FileWriter>(path, config, compressAlgorithm, memManager, holder);
+        return std::make_shared<FileWriter>(path, config, compressAlgorithm, memManager, holder, maintainRecordMeta);
     }
 
     inline void RegisterMetric(BoostNativeMetricPtr metricPtr)

@@ -143,7 +143,8 @@ VersionPtr Version::MigrateVersion(
                 auto newFileBuilder = FileMetaData::NewBuilder();
                 newFileBuilder->Fill(file->GetSmallest(), file->GetLargest(), fileInfo.fileLength,
                                      fileInfo.remoteFileAddress, file->GetSeqId(), file->GetGroupRange(),
-                                     file->GetOrderRange(), fileInfo.restoreLocalFileName, file->GetStateIdInterval());
+                                     file->GetOrderRange(), fileInfo.restoreLocalFileName, file->GetStateIdInterval(),
+                                     FileStatus::LOCAL, file->GetRecordMeta());
                 auto newFile = newFileBuilder->Build();
                 RETURN_NULLPTR_AS_NULLPTR(newFile);
                 groupBuilder->AddFileMeta(newFile);

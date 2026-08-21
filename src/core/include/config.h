@@ -365,6 +365,16 @@ public:
         mTtlFilterSwitch = ttlFilterSwitch;
     }
 
+    inline bool GetZeroCopySwitch() const
+    {
+        return mZeroCopySwitch;
+    }
+
+    inline void SetZeroCopySwitch(bool zeroCopySwitch)
+    {
+        mZeroCopySwitch = zeroCopySwitch;
+    }
+
     // 获取cacheIndexAndFilter开关, 默认值为true.
     inline bool GetCacheIndexAndFilterSwitch() const
     {
@@ -568,6 +578,7 @@ public:
 
     int32_t mLsmStoreCompactionSwitch = 1;
     bool mTtlFilterSwitch = false;
+    bool mZeroCopySwitch = false;
     bool mIsKVSeparate = false;
     uint32_t mBlobDefaultBlockSize = IO_SIZE_16K;
     uint32_t mBlobValueSizeThreshold = 200;
