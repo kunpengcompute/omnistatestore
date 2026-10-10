@@ -189,7 +189,6 @@ public class KListTableImpl<K, E> extends AbstractTable<K, List<E>>
      * @param key key
      * @return java.util.List<E>
      */
-    @SuppressWarnings("unchecked")
     public List<E> get(K key) {
         Preconditions.checkNotNull(key);
         if (!testKeyHash(key.hashCode())) {
@@ -209,7 +208,8 @@ public class KListTableImpl<K, E> extends AbstractTable<K, List<E>>
                 LOG.debug("the key {} of list table is not exist.", key);
                 return null;
             }
-            List<E> valueList = (List<E>) KVSerializerUtil.desList(stateListResult, elementSerializer, inputView);
+            List<E> valueList = new ArrayList<>();
+            KVSerializerUtil.desListInto(stateListResult, elementSerializer, inputView, valueList);
             doSectionRead(valueList, stateListResult, key);
             checkGetListConsistency(key, keyBytes, valueList, stateListResult);
             return valueList;
@@ -224,21 +224,33 @@ public class KListTableImpl<K, E> extends AbstractTable<K, List<E>>
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void doSectionRead(List<E> valueList, StateListResult stateListResult, K key) {
         int readSectionId = stateListResult.getReadSectionId();
         if (readSectionId == 0) {
             return;
         }
         StateListResult temp = stateListResult;
+        boolean reorder = false;
         try {
             while (readSectionId > 0) {
                 temp = doNativeSectionRead(nativeHandle, temp);
-                List<E> tempList = (List<E>) KVSerializerUtil.desList(temp, elementSerializer, inputView);
-                if (!tempList.isEmpty()) {
-                    valueList.addAll(0, tempList);
+                int start = valueList.size();
+                KVSerializerUtil.desListInto(temp, elementSerializer, inputView, valueList);
+                int end = valueList.size();
+                if (end > start) {
+                    // Reverse whole JNI batches, keeping their internal order after the final reversal.
+                    if (!reorder && start > 0) {
+                        Collections.reverse(valueList.subList(0, start));
+                        reorder = true;
+                    }
+                    if (reorder) {
+                        Collections.reverse(valueList.subList(start, end));
+                    }
                 }
                 readSectionId = temp.getReadSectionId();
+            }
+            if (reorder) {
+                Collections.reverse(valueList);
             }
         } catch (IOException e) {
             LOG.error("Fail to get key {} from KListTable.", key, e);

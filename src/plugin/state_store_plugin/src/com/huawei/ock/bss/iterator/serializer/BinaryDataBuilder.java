@@ -173,7 +173,6 @@ public class BinaryDataBuilder<K> {
             for (int i = 0; i < subListSize; i++) {
                 list.add(elementSerializer.deserialize(dataInputView));
             }
-            dataInputView.skipBytes(subListSize * 4);
         }
         this.dataInputView.releaseArrays();
         ListDelimitedSerializer listDelimitedSerializer = new ListDelimitedSerializer();

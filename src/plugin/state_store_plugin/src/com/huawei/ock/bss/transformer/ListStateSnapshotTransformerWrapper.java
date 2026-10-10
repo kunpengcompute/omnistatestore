@@ -72,23 +72,27 @@ public class ListStateSnapshotTransformerWrapper<T> implements StateSnapshotTran
 
     @Nullable
     private byte[] handleListValue(byte[] value, List<T> result) throws IOException {
-        int prevPos = 0;
         while (deserializer.available() != 0) {
+            int subListStart = deserializer.getPosition();
             int subListSize = deserializer.readInt();
             for (int i = 0; i < subListSize; i++) {
+                int elementStart = deserializer.getPosition();
                 T element = elementTransformer.filterOrTransform(elementSerializer.deserialize(deserializer));
                 if (element == null) {
-                    prevPos = deserializer.getPosition();
                     continue;
                 }
                 if (transformStrategy == STOP_ON_FIRST_INCLUDED) {
-                    return Arrays.copyOfRange(value, prevPos, value.length);
+                    if (i == 0) {
+                        return Arrays.copyOfRange(value, subListStart, value.length);
+                    }
+                    // Preserve the remaining serialized elements with their updated sub-list count.
+                    DataOutputSerializer outputView = new DataOutputSerializer(Integer.BYTES);
+                    outputView.writeInt(subListSize - i);
+                    outputView.write(value, elementStart, value.length - elementStart);
+                    return outputView.getCopyOfBuffer();
                 }
                 result.add(element);
-                prevPos = deserializer.getPosition();
             }
-            deserializer.skipBytes(subListSize * 4);
-            prevPos = deserializer.getPosition();
         }
         return result.isEmpty() ? null : serializeList(result, elementSerializer);
     }
@@ -97,17 +101,9 @@ public class ListStateSnapshotTransformerWrapper<T> implements StateSnapshotTran
         throws IOException {
         DataOutputSerializer outputView = new DataOutputSerializer(1);
         outputView.writeInt(elements.size());
-        List<Integer> positionList = new ArrayList<>(elements.size());
-        int lastPosition = outputView.length();
 
         for (E element : elements) {
             elementSerializer.serialize(element, outputView);
-            positionList.add(outputView.length() - lastPosition);
-            lastPosition = outputView.length();
-        }
-
-        for (Integer integer : positionList) {
-            outputView.writeInt(integer);
         }
 
         return outputView.getCopyOfBuffer();

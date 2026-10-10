@@ -92,7 +92,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -741,7 +740,7 @@ public class BoostSavepointRestoreOperation<K> extends AbstractBoostRestoreOpera
         DataOutputSerializer payload = new DataOutputSerializer(Math.min(Math.max(canonicalBytes.length, 1),
             LIST_RESTORE_MAX_BYTES));
         GrowableDataOutputView element = new GrowableDataOutputView(128);
-        List<Integer> lengths = new ArrayList<>(LIST_RESTORE_MAX_ELEMENTS);
+        int count = 0;
         boolean rawCopy = isCanonicalSerializer(serializer);
         while (input.available() > 0) {
             element.clear();
@@ -753,32 +752,30 @@ public class BoostSavepointRestoreOperation<K> extends AbstractBoostRestoreOpera
                 E value = serializer.deserialize(input);
                 bytes = serializeNormalized(serializer, value);
             }
-            if (!lengths.isEmpty() && (lengths.size() >= LIST_RESTORE_MAX_ELEMENTS
+            if (count > 0 && (count >= LIST_RESTORE_MAX_ELEMENTS
                 || payload.length() + bytes.length > LIST_RESTORE_MAX_BYTES)) {
-                consumer.accept(buildListChunk(payload, lengths));
+                consumer.accept(buildListChunk(payload, count));
                 payload.clear();
-                lengths.clear();
+                count = 0;
             }
             payload.write(bytes);
-            lengths.add(bytes.length);
+            count++;
             if (input.available() > 0) {
                 if (input.readByte() != ',' || input.available() == 0) {
                     throw new IOException("Invalid list delimiter in savepoint value.");
                 }
             }
         }
-        if (!lengths.isEmpty()) {
-            consumer.accept(buildListChunk(payload, lengths));
+        if (count > 0) {
+            consumer.accept(buildListChunk(payload, count));
         }
     }
 
-    private static byte[] buildListChunk(DataOutputSerializer payload, List<Integer> lengths) throws IOException {
-        DataOutputSerializer chunk = new DataOutputSerializer(4 + payload.length() + lengths.size() * 4);
-        chunk.writeInt(lengths.size());
+    private static byte[] buildListChunk(DataOutputSerializer payload, int count) throws IOException {
+        // Match KVSerializerUtil.serList: element count followed by serialized elements.
+        DataOutputSerializer chunk = new DataOutputSerializer(Integer.BYTES + payload.length());
+        chunk.writeInt(count);
         chunk.write(payload.getSharedBuffer(), 0, payload.length());
-        for (int length : lengths) {
-            chunk.writeInt(length);
-        }
         return chunk.getCopyOfBuffer();
     }
 

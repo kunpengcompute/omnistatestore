@@ -13,12 +13,21 @@ package com.huawei.ock.bss.ockdb;
 import com.huawei.ock.bss.EmbeddedOckStateBackend;
 import com.huawei.ock.bss.OckDBKeyedStateBackend;
 import com.huawei.ock.bss.common.BoostStateDB;
+import com.huawei.ock.bss.common.memory.DirectDataInputDeserializer;
+import com.huawei.ock.bss.common.memory.DirectDataOutputSerializer;
+import com.huawei.ock.bss.common.serialize.KVSerializerUtil;
+import com.huawei.ock.bss.common.serialize.ThreadLocalOutputViewPool;
+import com.huawei.ock.bss.iterator.serializer.BinaryDataBuilder;
 import com.huawei.ock.bss.resource.ResourceContainer;
 import com.huawei.ock.bss.table.KVTableImpl;
 import com.huawei.ock.bss.table.KListTableImpl;
 import com.huawei.ock.bss.table.KMapTableImpl;
 import com.huawei.ock.bss.table.KeyPair;
 import com.huawei.ock.bss.table.api.Table;
+import com.huawei.ock.bss.table.api.SerializedListRestoreTable;
+import com.huawei.ock.bss.table.result.StateListResult;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
+import org.apache.flink.api.common.typeutils.base.IntSerializer;
 import org.apache.flink.core.memory.DataInputDeserializer;
 import org.apache.flink.core.memory.DataOutputSerializer;
 import org.apache.flink.api.common.typeutils.base.LongSerializer;
@@ -31,6 +40,7 @@ import org.apache.flink.runtime.state.ttl.TtlValue;
 import org.mockito.Mockito;
 import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
 import com.huawei.ock.bss.restore.BoostRestoreOperation;
 import com.huawei.ock.bss.restore.BoostSavepointRestoreOperation;
@@ -165,6 +175,67 @@ public class BoostSavepointRestoreOperationTest {
         Mockito.verify(table).restoreSerialized(Mockito.same(keyBytes), Mockito.eq(202), Mockito.eq(101),
             Mockito.same(valueBytes));
         Mockito.verifyNoMoreInteractions(table);
+    }
+
+    @Test
+    public void serializedListRestoreCanBeReadAndSavedAgain() throws Exception {
+        assertListRestoreRoundTrip(Arrays.asList(10, 20), IntSerializer.INSTANCE, false, 1);
+    }
+
+    @Test
+    public void namespacedListRestorePreservesOrderAcrossChunks() throws Exception {
+        List<String> values = new ArrayList<>();
+        for (int i = 0; i < 201; i++) {
+            values.add("value-" + i);
+        }
+        assertListRestoreRoundTrip(values, StringSerializer.INSTANCE, true, 3);
+    }
+
+    @Test
+    public void serializedListRestoreSplitsLargeElementsWithoutLengthTrailer() throws Exception {
+        char[] chars = new char[70000];
+        Arrays.fill(chars, 'x');
+        assertListRestoreRoundTrip(Arrays.asList("first", new String(chars), "last"), StringSerializer.INSTANCE,
+            false, 3);
+    }
+
+    @Test
+    public void serializedListRestoreNormalizesElementSerializer() throws Exception {
+        assertListRestoreRoundTrip(Arrays.asList(Arrays.asList(1, 2), Collections.singletonList(3)),
+            new ListSerializer<>(IntSerializer.INSTANCE), false, 1);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <E> void assertListRestoreRoundTrip(List<E> values, TypeSerializer<E> elementSerializer,
+        boolean namespaced, int expectedChunks) throws Exception {
+        BoostRestoreOperation<String> operation = new TestBuilder().createSavepointRestoreOperation();
+        Map<String, Table> tables = Whitebox.getInternalState(operation, "tables");
+        KListTableImpl<?, E> table = Mockito.mock(KListTableImpl.class);
+        tables.put("state", table);
+        List<byte[]> chunks = new ArrayList<>();
+        Mockito.doAnswer(invocation -> {
+            SerializedListRestoreTable.ChunkProducer producer = invocation.getArgument(3);
+            producer.writeTo(chunks::add);
+            return null;
+        }).when(table).restoreSerialized(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt(), Mockito.any());
+        byte[] canonicalBytes = new ListDelimitedSerializer().serializeList(values, elementSerializer);
+        Object namespace = namespaced ? "namespace" : VoidNamespace.INSTANCE;
+        Whitebox.invokeMethod(operation, "restoreListState", "state", "key", namespace,
+            new byte[0], new byte[0], "key".hashCode(), namespaced ? "namespace".hashCode() : 0, 17,
+            canonicalBytes, new ListSerializer<>(elementSerializer));
+        Assert.assertEquals(expectedChunks, chunks.size());
+
+        DirectDataOutputSerializer output = ThreadLocalOutputViewPool.current(true).getOutputView();
+        for (byte[] chunk : chunks) {
+            output.write(chunk);
+        }
+        StateListResult result = new StateListResult(0, 1);
+        result.setAddresses(new long[] {output.data()});
+        result.setLengths(new int[] {output.length()});
+        Assert.assertEquals(values, KVSerializerUtil.desList(result, elementSerializer,
+            new DirectDataInputDeserializer()));
+        BinaryDataBuilder<String> builder = new BinaryDataBuilder<>(StringSerializer.INSTANCE, 128);
+        Assert.assertArrayEquals(canonicalBytes, builder.formatListValue(elementSerializer, output.getCopyOfBuffer()));
     }
 
     private static TtlStateFactory.TtlSerializer<String> ttlSerializer() {
