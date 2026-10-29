@@ -304,7 +304,6 @@ jobs:
             cmake \
             maven \
             libaio-devel \
-            lcov \
             git \
             gcc \
             gcc-c++ \
