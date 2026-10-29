@@ -1,0 +1,429 @@
+name: OmniStateStore-CI
+
+on:
+  pull_request:
+    types:
+      - open
+      - reopen
+      - update
+    branches: ['*']
+
+  pull_request_comment:
+    types: [created]
+    comments: ['^/retest$']
+    branches: ['*']
+
+env:
+  PR_ID: ${{ atomgit.event.pull_request.number }}
+  TARGET_BRANCH: ${{ atomgit.event.pull_request.base.ref }}
+  HEAD_SHA: ${{ atomgit.event.pull_request.head.sha }}
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  enable: true
+  max: 3
+  exceed-action: QUEUE
+  preemption:
+    enable: true
+    events: [mr_id]
+
+permissions:
+  repository: read
+  pr: none
+  issue: none
+  note: none
+  project: none
+
+jobs:
+  prepare:
+    name: Mark running
+    runs-on: [self-hosted, openeuler, arm, cpu=8]
+    steps:
+      - name: Mark PR as running
+        if: ${{ atomgit.event.pull_request.number != '' }}
+        uses: openlibing/pr-label-action@v1.0.0
+        with:
+          add_labels: ci-pipeline-running
+          remove_labels: ci-pipeline-success,ci-pipeline-failed,ci-pipeline-passed
+          token: ${{ secrets.PR_LABEL_TOKEN }}
+  
+  pre_commit:
+    name: pre-commit
+    needs: prepare
+    if: ${{ atomgit.event.pull_request.base.ref == 'master' }}
+    runs-on: [self-hosted, openeuler, arm, cpu=8]
+    timeout-minutes: 30
+    container:
+      image: swr.cn-north-4.myhuaweicloud.com/ubscore/soe:latest
+
+    steps:
+      - name: Checkout PR merge code
+        uses: checkout
+        with:
+          ref: refs/merge-requests/${{ env.PR_ID }}/merge
+
+      - name: Install pre-commit
+        run: |
+          set -euxo pipefail
+
+          sudo dnf install -y \
+            clang-tools-extra \
+            git \
+            python3 \
+            python3-pip
+
+          sudo python3 -m pip config set global.index-url \
+            https://repo.huaweicloud.com/repository/pypi/simple
+          sudo python3 -m pip config set global.timeout 120
+
+          sudo python3 -m pip install "pre-commit==4.3.0" \
+            --trusted-host repo.huaweicloud.com \
+            --timeout 120
+
+          clang-format --version
+
+      - name: Run clang-format
+        run: |
+          set -euxo pipefail
+
+          sed -i 's/, -i/, -n, --Werror/g' .pre-commit-config.yaml
+          pre-commit run clang-format --all-files
+
+      - name: Save result
+        if: ${{ always() }}
+        env:
+          CURRENT_JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p .ci-results
+          if [[ "${CURRENT_JOB_STATUS}" == "success" ]]; then
+            echo "SUCCESS" > .ci-results/pre-commit
+          else
+            echo "FAILED" > .ci-results/pre-commit
+          fi
+
+          echo "pre-commit: ${CURRENT_JOB_STATUS}" >> "${ATOMGIT_STEP_SUMMARY}"
+
+      - name: Upload result
+        if: ${{ always() }}
+        uses: upload-artifact
+        with:
+          name: ci-result-pre-commit
+          path: .ci-results/pre-commit
+
+  build_x86_64:
+    name: build-x86-64
+    needs: prepare
+    if: ${{ atomgit.event.pull_request.base.ref == 'master' }}
+    runs-on: [self-hosted, openeuler, x86, cpu=8]
+    timeout-minutes: 90
+    container:
+      image: swr.cn-north-4.myhuaweicloud.com/ubscore/soe:latest
+
+    steps:
+      - name: Checkout PR merge code
+        uses: checkout
+        with:
+          ref: refs/merge-requests/${{ env.PR_ID }}/merge
+
+      - name: Install build dependencies
+        run: |
+          set -euxo pipefail
+
+          sudo yum install -y \
+            cmake \
+            maven \
+            git \
+            gcc \
+            gcc-c++ \
+            make
+
+          cmake --version
+          mvn --version
+
+      - name: Build OmniStateStore release
+        run: |
+          set -euxo pipefail
+
+          export PATH=/usr/bin:${PATH}
+          if [[ -z "${JAVA_HOME:-}" ]]; then
+            export JAVA_HOME="$(
+              dirname "$(dirname "$(readlink -f "$(command -v java)")")"
+            )"
+          fi
+
+          cd scripts
+          sh build.sh -t release
+
+          test -f \
+            "../dist/BoostKit-omnistatestore_1.1.0_x86_64_release.tar.gz"
+
+      - name: Upload build output
+        uses: upload-artifact
+        with:
+          name: omnistatestore-release-x86_64
+          path: dist/BoostKit-omnistatestore_1.1.0_x86_64_release.tar.gz
+
+      - name: Save result
+        if: ${{ always() }}
+        env:
+          CURRENT_JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p .ci-results
+          if [[ "${CURRENT_JOB_STATUS}" == "success" ]]; then
+            echo "SUCCESS" > .ci-results/x86_64
+          else
+            echo "FAILED" > .ci-results/x86_64
+          fi
+
+          echo "x86_64: ${CURRENT_JOB_STATUS}" >> "${ATOMGIT_STEP_SUMMARY}"
+
+      - name: Upload result
+        if: ${{ always() }}
+        uses: upload-artifact
+        with:
+          name: ci-result-x86-64
+          path: .ci-results/x86_64
+
+  build_aarch64:
+    name: build-aarch64
+    needs: prepare
+    runs-on: [self-hosted, openeuler, arm, cpu=8]
+    timeout-minutes: 90
+    container:
+      image: swr.cn-north-4.myhuaweicloud.com/cloud_boostkit/openeuler22.03_lts_sp3:arm64_003
+
+    steps:
+      - name: Checkout PR merge code
+        uses: checkout
+        with:
+          ref: refs/merge-requests/${{ env.PR_ID }}/merge
+
+      - name: Install common dependencies
+        run: |
+          set -euxo pipefail
+
+          sudo yum install -y \
+            cmake \
+            maven \
+            git \
+            gcc \
+            gcc-c++ \
+            make \
+            dos2unix
+
+          cmake --version
+          mvn --version
+          git --version
+
+      - name: Build or test aarch64
+        run: |
+          set -euxo pipefail
+
+          export PATH=/usr/bin:${PATH}
+
+          if [[ "${TARGET_BRANCH}" == "master" ]]; then
+            if [[ -z "${JAVA_HOME:-}" ]]; then
+              export JAVA_HOME="$(
+                dirname "$(dirname "$(readlink -f "$(command -v java)")")"
+              )"
+            fi
+
+            cd scripts
+            sh build.sh -t release
+
+            test -f \
+              "../dist/BoostKit-omnistatestore_1.1.0_aarch64_release.tar.gz"
+          else
+            ci_root="$(mktemp -d)"
+            ln -s "${PWD}" "${ci_root}/OmniStateStore"
+            export WORKSPACE="${ci_root}"
+
+            cd "${ci_root}"
+            git clone \
+              https://codehub.devcloud.cn-north-4.huaweicloud.com/Kunpeng_BoostKit00001/BoostKit_CI.git
+
+            chmod 755 BoostKit_CI/script/bigdata/falcon_compile.sh
+            dos2unix BoostKit_CI/script/bigdata/falcon_compile.sh
+            sh BoostKit_CI/script/bigdata/falcon_compile.sh ut
+          fi
+
+      - name: Upload release package
+        if: ${{ env.TARGET_BRANCH == 'master' }}
+        uses: upload-artifact
+        with:
+          name: omnistatestore-release-aarch64
+          path: dist/BoostKit-omnistatestore_1.1.0_aarch64_release.tar.gz
+
+      - name: Save result
+        if: ${{ always() }}
+        env:
+          CURRENT_JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p .ci-results
+          if [[ "${CURRENT_JOB_STATUS}" == "success" ]]; then
+            echo "SUCCESS" > .ci-results/aarch64
+          else
+            echo "FAILED" > .ci-results/aarch64
+          fi
+
+          echo "aarch64: ${CURRENT_JOB_STATUS}" >> "${ATOMGIT_STEP_SUMMARY}"
+
+      - name: Upload result
+        if: ${{ always() }}
+        uses: upload-artifact
+        with:
+          name: ci-result-aarch64
+          path: .ci-results/aarch64
+
+  dt:
+    name: DT
+    needs: prepare
+    if: ${{ atomgit.event.pull_request.base.ref == 'master' }}
+    runs-on: [self-hosted, openeuler, arm, cpu=8]
+    timeout-minutes: 90
+    container:
+      image: swr.cn-north-4.myhuaweicloud.com/ubscore/soe:latest
+
+    steps:
+      - name: Checkout PR merge code
+        uses: checkout
+        with:
+          ref: refs/merge-requests/${{ env.PR_ID }}/merge
+
+      - name: Install DT dependencies
+        run: |
+          set -euxo pipefail
+
+          sudo yum install -y \
+            cmake \
+            maven \
+            libaio-devel \
+            lcov \
+            git \
+            gcc \
+            gcc-c++ \
+            make \
+            dos2unix
+
+          cmake --version
+          mvn --version
+          lcov --version
+
+      - name: Build and run OmniStateStore DT
+        run: |
+          set -euxo pipefail
+
+          export PATH=/usr/bin:${PATH}
+          if [[ -z "${JAVA_HOME:-}" ]]; then
+            export JAVA_HOME="$(
+              dirname "$(dirname "$(readlink -f "$(command -v java)")")"
+            )"
+          fi
+
+          bash ./scripts/build.sh -t debug --ut
+
+          cd ./build/test/llt
+          ./bss_ut
+          cd ../../..
+
+      - name: Generate coverage report
+        run: |
+          set -euxo pipefail
+          shopt -s nullglob
+
+          cov_start="$(date +%s)"
+          coverage_dir="${PWD}/test/build"
+          coverage_info="${coverage_dir}/coverage.info"
+          report_dir="${coverage_dir}/gcovr_report"
+          shard_dir="${coverage_dir}/shard"
+
+          rm -rf "${shard_dir}" "${report_dir}"
+          mkdir -p "${shard_dir}" "${report_dir}"
+
+          cd build
+          for dir in $(
+            find src/core -name '*.gcda' |
+              cut -d/ -f1-3 |
+              sort -u
+          ); do
+            lcov --capture \
+              --directory "${dir}" \
+              --exclude '/usr/include/*' \
+              --exclude '/usr/local/*' \
+              --exclude '*generated.h' \
+              --output-file "${shard_dir}/$(basename "${dir}").info" \
+              --rc lcov_branch_coverage=1 &
+          done
+          wait
+
+          shard_files=("${shard_dir}"/*.info)
+          if (( ${#shard_files[@]} == 0 )); then
+            echo "No lcov shard reports generated" >&2
+            exit 1
+          fi
+
+          lcov_args=()
+          for shard_file in "${shard_files[@]}"; do
+            lcov_args+=(-a "${shard_file}")
+          done
+
+          lcov "${lcov_args[@]}" \
+            -o "${coverage_info}" \
+            --rc lcov_branch_coverage=1
+
+          genhtml \
+            -o "${report_dir}" \
+            "${coverage_info}" \
+            --show-details \
+            --legend \
+            --rc lcov_branch_coverage=1
+
+          echo "[coverage] elapsed $(( $(date +%s) - cov_start ))s"
+          ls -l "${coverage_dir}"
+
+      - name: Upload DT reports
+        if: ${{ always() }}
+        uses: upload-artifact
+        with:
+          name: omnistatestore-dt
+          path: |
+            test/build/coverage.info
+            test/build/gcovr_report/
+            test/build/shard/
+
+      - name: Save result
+        if: ${{ always() }}
+        env:
+          CURRENT_JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p .ci-results
+          if [[ "${CURRENT_JOB_STATUS}" == "success" ]]; then
+            echo "SUCCESS" > .ci-results/DT
+          else
+            echo "FAILED" > .ci-results/DT
+          fi
+
+          echo "DT: ${CURRENT_JOB_STATUS}" >> "${ATOMGIT_STEP_SUMMARY}"
+
+      - name: Upload result
+        if: ${{ always() }}
+        uses: upload-artifact
+        with:
+          name: ci-result-dt
+          path: .ci-results/DT
+post:
+  jobs:
+    report_result:
+      name: Report pipeline result
+      runs-on: [self-hosted, openeuler, arm, cpu=8]
+      steps:
+        - name: Set result label
+          if: ${{ atomgit.event.pull_request.number != '' }}
+          uses: openlibing/pr-label-action@v1.0.0
+          with:
+            add_labels: ${{ pipeline.upstream_status == 'COMPLETED' && 'ci-pipeline-success' || 'ci-pipeline-failed' }}
+            remove_labels: ci-pipeline-running,${{ pipeline.upstream_status == 'COMPLETED' && 'ci-pipeline-failed' || 'ci-pipeline-success' }}
+            token: ${{ secrets.PR_LABEL_TOKEN }}
