@@ -7,6 +7,11 @@ on:
       - reopen
       - update
     branches: ['*']
+  
+  pull_request_comment:
+    types: [created]
+    comments: ['^/retest$']
+    branches: ['*']
 
   pull_request_comment:
     types: [created]
