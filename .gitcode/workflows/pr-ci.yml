@@ -12,6 +12,7 @@ on:
     types: [created]
     comments: ['^/retest$']
 
+
   pull_request_comment:
     types: [created]
     comments: ['^/retest$']
