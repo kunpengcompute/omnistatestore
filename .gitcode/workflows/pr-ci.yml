@@ -318,18 +318,48 @@ jobs:
         run: |
           set -euxo pipefail
 
-          export PATH=/usr/bin:${PATH}
-          if [[ -z "${JAVA_HOME:-}" ]]; then
+          # 与主仓 DT 保持一致，优先使用 OpenJDK 17
+          if [[ -f /usr/local/openjdk-17/include/jni.h ]]; then
+            export JAVA_HOME=/usr/local/openjdk-17
+          elif command -v javac >/dev/null 2>&1; then
             export JAVA_HOME="$(
-              dirname "$(dirname "$(readlink -f "$(command -v java)")")"
+              dirname "$(dirname "$(readlink -f "$(command -v javac)")")"
             )"
+          else
+            echo "No usable JDK found: jni.h is unavailable" >&2
+            exit 1
           fi
+
+          export PATH="${JAVA_HOME}/bin:/usr/bin:${PATH}"
+
+          echo "JAVA_HOME=${JAVA_HOME}"
+          java -version
+          javac -version
+          test -f "${JAVA_HOME}/include/jni.h"
+          test -f "${JAVA_HOME}/include/linux/jni_md.h"
 
           bash ./scripts/build.sh -t debug --ut
 
-          cd ./build/test/llt
-          ./bss_ut
-          cd ../../..
+          # 不写死构建目录，兼容后续目录布局变化
+          ut_bin="$(
+            find "${PWD}/build" \
+              -type f \
+              -name bss_ut \
+              -perm -111 \
+              -print \
+              -quit
+          )"
+
+          if [[ -z "${ut_bin}" ]]; then
+            echo "bss_ut not found under ${PWD}/build" >&2
+            exit 1
+          fi
+
+          echo "Running ${ut_bin}"
+          (
+            cd "$(dirname "${ut_bin}")"
+            ./bss_ut
+          )
 
       - name: Generate coverage report
         run: |
