@@ -34,6 +34,14 @@ public:
         mBuffer = buffer;
     }
 
+    // Acquire the owner directly on cache hits, without constructing a temporary BufferRef.
+    inline void Init(const uint8_t *valueData, uint32_t valueLen, Buffer *buffer)
+    {
+        mLength = valueLen;
+        mData = valueData;
+        mBuffer = buffer;
+    }
+
     BinaryData(const uint8_t *data, uint32_t length, const BufferRef &buffer = nullptr)
         : mLength(length), mData(data), mBuffer(buffer)
     {

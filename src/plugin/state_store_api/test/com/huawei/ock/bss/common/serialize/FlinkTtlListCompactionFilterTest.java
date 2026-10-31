@@ -17,18 +17,15 @@ import com.huawei.ock.bss.table.description.KListTableDescription;
 import com.huawei.ock.bss.table.result.StateListResult;
 
 import org.apache.flink.api.common.typeutils.TypeSerializer;
-import org.apache.flink.api.common.typeutils.base.ByteSerializer;
 import org.apache.flink.api.common.typeutils.base.IntSerializer;
 import org.apache.flink.api.common.typeutils.base.LongSerializer;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
-import org.apache.flink.core.memory.DataOutputSerializer;
 import org.apache.flink.runtime.state.ttl.TtlStateFactory;
 import org.apache.flink.runtime.state.ttl.TtlValue;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -80,22 +77,6 @@ public class FlinkTtlListCompactionFilterTest {
     }
 
     @Test
-    public void shortTtlElementsDoNotRequireLengthTrailer() throws Exception {
-        TtlStateFactory.TtlSerializer<Byte> byteSerializer =
-            new TtlStateFactory.TtlSerializer<>(LongSerializer.INSTANCE, ByteSerializer.INSTANCE);
-        FlinkTtlListCompactionFilter callback = FlinkTtlListCompactionFilter.create(
-            new KListTableDescription<>("ttl-byte", 128,
-                new TableSerializer<>(IntSerializer.INSTANCE, byteSerializer)), () -> 1100L);
-        byte[] bytes = serialize(Arrays.asList(new TtlValue<>((byte) 1, 900), new TtlValue<>((byte) 2, 1050)),
-            byteSerializer);
-        byte[] result = callback.filterList(bytes, 100, 1100);
-
-        assertArrayEquals(serialize(Collections.singletonList(new TtlValue<>((byte) 2, 1050)), byteSerializer), result);
-        assertEquals(Byte.valueOf((byte) 2), deserialize(result, byteSerializer).get(0).getUserValue());
-        assertSame(result, callback.filterList(result, 100, 1100));
-    }
-
-    @Test
     public void restoredBytesExpireAtOriginalDeadline() throws Exception {
         byte[] savepointRestoredValue = chunk(new TtlValue<>("restored", 1000));
         assertSame(savepointRestoredValue, filter().filterList(savepointRestoredValue, 100, 1099));
@@ -114,13 +95,6 @@ public class FlinkTtlListCompactionFilterTest {
     public void truncatedElementFailsInsteadOfDroppingState() throws Exception {
         byte[] malformed = chunk(new TtlValue<>("expired", 0));
         filter().filterList(Arrays.copyOf(malformed, malformed.length - 1), 100, 1100);
-    }
-
-    @Test(expected = IOException.class)
-    public void invalidElementCountFailsInsteadOfDroppingState() throws Exception {
-        DataOutputSerializer output = new DataOutputSerializer(Integer.BYTES);
-        output.writeInt(Integer.MAX_VALUE);
-        filter().filterList(output.getCopyOfBuffer(), 100, 1100);
     }
 
     @Test

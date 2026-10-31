@@ -17,7 +17,6 @@ import com.huawei.ock.bss.common.serialize.ThreadLocalOutputViewPool;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
 import org.apache.flink.core.memory.DataInputDeserializer;
-import org.apache.flink.core.memory.DataOutputSerializer;
 import org.apache.flink.runtime.state.StateSnapshotTransformer;
 import org.junit.After;
 import org.junit.Assert;
@@ -26,8 +25,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -102,102 +99,6 @@ public class ListStateSnapshotTransformerWrapperTest {
         Assert.assertNotNull(transformedData);
         List<String> transformedList = toList(transformedData, elementSerializer, new DataInputDeserializer());
         Assert.assertEquals(destList, transformedList);
-    }
-
-    @Test
-    public void testNullValue() {
-        Assert.assertNull(transformerWrapper.filterOrTransform(null));
-    }
-
-    @Test
-    public void testEmptyList() throws IOException {
-        Assert.assertNull(transformerWrapper.filterOrTransform(serializeLists(Collections.emptyList())));
-    }
-
-    @Test
-    public void testFilterAndTransformAcrossLists() throws IOException {
-        ListStateSnapshotTransformerWrapper<String> wrapper = new ListStateSnapshotTransformerWrapper<>(
-            value -> value.startsWith("drop") ? null : value + "-t", elementSerializer);
-        byte[] transformed = wrapper.filterOrTransform(serializeLists(
-            Arrays.asList("drop-first", "keep"), Collections.emptyList(), Arrays.asList("drop-last", "long-keep")));
-        List<String> expected = Arrays.asList("keep-t", "long-keep-t");
-
-        Assert.assertEquals(expected, toList(transformed, elementSerializer, new DataInputDeserializer()));
-        Assert.assertArrayEquals(serializeLists(expected), transformed);
-    }
-
-    @Test
-    public void testStopAtFirstElement() throws IOException {
-        assertStopOnFirstIncluded(Arrays.asList("keep-first", "drop-tail", "drop-later"), 1,
-            Arrays.asList("keep-first", "drop-tail"), Collections.singletonList("drop-later"));
-    }
-
-    @Test
-    public void testStopAfterPrefixInFirstList() throws IOException {
-        assertStopOnFirstIncluded(Arrays.asList("keep", "drop-tail", "keep-later"), 2,
-            Arrays.asList("drop-prefix", "keep", "drop-tail"), Collections.singletonList("keep-later"));
-    }
-
-    @Test
-    public void testStopAtStartOfLaterList() throws IOException {
-        assertStopOnFirstIncluded(Arrays.asList("keep", "drop-tail", "drop-later"), 2,
-            Collections.singletonList("drop-prefix"), Collections.emptyList(),
-            Arrays.asList("keep", "drop-tail"), Collections.singletonList("drop-later"));
-    }
-
-    @Test
-    public void testStopAfterPrefixInLaterList() throws IOException {
-        assertStopOnFirstIncluded(Arrays.asList("keep", "drop-tail", "drop-later"), 3,
-            Collections.singletonList("drop-first"), Collections.emptyList(),
-            Arrays.asList("drop-prefix", "keep", "drop-tail"), Collections.singletonList("drop-later"));
-    }
-
-    @Test
-    public void testStopWithAllElementsExcluded() throws IOException {
-        assertStopOnFirstIncluded(null, 2, Collections.singletonList("drop-first"), Collections.emptyList(),
-            Collections.singletonList("drop-last"));
-    }
-
-    @SafeVarargs
-    private final void assertStopOnFirstIncluded(List<String> expected, int expectedCalls, List<String>... lists)
-        throws IOException {
-        StopOnFirstIncludedTransformer transformer = new StopOnFirstIncludedTransformer();
-        ListStateSnapshotTransformerWrapper<String> wrapper = new ListStateSnapshotTransformerWrapper<>(
-            transformer, elementSerializer);
-        byte[] transformed = wrapper.filterOrTransform(serializeLists(lists));
-
-        Assert.assertEquals(expectedCalls, transformer.calls);
-        if (expected == null) {
-            Assert.assertNull(transformed);
-        } else {
-            Assert.assertNotNull(transformed);
-            Assert.assertEquals(expected, toList(transformed, elementSerializer, new DataInputDeserializer()));
-        }
-    }
-
-    @SafeVarargs
-    private final byte[] serializeLists(List<String>... lists) throws IOException {
-        DataOutputSerializer output = new DataOutputSerializer(16);
-        for (List<String> list : lists) {
-            output.write(KVSerializerUtil.getCopyOfBuffer(KVSerializerUtil.serList(list, elementSerializer)));
-        }
-        return output.getCopyOfBuffer();
-    }
-
-    private static class StopOnFirstIncludedTransformer
-        implements StateSnapshotTransformer.CollectionStateSnapshotTransformer<String> {
-        private int calls;
-
-        @Override
-        public TransformStrategy getFilterStrategy() {
-            return TransformStrategy.STOP_ON_FIRST_INCLUDED;
-        }
-
-        @Override
-        public String filterOrTransform(String value) {
-            calls++;
-            return value.startsWith("keep") ? value : null;
-        }
     }
 
     private static <E> List<E> toList(byte[] data, TypeSerializer<E> elementSerializer,

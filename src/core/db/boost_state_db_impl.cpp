@@ -341,6 +341,7 @@ BResult BoostStateDBImpl::Restore(std::vector<std::string> &restorePath,
                                   std::unordered_map<std::string, std::string> &lazyPathMapping, bool isLazyDownload,
                                   bool isNewJob)
 {
+    mFreshTable->GetPointCache().Clear();
     mConfig->SetIsNewJob(isNewJob);
     std::vector<PathRef> restoredMetaPaths;
     for (auto &item : lazyPathMapping) {
@@ -357,6 +358,7 @@ BResult BoostStateDBImpl::Restore(std::vector<std::string> &restorePath,
     auto stateIdProviderBackup = mStateIdProvider->Copy();
     uint64_t seqId = 0;
     BResult ret = restoreOperator->Restore(restoredMetaPaths, lazyPathMapping, seqId, isLazyDownload);
+    mFreshTable->GetPointCache().Clear();
     if (UNLIKELY(ret != BSS_OK)) {
         BResult rollbackRet = mStateIdProvider->RestoreFrom(stateIdProviderBackup);
         if (UNLIKELY(rollbackRet != BSS_OK)) {
