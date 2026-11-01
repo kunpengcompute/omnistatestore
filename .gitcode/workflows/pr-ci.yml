@@ -49,7 +49,7 @@ stages:
     jobs:
       prepare:
         name: Mark running
-        runs-on: [self-hosted, openeuler, arm, cpu=8]
+        runs-on: [self-hosted, openeuler, arm, cpu=4]
         steps:
           - name: Mark PR as running
             if: ${{ atomgit.event.pull_request.number != '' }}
