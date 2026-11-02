@@ -49,7 +49,7 @@ stages:
     jobs:
       prepare:
         name: Mark running
-        runs-on: [self-hosted, openeuler, arm, cpu=4]
+        runs-on: [self-hosted, ubse, arm, cpu=4]
         steps:
           - name: Mark PR as running
             if: ${{ atomgit.event.pull_request.number != '' }}
@@ -65,7 +65,7 @@ stages:
       pre_commit:
         name: pre-commit
         if: ${{ atomgit.event.pull_request.base.ref == 'master' }}
-        runs-on: [self-hosted, openeuler, arm, cpu=8]
+        runs-on: [self-hosted, ubse, arm, cpu=8]
         timeout-minutes: 30
         container:
           image: swr.cn-north-4.myhuaweicloud.com/ubscore/soe:latest
@@ -127,7 +127,7 @@ stages:
       build_x86_64:
         name: build-x86-64
         if: ${{ atomgit.event.pull_request.base.ref == 'master' }}
-        runs-on: [self-hosted, openeuler, x86, cpu=8]
+        runs-on: [self-hosted, ubse, x86, cpu=8]
         timeout-minutes: 90
         container:
           image: swr.cn-north-4.myhuaweicloud.com/ubscore/soe:latest
@@ -211,7 +211,7 @@ stages:
 
       build_aarch64:
         name: build-aarch64
-        runs-on: [self-hosted, openeuler, arm, cpu=8]
+        runs-on: [self-hosted, ubse, arm, cpu=8]
         timeout-minutes: 90
         container:
           image: swr.cn-north-4.myhuaweicloud.com/cloud_boostkit/openeuler22.03_lts_sp3:arm64_003
@@ -314,7 +314,7 @@ stages:
       dt:
         name: DT
         if: ${{ atomgit.event.pull_request.base.ref == 'master' }}
-        runs-on: [self-hosted, openeuler, arm, cpu=8]
+        runs-on: [self-hosted, ubse, arm, cpu=8]
         timeout-minutes: 90
         container:
           image: swr.cn-north-4.myhuaweicloud.com/ubscore/soe:latest
