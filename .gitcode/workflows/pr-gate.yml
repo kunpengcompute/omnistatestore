@@ -40,6 +40,7 @@ permissions:
   pr: write
   issue: read
   note: none
+  id-token: write
   project: none
 
 jobs:
@@ -55,9 +56,94 @@ jobs:
           add_labels: ci-pipeline-running
           remove_labels: ci-pipeline-passed,ci-pipeline-failed
 
+  check_code:
+    name: check_code
+    needs: [mark_running]
+    runs-on: [self-hosted, openeuler, x86, cpu=16]
+    timeout-minutes: 100
+
+    steps:
+      - name: Run OpenLibing code check
+        env:
+          OPENLIBING_CODE_CREATE_AK: ${{ secrets.OPENLIBING_CODE_CREATE_AK }}
+          OPENLIBING_CODE_CREATE_SK: ${{ secrets.OPENLIBING_CODE_CREATE_SK }}
+          OPENLIBING_CODE_RESULT_AK: ${{ secrets.OPENLIBING_CODE_RESULT_AK }}
+          OPENLIBING_CODE_RESULT_SK: ${{ secrets.OPENLIBING_CODE_RESULT_SK }}
+        run: |
+          set -euo pipefail
+
+          command -v git >/dev/null 2>&1 ||
+            sudo yum install -y git
+          command -v python3 >/dev/null 2>&1 ||
+            sudo yum install -y python3 python3-pip
+
+          if ! python3 -c 'import requests' >/dev/null 2>&1; then
+            python3 -m pip --version >/dev/null 2>&1 ||
+              sudo yum install -y python3-pip
+            sudo python3 -m pip install \
+              --index-url https://repo.huaweicloud.com/repository/pypi/simple \
+              --trusted-host repo.huaweicloud.com \
+              requests
+          fi
+
+          checker_dir="$(mktemp -d "${RUNNER_TEMP:-/tmp}/code-check.XXXXXX")"
+          trap 'rm -rf -- "${checker_dir}"' EXIT
+
+          git clone \
+            --depth 1 \
+            --filter=blob:none \
+            --sparse \
+            https://gitcode.com/openeuler/openeuler-jenkins.git \
+            "${checker_dir}"
+
+          git -C "${checker_dir}" sparse-checkout set src
+          export PYTHONPATH="${checker_dir}${PYTHONPATH:+:${PYTHONPATH}}"
+
+          export code_create_ak="${OPENLIBING_CODE_CREATE_AK}"
+          export code_create_sk="${OPENLIBING_CODE_CREATE_SK}"
+          export code_result_ak="${OPENLIBING_CODE_RESULT_AK}"
+          export code_result_sk="${OPENLIBING_CODE_RESULT_SK}"
+
+          python3 - <<'PY'
+          import os
+          import sys
+
+          from src.ac.acl.openlibing.check_code import CheckCode
+
+          repo_full_name = os.environ["REPO_FULL_NAME"]
+          community, repo = repo_full_name.split("/", 1)
+          server_url = os.environ.get("ATOMGIT_SERVER_URL", "https://gitcode.com")
+
+          pr_url = (
+              f"{server_url.rstrip('/')}/{repo_full_name}"
+              f"/merge_requests/{os.environ['PR_ID']}"
+          )
+
+          checker = CheckCode(
+              workspace=os.environ.get("RUNNER_TEMP", "/tmp"),
+              repo=repo,
+          )
+          result = checker(
+              common_args={
+                  "community": community,
+                  "pr_url": pr_url,
+                  "platform": "atomgit",
+                  "pr_num": os.environ["PR_ID"],
+              }
+          )
+
+          status = ["SUCCESS", "WARNING", "FAILED", "EXCLUDE"][result.val]
+          print(f"Code Check result: {status}")
+          for detail in result.details:
+              print(f"  -> {detail}")
+
+          if status not in {"SUCCESS", "WARNING", "EXCLUDE"}:
+              sys.exit(1)
+          PY
+
   issue_check:
     name: Issue check
-    needs: [mark_running]
+    needs: [mark_running, check_code]
     runs-on: [self-hosted, openeuler, x86, cpu=16]
     timeout-minutes: 10
 
@@ -129,6 +215,183 @@ jobs:
           echo "PR #${PR_ID} 返回了 Issue 数据，但没有有效的 Issue 编号。"
           exit 1
 
+  check_sca:
+    name: check_sca
+    needs: [mark_running, issue_check]
+    runs-on: [self-hosted, openeuler, x86, cpu=16]
+    timeout-minutes: 30
+
+    steps:
+      - name: Run OpenLibing SCA
+        uses: openlibing/sca-action/sca-pr-action@v1.0.1
+        with:
+          project-name: OmniStateStore
+          platform-domain: https://gitcode.com
+
+  check_package_license:
+    name: check_package_license
+    needs: [mark_running, issue_check]
+    runs-on: [self-hosted, openeuler, x86, cpu=16]
+    timeout-minutes: 20
+
+    steps:
+      - name: Run OpenEuler package license check
+        run: |
+          set -euo pipefail
+
+          command -v git >/dev/null 2>&1 ||
+            sudo yum install -y git
+          command -v python3 >/dev/null 2>&1 ||
+            sudo yum install -y python3 python3-pip
+
+          if ! python3 -c 'import requests, chardet' >/dev/null 2>&1; then
+            python3 -m pip --version >/dev/null 2>&1 ||
+              sudo yum install -y python3-pip
+            sudo python3 -m pip install \
+              --index-url https://repo.huaweicloud.com/repository/pypi/simple \
+              --trusted-host repo.huaweicloud.com \
+              requests chardet
+          fi
+
+          checker_dir="$(mktemp -d "${RUNNER_TEMP:-/tmp}/license-check.XXXXXX")"
+          trap 'rm -rf -- "${checker_dir}"' EXIT
+
+          git clone \
+            --depth 1 \
+            --filter=blob:none \
+            --sparse \
+            https://gitcode.com/openeuler/openeuler-jenkins.git \
+            "${checker_dir}"
+
+          git -C "${checker_dir}" sparse-checkout set src
+          export PYTHONPATH="${checker_dir}${PYTHONPATH:+:${PYTHONPATH}}"
+
+          python3 - <<'PY'
+          import os
+          import sys
+
+          from src.ac.acl.package_license.check_openeuler_license import (
+              CheckOpeneulerLicense,
+          )
+
+          repo_full_name = os.environ["REPO_FULL_NAME"]
+          community, repo = repo_full_name.split("/", 1)
+          server_url = os.environ.get("ATOMGIT_SERVER_URL", "https://gitcode.com")
+
+          pr_url = (
+              f"{server_url.rstrip('/')}/{repo_full_name}"
+              f"/merge_requests/{os.environ['PR_ID']}"
+          )
+
+          checker = CheckOpeneulerLicense(
+              workspace=os.environ.get("RUNNER_TEMP", "/tmp"),
+              repo=repo,
+          )
+          result = checker(
+              common_args={
+                  "community": community,
+                  "pr_url": pr_url,
+                  "platform": "atomgit",
+                  "pr_num": os.environ["PR_ID"],
+              }
+          )
+
+          status = ["SUCCESS", "WARNING", "FAILED", "EXCLUDE"][result.val]
+          print(f"Package License result: {status}")
+          for detail in result.details:
+              print(f"  -> {detail}")
+
+          if status == "FAILED":
+              sys.exit(1)
+          PY
+
+  check_anti_poisoning:
+    name: check_anti_poisoning
+    needs: [mark_running, issue_check]
+    runs-on: [self-hosted, openeuler, x86, cpu=16]
+    timeout-minutes: 15
+
+    steps:
+      - name: Run OpenLibing anti-poisoning check
+        env:
+          OPENLIBING_ANTI_CREATE_AK: ${{ secrets.OPENLIBING_ANTI_CREATE_AK }}
+          OPENLIBING_ANTI_CREATE_SK: ${{ secrets.OPENLIBING_ANTI_CREATE_SK }}
+          OPENLIBING_ANTI_RESULT_AK: ${{ secrets.OPENLIBING_ANTI_RESULT_AK }}
+          OPENLIBING_ANTI_RESULT_SK: ${{ secrets.OPENLIBING_ANTI_RESULT_SK }}
+        run: |
+          set -euo pipefail
+
+          command -v git >/dev/null 2>&1 ||
+            sudo yum install -y git
+          command -v python3 >/dev/null 2>&1 ||
+            sudo yum install -y python3 python3-pip
+
+          if ! python3 -c 'import requests' >/dev/null 2>&1; then
+            python3 -m pip --version >/dev/null 2>&1 ||
+              sudo yum install -y python3-pip
+            sudo python3 -m pip install \
+              --index-url https://repo.huaweicloud.com/repository/pypi/simple \
+              --trusted-host repo.huaweicloud.com \
+              requests
+          fi
+
+          checker_dir="$(mktemp -d "${RUNNER_TEMP:-/tmp}/anti-poison.XXXXXX")"
+          trap 'rm -rf -- "${checker_dir}"' EXIT
+
+          git clone \
+            --depth 1 \
+            --filter=blob:none \
+            --sparse \
+            https://gitcode.com/openeuler/openeuler-jenkins.git \
+            "${checker_dir}"
+
+          git -C "${checker_dir}" sparse-checkout set src
+          export PYTHONPATH="${checker_dir}${PYTHONPATH:+:${PYTHONPATH}}"
+
+          export anti_create_ak="${OPENLIBING_ANTI_CREATE_AK}"
+          export anti_create_sk="${OPENLIBING_ANTI_CREATE_SK}"
+          export anti_result_ak="${OPENLIBING_ANTI_RESULT_AK}"
+          export anti_result_sk="${OPENLIBING_ANTI_RESULT_SK}"
+
+          python3 - <<'PY'
+          import os
+          import sys
+
+          from src.ac.acl.anti_poisoning.check_anti_poisoning import (
+              CheckAntiPoisoning,
+          )
+
+          repo_full_name = os.environ["REPO_FULL_NAME"]
+          community, repo = repo_full_name.split("/", 1)
+          server_url = os.environ.get("ATOMGIT_SERVER_URL", "https://gitcode.com")
+
+          pr_url = (
+              f"{server_url.rstrip('/')}/{repo_full_name}"
+              f"/merge_requests/{os.environ['PR_ID']}"
+          )
+
+          checker = CheckAntiPoisoning(
+              workspace=os.environ.get("RUNNER_TEMP", "/tmp"),
+              repo=repo,
+          )
+          result = checker(
+              common_args={
+                  "community": community,
+                  "pr_url": pr_url,
+                  "platform": "atomgit",
+                  "pr_num": os.environ["PR_ID"],
+              }
+          )
+
+          status = ["SUCCESS", "WARNING", "FAILED", "EXCLUDE"][result.val]
+          print(f"Anti-Poisoning result: {status}")
+          for detail in result.details:
+              print(f"  -> {detail}")
+
+          if status not in {"SUCCESS", "EXCLUDE"}:
+              sys.exit(1)
+          PY
+
   validation:
     name: Build and test
     needs: [mark_running, issue_check]
@@ -142,7 +405,11 @@ jobs:
     name: Report result
     needs:
       - mark_running
+      - check_code
       - issue_check
+      - check_sca
+      - check_package_license
+      - check_anti_poisoning
       - validation
     if: ${{ always() }}
     runs-on: [self-hosted, openeuler, x86, cpu=16]
@@ -151,5 +418,5 @@ jobs:
       - name: Set result label
         uses: openlibing/pr-label-action@v1.0.0
         with:
-          add_labels: ${{ needs.mark_running.result == 'success' && needs.issue_check.result == 'success' && needs.validation.result == 'success' && 'ci-pipeline-passed' || 'ci-pipeline-failed' }}
-          remove_labels: ci-pipeline-running,${{ needs.mark_running.result == 'success' && needs.issue_check.result == 'success' && needs.validation.result == 'success' && 'ci-pipeline-failed' || 'ci-pipeline-passed' }}
+          add_labels: ${{ needs.mark_running.result == 'success' && needs.check_code.result == 'success' && needs.issue_check.result == 'success' && needs.check_sca.result == 'success' && needs.check_package_license.result == 'success' && needs.check_anti_poisoning.result == 'success' && needs.validation.result == 'success' && 'ci-pipeline-passed' || 'ci-pipeline-failed' }}
+          remove_labels: ci-pipeline-running,${{ needs.mark_running.result == 'success' && needs.check_code.result == 'success' && needs.issue_check.result == 'success' && needs.check_sca.result == 'success' && needs.check_package_license.result == 'success' && needs.check_anti_poisoning.result == 'success' && needs.validation.result == 'success' && 'ci-pipeline-failed' || 'ci-pipeline-passed' }}
