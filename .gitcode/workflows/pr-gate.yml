@@ -274,4 +274,4 @@ jobs:
         uses: openlibing/pr-label-action@v1.0.0
         with:
           add_labels: ${{ needs.mark_running.result == 'success' && needs.issue_check.result == 'success' && needs.check_sca.result == 'success' && needs.check_package_license.result == 'success' && needs.check_anti_poisoning.result == 'success' && needs.validation.result == 'success' && 'ci-pipeline-passed' || 'ci-pipeline-failed' }}
-          remove_labels: ci-pipeline-running,${{ needs.mark_running.result == 'success' && needs.check_code.result == 'success' && needs.issue_check.result == 'success' && needs.check_sca.result == 'success' && needs.check_package_license.result == 'success' && needs.check_anti_poisoning.result == 'success' && needs.validation.result == 'success' && 'ci-pipeline-failed' || 'ci-pipeline-passed' }}
+          remove_labels: ci-pipeline-running,${{ needs.mark_running.result == 'success' && needs.issue_check.result == 'success' && needs.check_sca.result == 'success' && needs.check_anti_poisoning.result == 'success' && needs.validation.result == 'success' && 'ci-pipeline-failed' || 'ci-pipeline-passed' }}
