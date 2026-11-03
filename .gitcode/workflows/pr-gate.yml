@@ -65,10 +65,8 @@ jobs:
     steps:
       - name: Run OpenLibing code check
         env:
-          OPENLIBING_CODE_CREATE_AK: ${{ secrets.OPENLIBING_CODE_CREATE_AK }}
-          OPENLIBING_CODE_CREATE_SK: ${{ secrets.OPENLIBING_CODE_CREATE_SK }}
-          OPENLIBING_CODE_RESULT_AK: ${{ secrets.OPENLIBING_CODE_RESULT_AK }}
-          OPENLIBING_CODE_RESULT_SK: ${{ secrets.OPENLIBING_CODE_RESULT_SK }}
+          OPENLIBING_AK: ${{ secrets.OPENLIBING_AK }}
+          OPENLIBING_SK: ${{ secrets.OPENLIBING_SK }}
         run: |
           set -euo pipefail
 
@@ -99,10 +97,10 @@ jobs:
           git -C "${checker_dir}" sparse-checkout set src
           export PYTHONPATH="${checker_dir}${PYTHONPATH:+:${PYTHONPATH}}"
 
-          export code_create_ak="${OPENLIBING_CODE_CREATE_AK}"
-          export code_create_sk="${OPENLIBING_CODE_CREATE_SK}"
-          export code_result_ak="${OPENLIBING_CODE_RESULT_AK}"
-          export code_result_sk="${OPENLIBING_CODE_RESULT_SK}"
+          export code_create_ak="${OPENLIBING_AK}"
+          export code_create_sk="${OPENLIBING_SK}"
+          export code_result_ak="${OPENLIBING_AK}"
+          export code_result_sk="${OPENLIBING_SK}"
 
           python3 - <<'PY'
           import os
@@ -314,10 +312,8 @@ jobs:
     steps:
       - name: Run OpenLibing anti-poisoning check
         env:
-          OPENLIBING_ANTI_CREATE_AK: ${{ secrets.OPENLIBING_ANTI_CREATE_AK }}
-          OPENLIBING_ANTI_CREATE_SK: ${{ secrets.OPENLIBING_ANTI_CREATE_SK }}
-          OPENLIBING_ANTI_RESULT_AK: ${{ secrets.OPENLIBING_ANTI_RESULT_AK }}
-          OPENLIBING_ANTI_RESULT_SK: ${{ secrets.OPENLIBING_ANTI_RESULT_SK }}
+          OPENLIBING_AK: ${{ secrets.OPENLIBING_AK }}
+          OPENLIBING_SK: ${{ secrets.OPENLIBING_SK }}
         run: |
           set -euo pipefail
 
@@ -348,10 +344,10 @@ jobs:
           git -C "${checker_dir}" sparse-checkout set src
           export PYTHONPATH="${checker_dir}${PYTHONPATH:+:${PYTHONPATH}}"
 
-          export anti_create_ak="${OPENLIBING_ANTI_CREATE_AK}"
-          export anti_create_sk="${OPENLIBING_ANTI_CREATE_SK}"
-          export anti_result_ak="${OPENLIBING_ANTI_RESULT_AK}"
-          export anti_result_sk="${OPENLIBING_ANTI_RESULT_SK}"
+          export anti_create_ak="${OPENLIBING_AK}"
+          export anti_create_sk="${OPENLIBING_SK}"
+          export anti_result_ak="${OPENLIBING_AK}"
+          export anti_result_sk="${OPENLIBING_SK}"
 
           python3 - <<'PY'
           import os
