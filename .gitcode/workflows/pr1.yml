@@ -1,0 +1,96 @@
+name: OmniStateStore-PR-Orchestrator
+
+on:
+  pull_request_target:
+    types:
+      - open
+      - reopen
+      - update
+    branches: ['*']
+
+  pr_comment:
+    types: [created]
+    comments: ['^/retest$']
+
+  pull_request_comment:
+    types: [created]
+    comments: ['^/retest$']
+    branches: ['*']
+
+env:
+  PR_ID: ${{ atomgit.event.pull_request.number }}
+  TARGET_BRANCH: ${{ atomgit.event.pull_request.base.ref }}
+  HEAD_SHA: ${{ atomgit.event.pull_request.head.sha }}
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  enable: true
+  max: 3
+  exceed-action: QUEUE
+  preemption:
+    enable: true
+    events: [mr_id]
+
+permissions:
+  repository: read
+  pr: write
+  issue: none
+  note: none
+  project: none
+
+jobs:
+  mark_running:
+    name: Mark running
+    runs-on: [self-hosted, ubse, arm, cpu=4]
+
+    steps:
+      - name: Mark PR as running
+        if: ${{ atomgit.event.pull_request.number != '' }}
+        uses: openlibing/pr-label-action@v1.0.0
+        with:
+          add_labels: ci-pipeline-running
+          remove_labels: ci-pipeline-passed,ci-pipeline-failed
+
+  validation:
+    name: Build and test
+    needs: [mark_running]
+    uses: ./.gitcode/workflows/pr-validation.yml
+    with:
+      pr_id: ${{ atomgit.event.pull_request.number }}
+      target_branch: ${{ atomgit.event.pull_request.base.ref }}
+      head_sha: ${{ atomgit.event.pull_request.head.sha }}
+
+  report_result:
+    name: Report result
+    needs: [mark_running, validation]
+    if: ${{ always() }}
+    runs-on: [self-hosted, ubse, arm, cpu=8]
+
+    steps:
+      - name: Set passed label
+        if: >-
+          ${{
+            needs.mark_running.result == 'success' &&
+            needs.validation.result == 'success'
+          }}
+        uses: openlibing/pr-label-action@v1.0.0
+        with:
+          add_labels: ci-pipeline-passed
+          remove_labels: ci-pipeline-running,ci-pipeline-failed
+
+      - name: Set failed label
+        if: >-
+          ${{
+            always() &&
+            (
+              needs.mark_running.result != 'success' ||
+              needs.validation.result != 'success'
+            )
+          }}
+        uses: openlibing/pr-label-action@v1.0.0
+        with:
+          add_labels: ci-pipeline-failed
+          remove_labels: ci-pipeline-running,ci-pipeline-passed
