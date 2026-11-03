@@ -70,27 +70,8 @@ jobs:
     runs-on: [self-hosted, ubse, arm, cpu=8]
 
     steps:
-      - name: Set passed label
-        if: >-
-          ${{
-            needs.mark_running.result == 'success' &&
-            needs.validation.result == 'success'
-          }}
+      - name: Set result label
         uses: openlibing/pr-label-action@v1.0.0
         with:
-          add_labels: ci-pipeline-passed
-          remove_labels: ci-pipeline-running,ci-pipeline-failed
-
-      - name: Set failed label
-        if: >-
-          ${{
-            always() &&
-            (
-              needs.mark_running.result != 'success' ||
-              needs.validation.result != 'success'
-            )
-          }}
-        uses: openlibing/pr-label-action@v1.0.0
-        with:
-          add_labels: ci-pipeline-failed
-          remove_labels: ci-pipeline-running,ci-pipeline-passed
+          add_labels: ${{ needs.mark_running.result == 'success' && needs.validation.result == 'success' && 'ci-pipeline-passed' || 'ci-pipeline-failed' }}
+          remove_labels: ci-pipeline-running,${{ needs.mark_running.result == 'success' && needs.validation.result == 'success' && 'ci-pipeline-failed' || 'ci-pipeline-passed' }}
