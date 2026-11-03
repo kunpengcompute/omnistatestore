@@ -154,7 +154,7 @@ jobs:
 
   check_anti_poisoning:
     name: check_anti_poisoning
-    needs: [mark_running, issue_check]
+    needs: [mark_running]
     runs-on: [self-hosted, openeuler, x86, cpu=4]
     timeout-minutes: 15
 
