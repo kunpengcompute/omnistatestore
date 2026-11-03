@@ -474,6 +474,13 @@ Log模块、StateStore模块和Metric模块的具体配置项说明请参见[表
     <td>当存在使用TTL State的业务场景时，建议开启。</td>
   </tr>
   <tr>
+    <td>state.backend.ockdb.point.cache.switch</td>
+    <td>小Key/Value的单条读取缓存开关。</td>
+    <td>true</td>
+    <td>false：关闭<br>true：开启</td>
+    <td>开启时，在内存预算计算阶段按每个DB 2 MiB从SliceTable预算中划出缓存预算；关闭时不划出该预算，读写使用原有存储路径。预算不足时DB初始化失败；缓存分配失败时使用原有存储路径，已划出的预算保留。</td>
+  </tr>
+  <tr>
     <td>state.backend.ockdb.lsmstore.compression.policy</td>
     <td>LsmStore中的各层级Level的压缩策略。state.backend.ockdb.lsmstore.compression.level.policy默认值配合使用。<br>level0：不开启压缩<br>level1：不开启压缩<br>level2：开启lz4压缩<br>其余level：全压缩</td>
     <td>lz4</td>

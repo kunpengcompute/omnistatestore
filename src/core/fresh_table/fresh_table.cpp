@@ -461,7 +461,7 @@ BResult FreshTable::Initialize(const ConfigRef &config, const MemManagerRef &mem
     mMemManager = memManager;
     mKeyGroupUtil = keyGroupUtil;
     auto ret = InitNewActiveBinarySegment();
-    if (ret == BSS_OK && !mPointCache.Initialize()) {
+    if (ret == BSS_OK && config->GetPointCacheSwitch() && !mPointCache.Initialize()) {
         LOG_WARN("Point cache allocation failed, use normal table reads.");
     }
     return ret;

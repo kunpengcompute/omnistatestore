@@ -41,6 +41,8 @@ public class BoostConfig {
 
     private boolean zeroCopySwitch = false; // ListState compaction file reuse is disabled by default.
 
+    private boolean pointCacheSwitch = true; // Small key-value point cache is enabled by default.
+
     private boolean cacheFilterAndIndexSwitch = true; // 默认开启FilterBlock和IndexBlock的缓存.
 
     /**
@@ -159,6 +161,14 @@ public class BoostConfig {
 
     public boolean getZeroCopySwitch() {
         return this.zeroCopySwitch;
+    }
+
+    public void setPointCacheSwitch(boolean switchValue) {
+        this.pointCacheSwitch = switchValue;
+    }
+
+    public boolean getPointCacheSwitch() {
+        return this.pointCacheSwitch;
     }
 
     public void setCacheFilterAndIndexSwitch(boolean switchValue) {

@@ -183,6 +183,7 @@ Log模块、StateStore模块和Metric模块的具体配置项说明请参见[表
 |state.backend.ockdb.jni.lsmstore.compaction.switch|LSM文件存储层整理合并开关。LSM文件存储层的分层合并机制通过开关控制数据文件的整理与合并操作，以优化存储性能和空间利用率。|1|0：关闭<br>1：开启|建议开启。|
 |state.backend.ockdb.zero-copy.switch|大ListState覆盖写场景的SST文件免拷贝复用开关。开启后，在文件数触发的Level 0到Level 1 Compaction中，对满足条件的单记录大PUT文件尝试直接复用原SST；未命中时执行普通合并。|false|false：关闭<br>true：开启|默认关闭。适用于频繁使用ListState.update且单个序列化Value严格大于4 MiB的场景。开启前建议评估目标层文件数量和压缩策略影响。|
 |state.backend.ockdb.ttl.filter.switch|TTL过期数据后台压缩清理。|false|false：关闭<br>true：开启|当存在使用TTL State的业务场景时，建议开启。|
+|state.backend.ockdb.point.cache.switch|小Key/Value的单条读取缓存开关。|true|false：关闭<br>true：开启|开启时，在内存预算计算阶段按每个DB 2 MiB从SliceTable预算中划出缓存预算；关闭时不划出该预算，读写使用原有存储路径。预算不足时DB初始化失败；缓存分配失败时使用原有存储路径，已划出的预算保留。|
 |state.backend.ockdb.lsmstore.compression.policy|LsmStore中的各层级Level的压缩策略。state.backend.ockdb.lsmstore.compression.level.policy默认值配合使用。<br>level0：不开启压缩<br>level1：不开启压缩<br>level2：开启lz4压缩<br>其余level：全压缩|lz4|none：不压缩<br>lz4：使用lz4压缩|当Checkpoint文件上传过大时，建议开启。|
 |state.backend.ockdb.lsmstore.compression.level.policy|手动配置LSM文件不同level配置压缩策略，默认值为“none,none,lz4”，表示level0不开启压缩，level1不开启压缩，level2开启lz4压缩。|none,none,lz4|none：不压缩<br>lz4：使用lz4压缩|当Checkpoint成为瓶颈时，可适当将压缩策略往低层级提前，默认level层级范围[0, 5]。<br>level0为前台写压缩，建议使用None。<br>其余level为后台压缩。|
 |state.backend.ockdb.freshtable.snapshot.compression.policy|FreshTable的Checkpoint快照文件压缩策略。|none|none：不压缩<br>lz4：使用lz4压缩|当FreshTable快照文件上传成为Checkpoint瓶颈时，可配置为lz4以减少上传数据量。压缩会增加CPU开销。|

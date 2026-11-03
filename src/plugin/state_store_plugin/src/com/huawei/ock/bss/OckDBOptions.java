@@ -116,6 +116,15 @@ public class OckDBOptions {
             .withDescription("enable ListState compaction file reuse");
 
     /**
+     * Enable the small key-value point cache.
+     */
+    public static final ConfigOption<Boolean> OCKDB_POINT_CACHE_SWITCH =
+        ConfigOptions.key("state.backend.ockdb.point.cache.switch")
+            .booleanType()
+            .defaultValue(true)
+            .withDescription("enable the small key-value point cache, reserving 2 MiB from the SliceTable memory budget");
+
+    /**
      * enable ttl filter switch
      */
     public static final ConfigOption<Boolean> OCKDB_TTL_FILTER_SWITCH =

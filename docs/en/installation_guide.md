@@ -126,6 +126,7 @@ This section describes how to start the OmniStateStore service to enable the acc
 |state.backend|Open-source Flink parameter, which is used to configure the state backend.|com.huawei.ock.bss.OckDBStateBackendFactory|This configuration item determines the state backend type. Verify that the value is case-sensitive and correctly spelled.|
 |state.backend.ockdb.localdir|Local OmniStateStore state data path.|/usr/local/flink/ockdb|Check that the path exists and the Flink run user has the read and write permissions on the path.|
 |state.backend.ockdb.jni.logfile|OmniStateStore log path.|/usr/local/flink/log/kv.log|The Flink log path is recommended for this path.|
+|state.backend.ockdb.point.cache.switch|Enable the small key-value point cache. Default: true.|false|When enabled, memory-budget calculation reserves 2 MiB per DB from the SliceTable budget. When disabled, no cache budget is reserved and reads and writes use the normal storage path. Insufficient budget fails DB initialization. If cache allocation fails, the normal storage path is used and the reserved budget is retained.|
 
         A configuration example is as follows:
 
