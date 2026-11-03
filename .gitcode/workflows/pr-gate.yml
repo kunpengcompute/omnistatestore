@@ -10,7 +10,7 @@ on:
 
   pr_comment:
     types: [created]
-    keyword: ['^/retest$']
+    keyword: '^/retest$'
 
   pull_request_comment:
     types: [created]
