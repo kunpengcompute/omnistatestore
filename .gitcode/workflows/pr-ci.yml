@@ -56,7 +56,7 @@ stages:
             uses: openlibing/pr-label-action@v1.0.0
             with:
               add_labels: ci-pipeline-running
-              remove_labels: ci-pipeline-success,ci-pipeline-failed,ci-pipeline-passed
+              remove_labels: ci-pipeline-passed,ci-pipeline-failed
 
   checks_stage:
     name: Checks
@@ -484,5 +484,5 @@ post:
           if: ${{ atomgit.event.pull_request.number != '' }}
           uses: openlibing/pr-label-action@v1.0.0
           with:
-            add_labels: ${{ pipeline.upstream_status == 'COMPLETED' && 'ci-pipeline-success' || 'ci-pipeline-failed' }}
-            remove_labels: ci-pipeline-running,${{ pipeline.upstream_status == 'COMPLETED' && 'ci-pipeline-failed' || 'ci-pipeline-success' }}
+            add_labels: ${{ pipeline.upstream_status == 'COMPLETED' && 'ci-pipeline-passed' || 'ci-pipeline-failed' }}
+            remove_labels: ci-pipeline-running,${{ pipeline.upstream_status == 'COMPLETED' && 'ci-pipeline-failed' || 'ci-pipeline-passed' }}
