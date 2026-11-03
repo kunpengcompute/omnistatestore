@@ -11,15 +11,15 @@ on:
         description: Pull request target branch
         required: true
         type: string
-      head_sha:
-        description: Pull request head commit
+      merge_commit_sha:
+        description: Pull request merge commit
         required: true
         type: string
 
 env:
   PR_ID: ${{ inputs.pr_id }}
   TARGET_BRANCH: ${{ inputs.target_branch }}
-  HEAD_SHA: ${{ inputs.head_sha }}
+  BOOSTKIT_CI_REVISION: 6ed28bce8cdba0d989cf653944a28b0cbf8da2f3
 
 defaults:
   run:
@@ -49,35 +49,36 @@ stages:
           - name: Checkout PR merge code
             uses: checkout
             with:
-              ref: refs/merge-requests/${{ inputs.pr_id }}/merge
+              ref: ${{ inputs.merge_commit_sha }}
               allow-unsafe-pr-checkout: true
 
-          - name: Install pre-commit
+          - name: Setup Python
+            uses: setup-python
+            with:
+              python-version: "3.14"
+
+          - name: Install system dependencies
             run: |
               set -euxo pipefail
 
               sudo dnf install -y \
                 clang-tools-extra \
-                git \
-                python3 \
-                python3-pip
-
-              sudo python3 -m pip config set global.index-url \
-                https://repo.huaweicloud.com/repository/pypi/simple
-              sudo python3 -m pip config set global.timeout 120
-
-              sudo python3 -m pip install "pre-commit==4.3.0" \
-                --trusted-host repo.huaweicloud.com \
-                --timeout 120
+                git
 
               clang-format --version
 
-          - name: Run clang-format
+          - name: Prepare clang-format check
             run: |
               set -euxo pipefail
 
               sed -i 's/, -i/, -n, --Werror/g' .pre-commit-config.yaml
-              pre-commit run clang-format --all-files
+
+          - name: Run pre-commit
+            uses: openlibing/pre-commit-action@v1.0.1
+            env:
+              SKIP: run-build,run-build-test,clang-tidy,clang-tidy-test
+            with:
+              extra_args: --all-files
 
           - name: Save result
             if: ${{ always() }}
@@ -112,7 +113,7 @@ stages:
           - name: Checkout PR merge code
             uses: checkout
             with:
-              ref: refs/merge-requests/${{ inputs.pr_id }}/merge
+              ref: ${{ inputs.merge_commit_sha }}
               allow-unsafe-pr-checkout: true
 
           - name: Install build dependencies
@@ -197,7 +198,7 @@ stages:
           - name: Checkout PR merge code
             uses: checkout
             with:
-              ref: refs/merge-requests/${{ inputs.pr_id }}/merge
+              ref: ${{ inputs.merge_commit_sha }}
               allow-unsafe-pr-checkout: true
 
           - name: Install common dependencies
@@ -241,26 +242,40 @@ stages:
               test -f "${JAVA_HOME}/include/jni.h"
               test -f "${JAVA_HOME}/include/linux/jni_md.h"
 
-              if [[ "${TARGET_BRANCH}" == "master" ]]; then
-                cd scripts
-                sh build.sh -t release
+              case "${TARGET_BRANCH}" in
+                master)
+                  cd scripts
+                  sh build.sh -t release
 
-                test -f \
-                  "../dist/BoostKit-omnistatestore_1.1.0_aarch64_release.tar.gz"
-              else
-                ci_root="$(mktemp -d)"
-                ln -s "${PWD}" "${ci_root}/OmniStateStore"
-                export WORKSPACE="${ci_root}"
+                  test -f \
+                    "../dist/BoostKit-omnistatestore_1.1.0_aarch64_release.tar.gz"
+                  ;;
 
-                cd "${ci_root}"
-                git clone \
-                  https://codehub.devcloud.cn-north-4.huaweicloud.com/Kunpeng_BoostKit00001/BoostKit_CI.git
+                falcon|br_bk26_630)
+                  ci_root="$(mktemp -d)"
+                  ln -s "${PWD}" "${ci_root}/OmniStateStore"
+                  export WORKSPACE="${ci_root}"
 
-                chmod 755 BoostKit_CI/script/bigdata/falcon_compile.sh
-                dos2unix BoostKit_CI/script/bigdata/falcon_compile.sh
-                sh BoostKit_CI/script/bigdata/falcon_compile.sh ut
-              fi
+                  cd "${ci_root}"
+                  git clone \
+                    https://codehub.devcloud.cn-north-4.huaweicloud.com/Kunpeng_BoostKit00001/BoostKit_CI.git
+                  git -C BoostKit_CI checkout --detach \
+                    "${BOOSTKIT_CI_REVISION}"
 
+                  test "$(git -C BoostKit_CI rev-parse HEAD)" = \
+                    "${BOOSTKIT_CI_REVISION}"
+
+                  chmod 755 BoostKit_CI/script/bigdata/falcon_compile.sh
+                  dos2unix BoostKit_CI/script/bigdata/falcon_compile.sh
+                  sh BoostKit_CI/script/bigdata/falcon_compile.sh ut
+                  ;;
+
+                *)
+                  echo "Unsupported target branch for aarch64 build: ${TARGET_BRANCH}" >&2
+                  exit 1
+                  ;;
+              esac
+              
           - name: Upload release package
             if: ${{ env.TARGET_BRANCH == 'master' }}
             uses: upload-artifact
@@ -301,7 +316,7 @@ stages:
           - name: Checkout PR merge code
             uses: checkout
             with:
-              ref: refs/merge-requests/${{ inputs.pr_id }}/merge
+              ref: ${{ inputs.merge_commit_sha }}
               allow-unsafe-pr-checkout: true
 
           - name: Install DT dependencies
