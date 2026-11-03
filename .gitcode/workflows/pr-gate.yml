@@ -44,7 +44,7 @@ permissions:
 jobs:
   mark_running:
     name: Mark running
-    runs-on: [self-hosted, openeuler, arm, cpu=4]
+    runs-on: [self-hosted, openeuler, arm, cpu=16]
 
     steps:
       - name: Mark PR as running
