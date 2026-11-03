@@ -174,7 +174,7 @@ jobs:
 
   validation:
     name: Build and test
-    needs: [mark_running, issue_check, check_sca, check_anti_poisoning]
+    needs: [mark_running]
     uses: ./.gitcode/workflows/pr-ci.yml
     with:
       pr_id: ${{ atomgit.event.pull_request.number }}
