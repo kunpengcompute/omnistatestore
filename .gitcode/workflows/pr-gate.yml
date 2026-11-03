@@ -10,7 +10,7 @@ on:
 
   pr_comment:
     types: [created]
-    comments: ['^/retest$']
+    keyword: ['^/retest$']
 
   pull_request_comment:
     types: [created]
@@ -54,6 +54,7 @@ jobs:
 
   mark_running:
     name: Mark running
+    needs: [associate_pr_comment]
     runs-on: [self-hosted, ubse, x86, cpu=4]
 
     steps:
@@ -66,7 +67,7 @@ jobs:
 
   issue_check:
     name: Issue check
-    needs: [mark_running, check_code]
+    needs: [mark_running]
     runs-on: [self-hosted, ubse, x86, cpu=4]
     timeout-minutes: 10
 
@@ -190,7 +191,7 @@ jobs:
       - check_package_license
       - check_anti_poisoning
       - validation
-    if: ${{ always() && !cancelled() }}
+    if: ${{ always() }}
     runs-on: [self-hosted, ubse, x86, cpu=4]
 
     steps:
