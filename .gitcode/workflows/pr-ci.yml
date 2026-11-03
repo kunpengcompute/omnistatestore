@@ -1,70 +1,45 @@
-name: OmniStateStore-CI
+name: OmniStateStore-Validation
 
 on:
-  pull_request:
-    types:
-      - open
-      - reopen
-      - update
-    branches: ['*']
-
-  pr_comment:
-    types: [created]
-    comments: ['^/retest$']
-
-
-  pull_request_comment:
-    types: [created]
-    comments: ['^/retest$']
-    branches: ['*']
+  workflow_call:
+    inputs:
+      pr_id:
+        description: Pull request number
+        required: true
+        type: string
+      target_branch:
+        description: Pull request target branch
+        required: true
+        type: string
+      head_sha:
+        description: Pull request head commit
+        required: true
+        type: string
 
 env:
-  PR_ID: ${{ atomgit.event.pull_request.number }}
-  TARGET_BRANCH: ${{ atomgit.event.pull_request.base.ref }}
-  HEAD_SHA: ${{ atomgit.event.pull_request.head.sha }}
+  PR_ID: ${{ inputs.pr_id }}
+  TARGET_BRANCH: ${{ inputs.target_branch }}
+  HEAD_SHA: ${{ inputs.head_sha }}
 
 defaults:
   run:
     shell: bash
 
-concurrency:
-  enable: true
-  max: 3
-  exceed-action: QUEUE
-  preemption:
-    enable: true
-    events: [mr_id]
-
 permissions:
   repository: read
-  pr: write
+  pr: none
   issue: none
   note: none
   project: none
 
 stages:
-  prepare_stage:
-    name: Prepare
-    fail_fast: true
-    jobs:
-      prepare:
-        name: Mark running
-        runs-on: [self-hosted, ubse, arm, cpu=4]
-        steps:
-          - name: Mark PR as running
-            if: ${{ atomgit.event.pull_request.number != '' }}
-            uses: openlibing/pr-label-action@v1.0.0
-            with:
-              add_labels: ci-pipeline-running
-              remove_labels: ci-pipeline-passed,ci-pipeline-failed
-
   checks_stage:
     name: Checks
     fail_fast: false
     jobs:
       pre_commit:
         name: pre-commit
-        if: ${{ atomgit.event.pull_request.base.ref == 'master' }}
+        if: ${{ inputs.target_branch == 'master' }}
         runs-on: [self-hosted, ubse, arm, cpu=8]
         timeout-minutes: 30
         container:
@@ -74,7 +49,8 @@ stages:
           - name: Checkout PR merge code
             uses: checkout
             with:
-              ref: refs/merge-requests/${{ env.PR_ID }}/merge
+              ref: refs/merge-requests/${{ inputs.pr_id }}/merge
+              allow-unsafe-pr-checkout: true
 
           - name: Install pre-commit
             run: |
@@ -126,7 +102,7 @@ stages:
 
       build_x86_64:
         name: build-x86-64
-        if: ${{ atomgit.event.pull_request.base.ref == 'master' }}
+        if: ${{ inputs.target_branch == 'master' }}
         runs-on: [self-hosted, ubse, x86, cpu=8]
         timeout-minutes: 90
         container:
@@ -136,7 +112,8 @@ stages:
           - name: Checkout PR merge code
             uses: checkout
             with:
-              ref: refs/merge-requests/${{ env.PR_ID }}/merge
+              ref: refs/merge-requests/${{ inputs.pr_id }}/merge
+              allow-unsafe-pr-checkout: true
 
           - name: Install build dependencies
             run: |
@@ -220,7 +197,8 @@ stages:
           - name: Checkout PR merge code
             uses: checkout
             with:
-              ref: refs/merge-requests/${{ env.PR_ID }}/merge
+              ref: refs/merge-requests/${{ inputs.pr_id }}/merge
+              allow-unsafe-pr-checkout: true
 
           - name: Install common dependencies
             run: |
@@ -313,7 +291,7 @@ stages:
 
       dt:
         name: DT
-        if: ${{ atomgit.event.pull_request.base.ref == 'master' }}
+        if: ${{ inputs.target_branch == 'master' }}
         runs-on: [self-hosted, ubse, arm, cpu=8]
         timeout-minutes: 90
         container:
@@ -323,7 +301,8 @@ stages:
           - name: Checkout PR merge code
             uses: checkout
             with:
-              ref: refs/merge-requests/${{ env.PR_ID }}/merge
+              ref: refs/merge-requests/${{ inputs.pr_id }}/merge
+              allow-unsafe-pr-checkout: true
 
           - name: Install DT dependencies
             run: |
@@ -333,6 +312,8 @@ stages:
                 cmake \
                 maven \
                 libaio-devel \
+                libasan \
+                lcov \
                 git \
                 gcc \
                 gcc-c++ \
@@ -403,20 +384,26 @@ stages:
               mkdir -p "${shard_dir}" "${report_dir}"
 
               cd build
+              lcov_pids=()
               for dir in $(
                 find src/core -name '*.gcda' |
                   cut -d/ -f1-3 |
                   sort -u
               ); do
+                shard_name="${dir//\//_}"
                 lcov --capture \
                   --directory "${dir}" \
                   --exclude '/usr/include/*' \
                   --exclude '/usr/local/*' \
                   --exclude '*generated.h' \
-                  --output-file "${shard_dir}/$(basename "${dir}").info" \
+                  --output-file "${shard_dir}/${shard_name}.info" \
                   --rc lcov_branch_coverage=1 &
+                lcov_pids+=("$!")
               done
-              wait
+
+              for pid in "${lcov_pids[@]}"; do
+                wait "${pid}"
+              done
 
               shard_files=("${shard_dir}"/*.info)
               if (( ${#shard_files[@]} == 0 )); then
@@ -473,16 +460,3 @@ stages:
             with:
               name: ci-result-dt
               path: .ci-results/DT
-
-post:
-  jobs:
-    report_result:
-      name: Report pipeline result
-      runs-on: [self-hosted, openeuler, arm, cpu=8]
-      steps:
-        - name: Set result label
-          if: ${{ atomgit.event.pull_request.number != '' }}
-          uses: openlibing/pr-label-action@v1.0.0
-          with:
-            add_labels: ${{ pipeline.upstream_status == 'COMPLETED' && 'ci-pipeline-passed' || 'ci-pipeline-failed' }}
-            remove_labels: ci-pipeline-running,${{ pipeline.upstream_status == 'COMPLETED' && 'ci-pipeline-failed' || 'ci-pipeline-passed' }}
