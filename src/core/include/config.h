@@ -375,6 +375,17 @@ public:
         mZeroCopySwitch = zeroCopySwitch;
     }
 
+    // 获取单条读取缓存开关, 默认值为true.
+    inline bool GetPointCacheSwitch() const
+    {
+        return mPointCacheSwitch;
+    }
+
+    inline void SetPointCacheSwitch(bool pointCacheSwitch)
+    {
+        mPointCacheSwitch = pointCacheSwitch;
+    }
+
     // 获取cacheIndexAndFilter开关, 默认值为true.
     inline bool GetCacheIndexAndFilterSwitch() const
     {
@@ -579,6 +590,7 @@ public:
     int32_t mLsmStoreCompactionSwitch = 1;
     bool mTtlFilterSwitch = false;
     bool mZeroCopySwitch = false;
+    bool mPointCacheSwitch = true;
     bool mIsKVSeparate = false;
     uint32_t mBlobDefaultBlockSize = IO_SIZE_16K;
     uint32_t mBlobValueSizeThreshold = 200;

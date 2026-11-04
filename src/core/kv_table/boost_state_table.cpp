@@ -63,7 +63,17 @@ BResult AbstractTable::Init(const FreshTableRef &freshTable, const SliceTableMan
     } else {
         mStateFilter = std::make_shared<NoStateFilter>();
     }
+    mFreshTable->GetPointCache().SetStateEnabled(GetStateId(), tableTtl <= 0);
     return BSS_OK;
+}
+
+void AbstractTable::SetStateIdProvider(const StateIdProviderRef &stateIdProvider)
+{
+    mStateIdProvider = stateIdProvider;
+    mStateIdHelper = std::make_shared<TableStateIdHelper>(mDescription, stateIdProvider);
+    if (mFreshTable != nullptr && mStateFilter != nullptr) {
+        mFreshTable->GetPointCache().SetStateEnabled(GetStateId(), mStateFilter->GetTtlTime() <= 0);
+    }
 }
 
 uint16_t AbstractTable::GetStateId(uint32_t &keyHashCode)
@@ -83,6 +93,9 @@ void AbstractTable::RegisterListCompactionFilter(ListTtlCompactionFilter filter)
 SequenceIdFilterRef &AbstractTable::UpdateTtl(int64_t tableTtl)
 {
     mStateFilter = std::make_shared<TtlStateFilter>(tableTtl);
+    if (mFreshTable != nullptr && mStateIdProvider != nullptr && mDescription != nullptr) {
+        mFreshTable->GetPointCache().SetStateEnabled(GetStateId(), tableTtl <= 0);
+    }
     return mStateFilter;
 }
 
@@ -149,6 +162,11 @@ BResult KVTable::Get(uint32_t hashCode, const BinaryData &key, BinaryData &value
 {
     uint16_t stateId = GetStateId(hashCode);
     QueryKey queryKey(stateId, hashCode, key);
+    auto cacheKey = FreshTable::ToPointCacheKey(queryKey);
+    auto &cache = mFreshTable->GetPointCache();
+    if (cache.Get(cacheKey, value)) {
+        return BSS_OK;
+    }
     Value result;
 
     // 1. 从FreshTable中读取value.
@@ -164,6 +182,9 @@ BResult KVTable::Get(uint32_t hashCode, const BinaryData &key, BinaryData &value
     found = mSliceTable->Get(queryKey, result);
     if (found) {
         value.Init(result.ValueData(), result.ValueLen(), result.Buffer());
+        if (result.ValueType() == ValueType::PUT) {
+            cache.Put(cacheKey, value);
+        }
         return BSS_OK;
     }
 
@@ -246,6 +267,11 @@ BResult AbstractKMapTable::Get(uint32_t keyHashCode, const BinaryData &priKey, c
     // trans to dual key.
     uint16_t stateId = GetStateId(keyHashCode);
     QueryKey queryKey(stateId, keyHashCode, priKey, secKey);
+    auto cacheKey = FreshTable::ToPointCacheKey(queryKey);
+    auto &cache = mFreshTable->GetPointCache();
+    if (cache.Get(cacheKey, value)) {
+        return BSS_OK;
+    }
     Value result;
 
     // get from fresh table.
@@ -261,6 +287,9 @@ BResult AbstractKMapTable::Get(uint32_t keyHashCode, const BinaryData &priKey, c
     found = mSliceTable->Get(queryKey, result);
     if (LIKELY(found)) {
         value.Init(result.ValueData(), result.ValueLen(), result.Buffer());
+        if (result.ValueType() == ValueType::PUT) {
+            cache.Put(cacheKey, value);
+        }
         return BSS_OK;
     }
 

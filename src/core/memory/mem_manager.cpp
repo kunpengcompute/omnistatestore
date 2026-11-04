@@ -13,6 +13,8 @@
 
 #include <unistd.h>
 
+#include "fresh_table/point_cache.h"
+
 namespace ock {
 namespace bss {
 MemManager *MemManager::mInstance = nullptr;
@@ -317,6 +319,10 @@ bool MemManager::CalMemoryTypeSize(uint64_t memoryLimit)
 
     uint64_t allocatedSize = totalFreshTypeSize + mTypeMaxSize[static_cast<size_t>(MemoryType::SNAPSHOT)] +
                              mTypeMaxSize[static_cast<size_t>(MemoryType::FILE_STORE)];
+    // 从SliceTable内存预算中为每个DB一次预留完整的缓存预算.
+    if (mConfig->GetPointCacheSwitch()) {
+        allocatedSize += static_cast<uint64_t>(mDbRefCount.load()) * PointCache::CACHE_BUDGET;
+    }
 
     if (availableMem <= allocatedSize) {
         LOG_ERROR("current db memory limit: " << memoryLimit << " is not enough.");

@@ -21,6 +21,7 @@
 #include "fresh_table/boost/boost_segment.h"
 #include "fresh_table/handle/slice_handle.h"
 #include "fresh_table/memory/memory_segment.h"
+#include "fresh_table/point_cache.h"
 #include "include/bss_err.h"
 #include "include/bss_types.h"
 #include "snapshot/snapshot_restore_utils.h"
@@ -123,6 +124,21 @@ public:
      * @return return BSS_OK if success, else return BSS_ERR.
      */
     BResult Append(const Key &key, const Value &value);
+
+    inline PointCache &GetPointCache()
+    {
+        return mPointCache;
+    }
+
+    static inline PointCacheKey ToPointCacheKey(const Key &key)
+    {
+        return { key.StateId(),
+                 key.MixedHashCode(),
+                 key.PriKey().KeyData(),
+                 key.PriKey().KeyLen(),
+                 key.HasSecKey() ? key.SecKey().KeyData() : nullptr,
+                 key.HasSecKey() ? key.SecKey().KeyLen() : 0 };
+    }
 
     /**
      * Resore fresh table by metas.
@@ -345,6 +361,9 @@ public:
 private:
     enum class MapLayerType { SINGLE_LAYER, DUAL_LAYER };
 
+    void UpdatePointCache(const Key &key, const Value &value, BResult result);
+    void CacheRead(const Key &key, const Value &value);
+
     // 初始化新的活跃二进制段
     // @return 初始化结果，成功返回 BResult::SUCCESS，失败返回相应的错误码
     BResult InitNewActiveBinarySegment();
@@ -413,6 +432,7 @@ private:
 
     BoostNativeMetricPtr mBoostNativeMetric = nullptr;
     KeyGroupUtilRef mKeyGroupUtil = nullptr;
+    PointCache mPointCache;
 };
 using FreshTableRef = std::shared_ptr<FreshTable>;
 

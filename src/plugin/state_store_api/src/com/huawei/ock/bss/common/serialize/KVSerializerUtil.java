@@ -24,7 +24,6 @@ import org.apache.flink.core.memory.MemoryUtils;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -175,7 +174,7 @@ public class KVSerializerUtil {
     }
 
     /**
-     * serList(序列化list)
+     * serList(序列化list，格式为元素个数和依次序列化的元素)
      *
      * @param elements          elements
      * @param elementSerializer elementSerializer
@@ -186,17 +185,9 @@ public class KVSerializerUtil {
         throws IOException {
         DirectDataOutputSerializer outputView = ThreadLocalOutputViewPool.current(false).getOutputView();
         outputView.writeInt(elements.size());
-        List<Integer> positionList = new ArrayList<>(elements.size());
-        int lastPosition = outputView.length();
 
         for (E element : elements) {
             elementSerializer.serialize(element, outputView);
-            positionList.add(outputView.length() - lastPosition);
-            lastPosition = outputView.length();
-        }
-
-        for (Integer integer : positionList) {
-            outputView.writeInt(integer);
         }
 
         return outputView.wrapDirectData();
@@ -235,19 +226,35 @@ public class KVSerializerUtil {
      */
     public static <E> List<? extends E> desList(StateListResult listCount,
         TypeSerializer<E> elementSerializer, DirectDataInputDeserializer inputView) throws IOException {
-        List<E> list = new LinkedList<>();
-        for (int i = 0; i < listCount.getSize(); i++) {
-            inputView.setBuffer(listCount.getAddresses()[i], listCount.getLengths()[i]);
+        List<E> list = new ArrayList<>();
+        desListInto(listCount, elementSerializer, inputView, list);
+        return list;
+    }
+
+    /**
+     * Append decoded elements to an existing list in buffer order.
+     *
+     * @param listCount         buffers to decode
+     * @param elementSerializer element serializer
+     * @param inputView         input view
+     * @param destination       list receiving the decoded elements
+     * @param <E>               element type
+     * @throws IOException if an element cannot be decoded
+     */
+    public static <E> void desListInto(StateListResult listCount, TypeSerializer<E> elementSerializer,
+        DirectDataInputDeserializer inputView, List<E> destination) throws IOException {
+        int size = listCount.getSize();
+        long[] addresses = listCount.getAddresses();
+        int[] lengths = listCount.getLengths();
+        for (int i = 0; i < size; i++) {
+            inputView.setBuffer(addresses[i], lengths[i]);
             while (inputView.available() > 0) {
                 int subListSize = inputView.readInt();
                 for (int j = 0; j < subListSize; j++) {
-                    list.add(elementSerializer.deserialize(inputView));
+                    destination.add(elementSerializer.deserialize(inputView));
                 }
-                inputView.skipBytes(subListSize * 4);
             }
         }
-
-        return list;
     }
 
     /**

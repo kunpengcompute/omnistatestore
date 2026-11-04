@@ -47,7 +47,7 @@ public final class FlinkTtlListCompactionFilter {
     }
 
     /**
-     * Called for lists only. Each native list chunk is count, serialized elements, then element lengths.
+     * Called for lists only. Each native list chunk is count followed by serialized elements.
      * Deserialization locates variable-length elements; survivors are copied verbatim, including TTL.
      * Returning the input denotes no change; null denotes an empty result.
      */
@@ -68,26 +68,19 @@ public final class FlinkTtlListCompactionFilter {
         boolean changed = false;
         while (input.available() > 0) {
             int count = input.readInt();
-            if (count < 0 || count > input.available() / 12) {
+            if (count < 0 || count > input.available() / Long.BYTES) {
                 throw new IOException("Invalid TTL list element count: " + count);
             }
-            int[] lengths = new int[count];
             for (int i = 0; i < count; i++) {
                 int start = input.getPosition();
                 TtlValue<?> value = (TtlValue<?>) serializer.deserialize(input);
-                lengths[i] = input.getPosition() - start;
                 long timestamp = value.getLastAccessTimestamp();
                 long expires = ttl > 0 && timestamp > Long.MAX_VALUE - ttl ? Long.MAX_VALUE : timestamp + ttl;
                 boolean expired = ttl > 0 && expires <= now;
                 if (expired) {
                     changed = true;
                 } else {
-                    survivors.add(new int[] {start, lengths[i]});
-                }
-            }
-            for (int length : lengths) {
-                if (input.readInt() != length) {
-                    throw new IOException("Invalid TTL list element length");
+                    survivors.add(new int[] {start, input.getPosition() - start});
                 }
             }
         }
@@ -101,9 +94,6 @@ public final class FlinkTtlListCompactionFilter {
         output.writeInt(survivors.size());
         for (int[] survivor : survivors) {
             output.write(bytes, survivor[0], survivor[1]);
-        }
-        for (int[] survivor : survivors) {
-            output.writeInt(survivor[1]);
         }
         return output.getCopyOfBuffer();
     }

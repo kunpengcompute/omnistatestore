@@ -153,15 +153,42 @@ void FreshTable::Open()
 
 BResult FreshTable::Put(const Key &key, const Value &value)
 {
+    IncrementFreshKeyValueSize(key, value);
+    bool cacheWrite = mPointCache.IsStateEnabled(key.StateId()) &&
+                      (value.ValueType() == ValueType::PUT ?
+                           mPointCache.PrepareWrite(ToPointCacheKey(key), value.ValueLen()) :
+                           mPointCache.Contains(ToPointCacheKey(key)));
     auto writer = [this, key, value]() -> BResult { return mActive->GetBinaryData()->Put(key, value); };
     uint32_t size = BoostHashMap::GetPriKeyLength(key) + BoostHashMap::GetValueLength(value);
-    IncrementFreshKeyValueSize(key, value);
+    BResult result = BSS_OK;
     if (UNLIKELY(ShouldForceRequireMemory(size))) {
-        return RunWithForceRequireMemory(writer, size, MapLayerType::SINGLE_LAYER);
+        result = RunWithForceRequireMemory(writer, size, MapLayerType::SINGLE_LAYER);
     } else {
         RequireMemoryUntilSuccess(writer);
-        return BSS_OK;
     }
+    if (cacheWrite) {
+        UpdatePointCache(key, value, result);
+    }
+    return result;
+}
+
+void FreshTable::UpdatePointCache(const Key &key, const Value &value, BResult result)
+{
+    auto cacheKey = ToPointCacheKey(key);
+    if (result == BSS_OK && value.ValueType() == ValueType::PUT) {
+        mPointCache.Write(cacheKey, BinaryData(value.ValueData(), value.ValueLen()));
+    } else {
+        mPointCache.Erase(cacheKey);
+    }
+}
+
+void FreshTable::CacheRead(const Key &key, const Value &value)
+{
+    if (!mPointCache.IsStateEnabled(key.StateId()) || value.ValueType() != ValueType::PUT ||
+        value.ValueLen() > PointCache::MAX_KV_SIZE) {
+        return;
+    }
+    mPointCache.Put(ToPointCacheKey(key), BinaryData(value.ValueData(), value.ValueLen()));
 }
 
 bool FreshTable::GetList(const Key &key, std::deque<Value> &result)
@@ -256,16 +283,26 @@ BResult FreshTable::Append(const Key &key, const Value &value)
 bool FreshTable::GetKMap(const Key &key, Value &value)
 {
     auto active = GetActiveSegment();
-    bool found = active->GetBinaryData()->GetKMap(key, value);
+    // Tombstones leave the hash map's output unchanged. Only refill from this lookup's own result.
+    Value result;
+    bool found = active->GetBinaryData()->GetKMap(key, result);
     if (found) {
+        CacheRead(key, result);
+        if (result.ValueType() != INVALID_U8) {
+            value = std::move(result);
+        }
         return true;
     }
 
     ReadLocker<ReadWriteLock> lock(&mRwLock);
     auto snapshots = mSnapshotQueue.GetDeque();
     for (auto it = snapshots.rbegin(); it != snapshots.rend(); ++it) {
-        found = (*it)->GetBinaryData()->GetKMap(key, value);
+        found = (*it)->GetBinaryData()->GetKMap(key, result);
         if (found) {
+            CacheRead(key, result);
+            if (result.ValueType() != INVALID_U8) {
+                value = std::move(result);
+            }
             return true;
         }
     }
@@ -274,17 +311,27 @@ bool FreshTable::GetKMap(const Key &key, Value &value)
 
 bool FreshTable::Get(const Key &key, Value &value)
 {
+    // The caller may reuse a Value containing bytes from another key.
     auto active = GetActiveSegment();
-    bool found = active->GetBinaryData()->Get(key, value);
+    Value result;
+    bool found = active->GetBinaryData()->Get(key, result);
     if (found) {
+        CacheRead(key, result);
+        if (result.ValueType() != INVALID_U8) {
+            value = std::move(result);
+        }
         return true;
     }
 
     ReadLocker<ReadWriteLock> lock(&mRwLock);
     auto snapshots = mSnapshotQueue.GetDeque();
     for (auto it = snapshots.rbegin(); it != snapshots.rend(); ++it) {
-        found = (*it)->GetBinaryData()->Get(key, value);
+        found = (*it)->GetBinaryData()->Get(key, result);
         if (found) {
+            CacheRead(key, result);
+            if (result.ValueType() != INVALID_U8) {
+                value = std::move(result);
+            }
             return true;
         }
     }
@@ -294,6 +341,10 @@ bool FreshTable::Get(const Key &key, Value &value)
 BResult FreshTable::Add(const KeyValue &keyValue)
 {
     IncrementFreshKeyMapSize(keyValue);
+    bool cacheWrite = mPointCache.IsStateEnabled(keyValue.key.StateId()) &&
+                      (keyValue.value.ValueType() == ValueType::PUT ?
+                           mPointCache.PrepareWrite(ToPointCacheKey(keyValue.key), keyValue.value.ValueLen()) :
+                           mPointCache.Contains(ToPointCacheKey(keyValue.key)));
     auto writer = [this, &keyValue]() -> BResult {
         if (UNLIKELY(mActive == nullptr || mActive->GetBinaryData() == nullptr)) {
             return BSS_INNER_RETRY;
@@ -301,12 +352,16 @@ BResult FreshTable::Add(const KeyValue &keyValue)
         return mActive->GetBinaryData()->Put(keyValue);
     };
     uint32_t size = BoostHashMap::GetKeyLength(keyValue.key) + BoostHashMap::GetValueLength(keyValue.value);
+    BResult result = BSS_OK;
     if (ShouldForceRequireMemory(size)) {  // 待写入kV大小超过memorySegment容量的一半, 则新建memorySegment用来写入.
-        return RunWithForceRequireMemory(writer, size, MapLayerType::SINGLE_LAYER);
+        result = RunWithForceRequireMemory(writer, size, MapLayerType::SINGLE_LAYER);
     } else {
         RequireMemoryUntilSuccess(writer);
     }
-    return BSS_OK;
+    if (cacheWrite) {
+        UpdatePointCache(keyValue.key, keyValue.value, result);
+    }
+    return result;
 }
 
 void FreshTable::RequireMemoryUntilSuccess(const std::function<BResult()> &function)
@@ -405,11 +460,16 @@ BResult FreshTable::Initialize(const ConfigRef &config, const MemManagerRef &mem
     mConfig = config;
     mMemManager = memManager;
     mKeyGroupUtil = keyGroupUtil;
-    return InitNewActiveBinarySegment();
+    auto ret = InitNewActiveBinarySegment();
+    if (ret == BSS_OK && config->GetPointCacheSwitch() && !mPointCache.Initialize()) {
+        LOG_WARN("Point cache allocation failed, use normal table reads.");
+    }
+    return ret;
 }
 
 BResult FreshTable::Restore(const std::vector<RestoredDbMetaRef> &restoredDbMetas)
 {
+    mPointCache.Clear();
     auto memorySegmentSize = mConfig->GetMemorySegmentSize();
     std::vector<RestoredDbMetaRef> usefulMetas;
     for (const auto &dbMeta : restoredDbMetas) {  // 过滤掉不属于该KeyGroup的dbMeta.

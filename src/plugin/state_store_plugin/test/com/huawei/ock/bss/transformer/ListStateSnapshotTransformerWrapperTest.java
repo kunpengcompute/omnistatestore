@@ -12,6 +12,7 @@
 package com.huawei.ock.bss.transformer;
 
 import com.huawei.ock.bss.common.serialize.KVSerializerUtil;
+import com.huawei.ock.bss.common.serialize.ThreadLocalOutputViewPool;
 
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
@@ -40,6 +41,7 @@ public class ListStateSnapshotTransformerWrapperTest {
 
     @Before
     public void setUp() {
+        ThreadLocalOutputViewPool.current(true);
         transformerWrapper = new ListStateSnapshotTransformerWrapper<>(new TestSnapshotTransformer(),
             elementSerializer);
     }
@@ -70,8 +72,9 @@ public class ListStateSnapshotTransformerWrapperTest {
         byte[] transformedData = transformerWrapper.filterOrTransform(serializedData);
         Assert.assertNotNull(transformedData);
         List<String> transformedList = toList(transformedData, elementSerializer, new DataInputDeserializer());
-        Assert.assertEquals(testList.size(), transformedList.size());
-        transformedList.forEach(e -> Assert.assertTrue(destList.contains(e)));
+        Assert.assertEquals(destList, transformedList);
+        Assert.assertArrayEquals(KVSerializerUtil.getCopyOfBuffer(KVSerializerUtil.serList(destList, elementSerializer)),
+            transformedData);
     }
 
     @Test
@@ -95,8 +98,7 @@ public class ListStateSnapshotTransformerWrapperTest {
         byte[] transformedData = transformerWrapper.filterOrTransform(serializedDatas);
         Assert.assertNotNull(transformedData);
         List<String> transformedList = toList(transformedData, elementSerializer, new DataInputDeserializer());
-        Assert.assertEquals(testList1.size() + testList2.size(), transformedList.size());
-        transformedList.forEach(e -> Assert.assertTrue(destList.contains(e)));
+        Assert.assertEquals(destList, transformedList);
     }
 
     private static <E> List<E> toList(byte[] data, TypeSerializer<E> elementSerializer,
@@ -120,7 +122,6 @@ public class ListStateSnapshotTransformerWrapperTest {
             list.add(elementSerializer.deserialize(inputView));
         }
 
-        inputView.skipBytes(size * 4);
         return list;
     }
 }

@@ -288,6 +288,15 @@ inline bool GetCacheFilterAndIndexSwitch(JNIEnv *env, jclass boostConfigClass, j
     return static_cast<bool>(env->CallBooleanMethod(jBoostConfig, getCacheFilterAndIndexSwitch));
 }
 
+inline bool GetPointCacheSwitch(JNIEnv *env, jclass boostConfigClass, jobject jBoostConfig)
+{
+    jmethodID getPointCacheSwitch = env->GetMethodID(boostConfigClass, "getPointCacheSwitch", "()Z");
+    if (getPointCacheSwitch == nullptr) {
+        return false;
+    }
+    return static_cast<bool>(env->CallBooleanMethod(jBoostConfig, getPointCacheSwitch));
+}
+
 inline int32_t GetTaskSlotFlag(JNIEnv *env, jclass boostConfigClass, jobject jBoostConfig)
 {
     jmethodID getTaskSlotFlag = env->GetMethodID(boostConfigClass, "getTaskSlotFlag", "()I");
@@ -504,6 +513,9 @@ inline ConfigRef CreateConfig(JNIEnv *env, jobject jBoostConfig)
     auto zeroCopySwitch = GetZeroCopySwitch(env, boostConfigClass, jBoostConfig);
     LOG_INFO("Parse configuration item zeroCopySwitch:" << zeroCopySwitch);
 
+    auto pointCacheSwitch = GetPointCacheSwitch(env, boostConfigClass, jBoostConfig);
+    LOG_INFO("Parse configuration item pointCacheSwitch:" << pointCacheSwitch);
+
     // 获取cacheFilterAndIndexSwitch
     auto cacheFilterAndIndexSwitch = GetCacheFilterAndIndexSwitch(env, boostConfigClass, jBoostConfig);
     LOG_INFO("Parse configuration item cacheFilterAndIndexSwitch:" << cacheFilterAndIndexSwitch);
@@ -599,6 +611,7 @@ inline ConfigRef CreateConfig(JNIEnv *env, jobject jBoostConfig)
     config->SetLsmStoreCompactionSwitch(compactionSwitch);
     config->SetTtlFilterSwitch(ttlFilterSwitch);
     config->SetZeroCopySwitch(zeroCopySwitch);
+    config->SetPointCacheSwitch(pointCacheSwitch);
     config->SetCacheIndexAndFilterSwitch(cacheFilterAndIndexSwitch);
     config->SetCacheIndexAndFilterRatio(cacheIndexAndFilterRatio);
     config->SetLsmStoreCompressionPolicy(lsmStoreCompressionPolicy);

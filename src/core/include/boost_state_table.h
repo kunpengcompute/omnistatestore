@@ -89,11 +89,7 @@ public:
 
     uint16_t GetStateId(uint32_t &keyHashCode);
 
-    inline void SetStateIdProvider(const StateIdProviderRef &stateIdProvider)
-    {
-        mStateIdProvider = stateIdProvider;
-        mStateIdHelper = std::make_shared<TableStateIdHelper>(mDescription, stateIdProvider);
-    }
+    void SetStateIdProvider(const StateIdProviderRef &stateIdProvider);
 
     inline TableDescriptionRef GetTableDescription() const override
     {

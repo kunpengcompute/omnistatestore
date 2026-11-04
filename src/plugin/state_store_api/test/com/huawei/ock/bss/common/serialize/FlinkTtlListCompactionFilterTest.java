@@ -11,18 +11,22 @@
 
 package com.huawei.ock.bss.common.serialize;
 
+import com.huawei.ock.bss.common.memory.DirectDataInputDeserializer;
+import com.huawei.ock.bss.common.memory.DirectDataOutputSerializer;
 import com.huawei.ock.bss.table.description.KListTableDescription;
+import com.huawei.ock.bss.table.result.StateListResult;
 
+import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.IntSerializer;
 import org.apache.flink.api.common.typeutils.base.LongSerializer;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
-import org.apache.flink.core.memory.DataOutputSerializer;
 import org.apache.flink.runtime.state.ttl.TtlStateFactory;
 import org.apache.flink.runtime.state.ttl.TtlValue;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -37,18 +41,21 @@ public class FlinkTtlListCompactionFilterTest {
 
     @SafeVarargs
     private final byte[] chunk(TtlValue<String>... values) throws IOException {
-        DataOutputSerializer out = new DataOutputSerializer(128);
-        out.writeInt(values.length);
-        int[] lengths = new int[values.length];
-        for (int i = 0; i < values.length; i++) {
-            int start = out.length();
-            serializer.serialize(values[i], out);
-            lengths[i] = out.length() - start;
-        }
-        for (int length : lengths) {
-            out.writeInt(length);
-        }
-        return out.getCopyOfBuffer();
+        return serialize(Arrays.asList(values), serializer);
+    }
+
+    private <E> byte[] serialize(List<E> values, TypeSerializer<E> elementSerializer) throws IOException {
+        ThreadLocalOutputViewPool.current(true);
+        return KVSerializerUtil.getCopyOfBuffer(KVSerializerUtil.serList(values, elementSerializer));
+    }
+
+    private <E> List<? extends E> deserialize(byte[] bytes, TypeSerializer<E> elementSerializer) throws IOException {
+        DirectDataOutputSerializer output = ThreadLocalOutputViewPool.current(true).getOutputView();
+        output.write(bytes);
+        StateListResult result = new StateListResult(0, 1);
+        result.setAddresses(new long[] {output.data()});
+        result.setLengths(new int[] {output.length()});
+        return KVSerializerUtil.desList(result, elementSerializer, new DirectDataInputDeserializer());
     }
 
     @Test
@@ -59,6 +66,12 @@ public class FlinkTtlListCompactionFilterTest {
         System.arraycopy(newer, 0, merged, older.length, newer.length);
         byte[] result = filter().filterList(merged, 100, 1100);
         assertArrayEquals(chunk(new TtlValue<>("live-long-value", 1050), new TtlValue<>("x", 1090)), result);
+        List<? extends TtlValue<String>> values = deserialize(result, serializer);
+        assertEquals(2, values.size());
+        assertEquals("live-long-value", values.get(0).getUserValue());
+        assertEquals(1050, values.get(0).getLastAccessTimestamp());
+        assertEquals("x", values.get(1).getUserValue());
+        assertEquals(1090, values.get(1).getLastAccessTimestamp());
         assertSame(result, filter().filterList(result, 100, 1100));
         assertNull(filter().filterList(result, 100, 1190));
     }
@@ -79,10 +92,9 @@ public class FlinkTtlListCompactionFilterTest {
     }
 
     @Test(expected = IOException.class)
-    public void malformedLengthsFailInsteadOfDroppingState() throws Exception {
+    public void truncatedElementFailsInsteadOfDroppingState() throws Exception {
         byte[] malformed = chunk(new TtlValue<>("expired", 0));
-        malformed[malformed.length - 1] ^= 1;
-        filter().filterList(malformed, 100, 1100);
+        filter().filterList(Arrays.copyOf(malformed, malformed.length - 1), 100, 1100);
     }
 
     @Test
