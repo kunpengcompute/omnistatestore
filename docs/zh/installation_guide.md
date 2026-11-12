@@ -219,7 +219,7 @@
     rm -rf flink-1.16.3-bin-scala_2.12.tgz
     ```
 
-3. 配置环境变量，在/etc/profile文件中添加：
+3. 配置环境变量，在/etc/profile文件中添加以下内容：
 
     ```shell
     export FLINK_HOME=/opt/flink-1.16.3
@@ -303,3 +303,9 @@
 rm -rf /usr/local/lib/librocksdb.so.6
 rm -rf flink-alg-falcon.jar
 ```
+
+## 修订记录
+
+| 文档版本 | 发布日期 | 修改说明 |
+| --- | --- | --- |
+| 01 | 2026-06-30 | 第一次正式发布。 |
