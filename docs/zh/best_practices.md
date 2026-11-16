@@ -222,3 +222,9 @@ state.backend.incremental: true
     ./shutdown_cluster.sh
     cd $FLINK_HOME/bin && ./stop-cluster.sh
     ```
+
+## 修订记录
+
+| 文档版本 | 发布日期 | 修改说明 |
+| --- | --- | --- |
+| 01 | 2026-06-30 | 第一次正式发布。 |

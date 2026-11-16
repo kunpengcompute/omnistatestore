@@ -6,11 +6,11 @@
 
 **问题现象**
 
-使用Flink1.16.1运行nexmark0.2-Q4用例，并尝试使能OmniStateStore特性，出现类构造器未查询到的问题。如下图所示：
+使用Flink 1.16.1运行nexmark0.2-Q4用例，并尝试使能OmniStateStore特性，出现类构造器未查询到的问题。如下图所示：
 
 **图1** OmniStateStore运行报错截图
 
-<img src="./figures/OmniStateStore faq1.png" alt="faq" width="1200" />
+<img src="./figures/OmniStateStore faq1.png" alt="Flink任务启动日志中RocksDBResourceContainer类构造器未找到的报错堆栈" width="1200" />
 
 **问题原因**
 
@@ -21,8 +21,9 @@
 **解决方案**
 
 可以采取以下两种方案进行测试：
-方案一：回退至Flink 1.16.3版本开展测试。
-方案二：将Flink 1.16.1的修改内容合并到 OmniStateStore中，重新编译打包后进行测试。
+
+- 方案一：回退至Flink 1.16.3版本开展测试。
+- 方案二：将Flink 1.16.1的修改内容合并到OmniStateStore中，重新编译打包后进行测试。
 
 ## OmniStateStore未正确部署导致任务无法正常启动的解决方法
 
@@ -32,11 +33,11 @@ Flink任务运行时未成功加载librocksdb.so.6，导致任务运行失败。
 
 **图2** OmniStateStore JobManager运行报错截图
 
-<img src="./figures/OmniStateStore faq2-1.png" alt="faq" width="1200" />
+<img src="./figures/OmniStateStore faq2-1.png" alt="JobManager日志中加载librocksdb.so.6失败的报错堆栈与提示信息" width="1200" />
 
 **图3** OmniStateStore TaskManager运行报错截图
 
-<img src="./figures/OmniStateStore faq2-2.png" alt="faq" width="1200" />
+<img src="./figures/OmniStateStore faq2-2.png" alt="TaskManager日志中librocksdb.so.6动态库未加载的任务运行失败报错" width="1200" />
 
 **问题原因**
 
@@ -56,3 +57,9 @@ ll /usr/local/lib  # 查看是否包含librocksdb.so.6
 ```shell
 mv librocksdb.so.6 /usr/local/lib
 ```
+
+## 修订记录
+
+| 文档版本 | 发布日期 | 修改说明 |
+| --- | --- | --- |
+| 01 | 2026-06-30 | 第一次正式发布。 |

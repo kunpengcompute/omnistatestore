@@ -54,7 +54,7 @@
       <td style="text-align: left;">state.backend.rocksdb.localdir</td>
       <td style="text-align: left;">/data/rocksdb</td>
       <td style="text-align: left;">状态存储的磁盘路径。</td>
-      <td style="text-align: left;">建议配置为NVME磁盘路径，保证磁盘有足够的存储空间。</td>
+      <td style="text-align: left;">建议配置为NVMe磁盘路径，保证磁盘有足够的存储空间。</td>
     </tr>
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.options-factory</td>
@@ -65,7 +65,7 @@
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-partition-filter</td>
       <td style="text-align: left;">true</td>
-      <td style="text-align: left;">动态filter技术子特性1，用于优化状态点读点写操作，默认值为false。</td>
+      <td style="text-align: left;">动态Filter技术子特性1，用于优化状态点读点写操作，默认值为false。</td>
       <td style="text-align: left;">-</td>
     </tr>
     <tr>
@@ -101,7 +101,7 @@
     <tr>
       <td style="text-align: left;">state.backend.rocksdb.falcon.use-state-cache</td>
       <td style="text-align: left;">true</td>
-      <td style="text-align: left;">ValueState状态缓存优化开关，用于RocksDBValueState读写开销，默认值为false。</td>
+      <td style="text-align: left;">ValueState状态缓存优化开关，用于减少RocksDB ValueState读写开销，默认值为false。</td>
       <td style="text-align: left;">-</td>
     </tr>
     <tr>
@@ -146,7 +146,7 @@
     <tr>
       <td style="text-align: left;">Flink语义状态缓存-Join算子数据缓存</td>
       <td style="text-align: left;">对于StreamingJoinOperator，通过数据缓存减少mapState范围查询次数。</td>
-      <td style="text-align: left;">[FALCON] enable miniBatch process for StreaminJoinOperator，若观测到该关键字，表示特性使能成功。</td>
+      <td style="text-align: left;">[FALCON] enable miniBatch process for StreamingJoinOperator，若观测到该关键字，表示特性使能成功。</td>
     </tr>
     <tr>
       <td style="text-align: left;">Flink语义状态缓存-ValueState状态缓存</td>
@@ -166,3 +166,9 @@
 若需要升级OmniStateStore，请参阅《[安装指南](./installation_guide.md#安装omnistatestore)》安装新版本OmniStateStore，无需卸载旧版本。
 
 若需要卸载OmniStateStore，请参阅《[安装指南](installation_guide.md#卸载omnistatestore)》卸载OmniStateStore，并删除`$FLINK_HOME/conf/flink-conf.yaml`文件中的相关配置项。
+
+## 修订记录
+
+| 文档版本 | 发布日期 | 修改说明 |
+| --- | --- | --- |
+| 01 | 2026-06-30 | 第一次正式发布。 |

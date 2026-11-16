@@ -1,5 +1,7 @@
 # OmniStateStore介绍
 
+本文档介绍OmniStateStore，通过对Flink进行轻量级修改，引入状态缓存、状态过滤和软算压缩优化降低Flink对RocksDB的IO开销，提升有状态用例的端到端性能，适用于需要优化Apache Flink状态存储性能的开发者。
+
 ## 最新消息
 
 - [2026.06.30] 发布OmniStateStore 1.3.0。通过调整RocksDB不同SST层级的压缩格式，结合软算压缩算法优化，降低状态Compaction过程中的压缩/解压缩开销，提升应用端到端吞吐。
@@ -34,7 +36,7 @@ OmniStateStore是对接Flink和RocksDB的中间层，包含动态Filter技术、
 
 **图1** OmniStateStore整体架构设计
 
-<img src="./docs/zh/figures/OmniStateStore整体架构设计.png" alt="OmniStateStore整体架构设计" width="800" />
+<img src="./docs/zh/figures/OmniStateStore整体架构设计.png" alt="OmniStateStore位于Flink与RocksDB之间的中间层架构，含动态Filter、状态缓存、Merge读写优化与LZ4压缩四个模块" width="800" />
 
 ### 典型部署配置
 
@@ -134,7 +136,7 @@ OmniStateStore/                       # 项目根目录
     </tr>
    <tr>      
       <td style="text-align: left;"><a href="./docs/zh/faq.md">常见问题</a></td>
-      <td style="text-align: left;">提供omniStateStore安装和运行过程中的场景问题和解决方案。</td>
+      <td style="text-align: left;">提供OmniStateStore安装和运行过程中的场景问题和解决方案。</td>
     </tr>
     <tr>      
       <td style="text-align: left;">视频课程：<a href="https://www.hikunpeng.com/document/video-detail/2644?page=home&type=video&title=OmniRuntime%E7%89%B9%E6%80%A7%E5%A4%A7%E6%8F%AD%E7%A7%98">OmniRuntime特性大揭秘</a></td>
@@ -277,10 +279,5 @@ OmniStateStore产品的文档使用的许可证，具体请参见 [LICENSE](./do
 欢迎大家为社区做贡献。如果有任何疑问或建议，请提交Issues，我们会尽快回复。感谢您的支持。
 
 ## 致谢
-
-OmniStateStore由华为公司的下列部门联合贡献：
-
-- 计算技术开发部
-- 鲲鹏计算Boostkit产品部
 
 感谢来自社区的每一个PR，欢迎贡献OmniStateStore！

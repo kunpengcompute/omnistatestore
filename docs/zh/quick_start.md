@@ -8,7 +8,7 @@ OmniStateStore的加速特性包含动态Filter技术、Flink语义状态缓存�
 
 - 通过**Flink语义状态缓存算法**，同Key状态优先在内存中完成聚合，减少状态对RocksDB的访问频次；
 
-- 通过**Flink智能多流感知算法**，对于仅需要点读、点写的状态，将memTable数据结构替换为HashLinkList, 提升状态点读和点写效率；
+- 通过**Flink智能多流感知算法**，对于仅需要点读、点写的状态，将memTable数据结构替换为HashLinkList，提升状态点读和点写效率；
 
 - 通过**使用merge替换状态RMW**，减少Join算子的状态更新开销；
 
@@ -71,7 +71,7 @@ OmniStateStore特性的使能过程中，存在以下约束：
   用户可以在Flink的运行日志中搜索以下关键字，来确认OmniStateStore特性已启用成功。
 
     ```text
-    [FALCON] enable miniBatch process for StreaminJoinOperator.
+    [FALCON] enable miniBatch process for StreamingJoinOperator.
     [FALCON] accState is valueState, use HashLinkList as memTable structure.
     [FALCON] left-records is map, use range filter.
     [FALCON] <accState, VALUE> enable falcon cache.
@@ -80,3 +80,9 @@ OmniStateStore特性的使能过程中，存在以下约束：
     ```
 
     若成功匹配到相关日志信息，说明OmniStateStore已生效，任务性能已得到优化。
+
+## 修订记录
+
+| 文档版本 | 发布日期 | 修改说明 |
+| --- | --- | --- |
+| 01 | 2026-06-30 | 第一次正式发布。 |
