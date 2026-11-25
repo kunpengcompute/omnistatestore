@@ -16,8 +16,9 @@
  * limitations under the License.
  *
  * We modify this part of the code based on Apache Flink to adapt to our customized BoostStateStore state backend.
- * Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
  */
+
 package com.huawei.ock.bss.common.memory;
 
 import com.huawei.ock.bss.common.exception.BSSRuntimeException;
