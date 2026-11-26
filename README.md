@@ -278,9 +278,4 @@ OmniStateStore产品的文档使用的许可证，具体请参见 [LICENSE](./do
 
 ## 致谢
 
-OmniStateStore由华为公司的下列部门联合贡献：
-
-- 计算技术开发部
-- 鲲鹏计算Boostkit产品部
-
 感谢来自社区的每一个PR，欢迎贡献OmniStateStore！
