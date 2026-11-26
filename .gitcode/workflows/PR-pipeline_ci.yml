@@ -213,6 +213,8 @@ stages:
               git --version
 
           - name: Build or test aarch64
+            env:
+              BOOSTKIT_CI_REVISION: 6ed28bce8cdba0d989cf653944a28b0cbf8da2f3
             run: |
               set -euxo pipefail
 
