@@ -276,9 +276,4 @@ You are welcome to contribute to the community. If you have any questions or sug
 
 ## Acknowledgments
 
-OmniStateStore is jointly developed by the following Huawei departments:
-
-- Technology Development Dept, Computing Product Line
-- Kunpeng Computing BoostKit Development Dept
-
 Thank you to everyone in the community for your PRs. We warmly welcome contributions to OmniStateStore!
