@@ -183,7 +183,3 @@
 OmniStateStore的使用许可证，具体请参见[LICENSE](./LICENSE)文件。
 
 docs目录下的文档适用CC-BY 4.0许可证，具体请参见[LICENSE](/LICENSE)文件。
-
-## 说明
-
-此开源项目非华为产品，仅提供有限支持。
